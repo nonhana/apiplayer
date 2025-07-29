@@ -1,0 +1,85 @@
+# Log files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build output
+dist/
+dist-ssr/
+build/
+.next/
+.nuxt/
+.out/
+.storybook-out/
+coverage/
+lib-cov/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.rpt2_cache/
+.rts2_cache_*/
+.rts2_cache_es/
+.rts2_cache_cjs/
+.rts2_cache_umd/
+.nyc_output/
+.eslintcache
+.rts2_cache_*/
+.rpt2_cache/
+.npm
+.yarn-integrity
+
+# Package management
+node_modules/
+jspm_packages/
+bower_components/
+web_modules/
+*.tgz
+
+# Lock and PID files
+.lock-wscript
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+*.local
+
+# Editor directories and files
+.cursor/
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Swap and temp files
+*.sw?
+*.swp
+*.swo
+tmp/
+temp/
+
+# System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Miscellaneous
+.node_repl_history
