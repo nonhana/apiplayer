@@ -5,12 +5,17 @@
   "scripts": {
     "dev": "nest start --watch",
     "build": "tsdown",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@prisma/client": "^6.12.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -21,6 +26,7 @@
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
     "@types/express": "^5.0.0",
+    "prisma": "^6.12.0",
     "source-map-support": "^0.5.21",
     "ts-loader": "^9.5.2",
     "tsconfig-paths": "^4.2.0",

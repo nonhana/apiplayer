@@ -6,4 +6,7 @@ export default antfu({
   jsonc: true,
   markdown: true,
   yaml: true,
+  rules: {
+    'no-console': 'off',
+  },
 })

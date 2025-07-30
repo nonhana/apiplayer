@@ -1,0 +1,500 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// 基础枚举定义
+// ============================================================================
+
+// 项目环境
+enum ProjectEnvType {
+  DEV
+  TEST
+  STAGING
+  PROD
+  MOCK
+}
+
+// API 请求方法
+enum APIMethod {
+  GET
+  POST
+  PUT
+  DELETE
+  PATCH
+  OPTIONS
+  HEAD
+}
+
+// API 状态
+enum APIStatus {
+  DRAFT
+  TESTING
+  PUBLISHED
+  DEPRECATED
+}
+
+// 参数数据类型
+enum ParamType {
+  STRING
+  NUMBER
+  INTEGER
+  BOOLEAN
+  ARRAY
+  OBJECT
+  FILE
+}
+
+// 请求参数类型
+enum RequestParamCategory {
+  PATH
+  QUERY
+  HEADER
+  COOKIE
+  FORM_DATA
+  FORM_URL_ENCODED
+  BODY_JSON
+  BODY_XML
+  BODY_RAW
+}
+
+// 版本变更类型
+enum VersionChangeType {
+  BASIC_INFO // 基本信息变更
+  REQUEST_PARAM // 请求参数变更
+  REQUEST_BODY // 请求体变更
+  RESPONSE // 响应变更
+  CREATE // 新增接口
+  DELETE // 删除接口
+  RESTORE // 版本回滚
+}
+
+// 删除状态
+enum RecordStatus {
+  ACTIVE
+  DELETED
+}
+
+// 版本类型
+enum VersionStatus {
+  DRAFT // 草稿版本
+  CURRENT // 当前版本
+  ARCHIVED // 已归档版本
+}
+
+// ============================================================================
+// RBAC 权限模型
+// ============================================================================
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique // 如：api:read, api:write, project:admin
+  description String?
+  resource    String // 资源类型：project, api, team 等
+  action      String // 操作类型：read, write, delete, admin 等
+  createdAt   DateTime @default(now())
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique // 角色名称必须唯一
+  description String?
+  isSystem    Boolean  @default(false) // 系统内置角色
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+  teamMembers     TeamMember[]
+  projectMembers  ProjectMember[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================================================
+// 核心业务模型
+// ============================================================================
+
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  username    String    @unique
+  name        String    @default("New User")
+  password    String
+  avatar      String?
+  bio         String?
+  isActive    Boolean   @default(true)
+  lastLoginAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // 关系
+  teamMembers      TeamMember[]
+  projectMembers   ProjectMember[]
+  recentlyProjects RecentlyProject[]
+  ownedAPIs        API[]             @relation("APIOwner")
+  editedAPIs       API[]             @relation("APIEditor")
+  createdAPIs      API[]             @relation("APICreator")
+  apiVersions      APIVersion[]
+  userSessions     UserSession[]
+  operationLogs    APIOperationLog[]
+
+  @@index([email])
+  @@index([username])
+  @@map("users")
+}
+
+model UserSession {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+  @@map("user_sessions")
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique // URL 友好的标识符
+  description String?
+  avatar      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members  TeamMember[]
+  projects Project[]
+
+  @@index([slug])
+  @@map("teams")
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  userId   String
+  teamId   String
+  roleId   String
+  nickname String?
+  joinedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, teamId])
+  @@index([teamId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+model Project {
+  id          String       @id @default(cuid())
+  teamId      String
+  name        String
+  slug        String // 在团队内唯一
+  description String?
+  icon        String?
+  isPublic    Boolean      @default(false)
+  status      RecordStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  team             Team                 @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  members          ProjectMember[]
+  environments     ProjectEnvironment[]
+  recentlyProjects RecentlyProject[]
+  apiGroups        APIGroup[]
+  apis             API[]
+  apiVersions      APIVersion[]
+  globalParams     GlobalParam[]
+
+  @@unique([teamId, slug])
+  @@index([teamId])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  roleId    String
+  joinedAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [id])
+
+  @@unique([userId, projectId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+model ProjectEnvironment {
+  id        String         @id @default(cuid())
+  projectId String
+  name      String
+  type      ProjectEnvType
+  baseUrl   String
+  variables Json           @default("{}") // 环境变量
+  headers   Json           @default("{}")
+  isDefault Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@map("project_environments")
+}
+
+model RecentlyProject {
+  userId        String
+  projectId     String
+  lastVisitedAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([userId, projectId])
+  @@map("recently_projects")
+}
+
+// ============================================================================
+// API 文档管理
+// ============================================================================
+
+model APIGroup {
+  id          String       @id @default(cuid())
+  projectId   String
+  parentId    String?
+  name        String
+  description String?
+  sortOrder   Int          @default(0)
+  status      RecordStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   APIGroup?  @relation("APIGroupHierarchy", fields: [parentId], references: [id])
+  children APIGroup[] @relation("APIGroupHierarchy")
+  apis     API[]
+
+  @@index([projectId])
+  @@index([parentId])
+  @@map("api_groups")
+}
+
+// API 主表 - 只保存基本信息和当前版本引用
+model API {
+  id        String    @id @default(cuid())
+  projectId String
+  groupId   String
+  name      String
+  method    APIMethod @default(GET)
+  path      String
+  tags      String[]  @default([])
+  sortOrder Int       @default(0)
+
+  // 负责人信息
+  ownerId   String?
+  editorId  String // 最后编辑者
+  creatorId String
+
+  // 当前版本引用
+  currentVersionId String? @unique // 确保一对一关系
+
+  // 状态控制
+  recordStatus RecordStatus @default(ACTIVE)
+  isPublic     Boolean      @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  group   APIGroup @relation(fields: [groupId], references: [id])
+  owner   User?    @relation("APIOwner", fields: [ownerId], references: [id])
+  editor  User     @relation("APIEditor", fields: [editorId], references: [id])
+  creator User     @relation("APICreator", fields: [creatorId], references: [id])
+
+  // 版本关系
+  versions       APIVersion[]
+  currentVersion APIVersion?  @relation("APICurrentVersion", fields: [currentVersionId], references: [id])
+
+  @@unique([projectId, path, method])
+  @@index([projectId])
+  @@index([groupId])
+  @@index([currentVersionId])
+  @@map("apis")
+}
+
+// API 版本表 - 每个版本的元信息和变更记录
+model APIVersion {
+  id          String              @id @default(cuid())
+  apiId       String
+  projectId   String
+  version     String // 版本号，如：v1.0.0, v1.1.0
+  status      VersionStatus       @default(DRAFT)
+  summary     String? // 版本摘要
+  changelog   String? // 变更日志
+  changes     VersionChangeType[] // 变更类型数组
+  editorId    String
+  publishedAt DateTime? // 发布时间
+  createdAt   DateTime            @default(now())
+
+  api     API     @relation(fields: [apiId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  editor  User    @relation(fields: [editorId], references: [id])
+
+  // 反向关系 - 当前版本
+  currentOfAPI API? @relation("APICurrentVersion")
+
+  // 快照数据
+  snapshot APISnapshot?
+
+  @@unique([apiId, version])
+  @@index([apiId])
+  @@index([projectId])
+  @@index([status])
+  @@index([publishedAt])
+  @@map("api_versions")
+}
+
+// API 快照表 - 存储每个版本的完整数据
+model APISnapshot {
+  id        String @id @default(cuid())
+  versionId String @unique
+
+  // API 基本信息快照
+  name        String
+  method      APIMethod
+  path        String
+  summary     String?
+  description String?
+  tags        String[]  @default([])
+  status      APIStatus @default(DRAFT)
+
+  // 请求信息快照 (JSON 格式存储)
+  requestHeaders Json  @default("[]") // 请求头参数
+  pathParams     Json  @default("[]") // 路径参数  
+  queryParams    Json  @default("[]") // 查询参数
+  requestBody    Json? // 请求体
+
+  // 响应信息快照 (JSON 格式存储)
+  responses Json @default("[]") // 响应列表
+
+  // 示例数据
+  examples Json @default("{}") // 请求/响应示例
+
+  // Mock 配置
+  mockConfig Json? // Mock 规则配置
+
+  createdAt DateTime @default(now())
+
+  version APIVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@index([versionId])
+  @@map("api_snapshots")
+}
+
+// ============================================================================
+// 版本比较和操作记录
+// ============================================================================
+
+// 版本比较结果缓存表
+model APIVersionComparison {
+  id            String   @id @default(cuid())
+  fromVersionId String
+  toVersionId   String
+  diffData      Json // 存储差异数据
+  createdAt     DateTime @default(now())
+
+  @@unique([fromVersionId, toVersionId])
+  @@index([fromVersionId])
+  @@index([toVersionId])
+  @@map("api_version_comparisons")
+}
+
+// API 操作记录表
+model APIOperationLog {
+  id          String              @id @default(cuid())
+  apiId       String
+  versionId   String?
+  userId      String
+  operation   String // 操作类型：create, update, publish, archive, restore
+  changes     VersionChangeType[] // 具体变更类型
+  description String? // 操作描述
+  metadata    Json? // 额外的元数据
+  createdAt   DateTime            @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([apiId])
+  @@index([versionId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("api_operation_logs")
+}
+
+// ============================================================================
+// 全局配置
+// ============================================================================
+
+model GlobalParam {
+  id          String               @id @default(cuid())
+  projectId   String
+  category    RequestParamCategory
+  name        String
+  type        ParamType
+  value       Json
+  description String?
+  isActive    Boolean              @default(true)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, category, name])
+  @@index([projectId])
+  @@map("global_params")
+}
+
+// ============================================================================
+// 系统配置
+// ============================================================================
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_configs")
+}
