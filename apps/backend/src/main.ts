@@ -20,8 +20,6 @@ async function bootstrap() {
   const port = configService.get<number>('PORT')
   const host = configService.get<string>('HOST')
 
-  console.log(nodeEnv, cookieSecret, port, host)
-
   if (nodeEnv === 'production') {
     app.useLogger(app.get(WinstonLogger))
   }
@@ -62,7 +60,7 @@ async function bootstrap() {
 
   const logger = new Logger('Bootstrap')
 
-  console.log(`🚀 应用程序已启动，访问地址: http://${host}:${port}`)
+  logger.log(`🚀 应用程序已启动，访问地址: http://${host}:${port}`)
   logger.log(`🌍 环境: ${nodeEnv}`)
 }
 

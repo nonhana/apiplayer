@@ -216,7 +216,7 @@ model Project {
   id          String       @id @default(cuid())
   teamId      String
   name        String
-  slug        String // 在团队内唯一
+  slug        String
   description String?
   icon        String?
   isPublic    Boolean      @default(false)

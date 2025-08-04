@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
+import { AppController } from './app.controller'
 import { AuthModule } from './auth/auth.module'
 import { AllExceptionFilter } from './common/filters/all-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
@@ -7,7 +8,6 @@ import { PrismaModule } from './common/prisma/prisma.module'
 import { EnvConfigModule } from './env-config/env-config.module'
 import { RedisModule } from './redis/redis.module'
 import { UserModule } from './user/user.module'
-import { AppController } from './utils/app.controller'
 
 @Module({
   imports: [

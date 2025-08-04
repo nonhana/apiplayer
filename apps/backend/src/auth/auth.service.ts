@@ -59,7 +59,7 @@ export class AuthService {
       })
 
       if (!user) {
-        throw new HanaException('邮箱或密码错误', ErrorCode.INVALID_PASSWORD, 401)
+        throw new HanaException('该邮箱未注册', ErrorCode.USER_NOT_FOUND, 401)
       }
 
       if (!user.isActive) {
@@ -69,7 +69,7 @@ export class AuthService {
       // 验证密码
       const isPasswordValid = await this.verifyPassword(password, user.password)
       if (!isPasswordValid) {
-        throw new HanaException('邮箱或密码错误', ErrorCode.INVALID_PASSWORD, 401)
+        throw new HanaException('密码错误', ErrorCode.INVALID_PASSWORD, 401)
       }
 
       // 获取用户角色（这里简化处理，实际可能需要复杂的权限查询）

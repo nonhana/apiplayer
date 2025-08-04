@@ -170,24 +170,22 @@ export class AuthController {
     const isProduction = this.configService.get('NODE_ENV') === 'production'
 
     // 使用 Fastify 的 cookie 方法
-    ;(response as any).cookie('sid', sessionId, {
-      httpOnly: true, // 防止 XSS 攻击
-      secure: isProduction, // 生产环境强制 HTTPS
-      sameSite: 'lax', // 防止 CSRF 攻击，同时保持良好的用户体验
-      path: '/', // Cookie 作用域
-      // 注意：这里不设置 expires 或 maxAge，让它成为会话期 Cookie
-      // 超时完全由后端 Redis 控制
+    response.cookie('sid', sessionId, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      path: '/',
     })
   }
 
   /** 清除 Session Cookie */
   private clearSessionCookie(response: FastifyReply): void {
-    ;(response as any).cookie('sid', '', {
+    response.cookie('sid', '', {
       httpOnly: true,
       secure: this.configService.get('NODE_ENV') === 'production',
       sameSite: 'lax',
       path: '/',
-      expires: new Date(0), // 立即过期
+      expires: new Date(0),
     })
   }
 }

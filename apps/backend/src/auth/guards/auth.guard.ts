@@ -14,6 +14,8 @@ export function Public() {
 export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name)
 
+  // 注意，这里不能 import type { Reflector }
+  // 否则会导致反射器无法正常通过构造器注入
   constructor(private readonly reflector: Reflector) {}
 
   @Inject(AuthService)
@@ -39,6 +41,8 @@ export class AuthGuard implements CanActivate {
       if (!sessionId) {
         throw new UnauthorizedException('未提供有效的会话标识')
       }
+
+      this.logger.log(`Session ID: ${sessionId}`)
 
       // 验证会话并获取用户信息
       const user = await this.authService.validateSession(sessionId)

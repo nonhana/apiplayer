@@ -48,7 +48,7 @@ export class SessionService {
     return `user_sessions:${userId}`
   }
 
-  /** 创建新的会话 */
+  /** 创建 Session */
   async createSession(
     userId: string,
     roles: string[] = [],
@@ -67,6 +67,8 @@ export class SessionService {
       userAgent: metadata?.userAgent,
       ipAddress: metadata?.ipAddress,
     }
+
+    this.logger.log(`创建 Session: ${JSON.stringify(sessionData, null, 2)}`)
 
     const sessionKey = this.getSessionKey(sessionId)
     const userSessionsKey = this.getUserSessionsKey(userId)
@@ -110,7 +112,7 @@ export class SessionService {
 
       return {
         userId: data.userId,
-        roles: data.roles ? JSON.parse(data.roles) : [],
+        roles: data.roles ? data.roles.split(',') : [],
         createdAt: Number(data.createdAt),
         lastAccessed: Number(data.lastAccessed),
         userAgent: data.userAgent,

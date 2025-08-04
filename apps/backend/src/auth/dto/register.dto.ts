@@ -33,6 +33,9 @@ export class RegisterDto {
   @IsNotEmpty({ message: '确认密码不能为空' })
   confirmPassword: string
 }
+
+export type RegisterType = Omit<RegisterDto, ''>
+
 /**
  * 注册响应 DTO
  */
