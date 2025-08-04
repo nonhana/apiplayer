@@ -1,6 +1,5 @@
-import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common'
-import type { FastifyReply } from 'fastify'
-import { Catch, HttpException, HttpStatus } from '@nestjs/common'
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common'
+import { FastifyReply } from 'fastify'
 import { HanaException } from '../exceptions/hana.exception'
 
 @Catch()

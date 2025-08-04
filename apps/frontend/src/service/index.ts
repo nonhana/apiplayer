@@ -1,5 +1,5 @@
-import type { Hooks, KyInstance, Options } from 'ky'
-import type { IApiResponse } from './types'
+import { Hooks, KyInstance, Options } from 'ky'
+import { IApiResponse } from './types'
 import ky from 'ky'
 import { HanaError } from './types'
 

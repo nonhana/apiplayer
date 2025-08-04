@@ -1,22 +1,16 @@
-import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import process from 'node:process'
 import cookie from '@fastify/cookie'
 import { Logger, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
-import { FastifyAdapter } from '@nestjs/platform-fastify'
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
 import { AppModule } from './app.module'
 import { WinstonLogger } from './common/logger/winston-logger.service'
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap')
-
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({
-      logger: false,
-    }),
-    { logger: false },
+    new FastifyAdapter({ logger: false }),
   )
 
   const configService = app.get(ConfigService)
@@ -25,6 +19,8 @@ async function bootstrap() {
   const cookieSecret = configService.get<string>('COOKIE_SECRET')
   const port = configService.get<number>('PORT')
   const host = configService.get<string>('HOST')
+
+  console.log(nodeEnv, cookieSecret, port, host)
 
   if (nodeEnv === 'production') {
     app.useLogger(app.get(WinstonLogger))
@@ -64,7 +60,9 @@ async function bootstrap() {
 
   await app.listen({ port, host })
 
-  logger.log(`🚀 应用程序已启动，访问地址: http://${host}:${port}`)
+  const logger = new Logger('Bootstrap')
+
+  console.log(`🚀 应用程序已启动，访问地址: http://${host}:${port}`)
   logger.log(`🌍 环境: ${nodeEnv}`)
 }
 

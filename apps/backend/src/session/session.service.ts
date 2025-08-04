@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto'
-import { Injectable, Logger } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import Redis from 'ioredis'
+import { REDIS_CLIENT } from '@/redis/redis.module'
 
 export interface SessionData {
   userId: string
@@ -23,58 +24,31 @@ export interface SessionOptions {
 @Injectable()
 export class SessionService {
   private readonly logger = new Logger(SessionService.name)
-  private readonly redis: Redis
   private readonly defaultOptions: Required<SessionOptions> = {
     idleTimeout: 30 * 60, // 30分钟
     absoluteTimeout: 8 * 60 * 60, // 8小时
     sessionIdLength: 32, // 32字节 = 256位
   }
 
-  constructor() {
-    // 初始化 Redis 连接
-    this.redis = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: Number(process.env.REDIS_PORT) || 6379,
-      password: process.env.REDIS_PASSWORD,
-      db: Number(process.env.REDIS_DB) || 0,
-      retryDelayOnFailover: 100,
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-    })
+  @Inject(REDIS_CLIENT)
+  private readonly redisClient: Redis
 
-    this.redis.on('connect', () => {
-      this.logger.log('Redis 连接已建立')
-    })
-
-    this.redis.on('error', (error) => {
-      this.logger.error('Redis 连接错误:', error)
-    })
-  }
-
-  /**
-   * 生成高熵、密码学安全的 Session ID
-   */
+  /** 生成高熵、密码学安全的 Session ID */
   private generateSessionId(length = this.defaultOptions.sessionIdLength): string {
     return randomBytes(length).toString('hex')
   }
 
-  /**
-   * 获取 Session 在 Redis 中的 key
-   */
+  /** 获取 Session 在 Redis 中的 key */
   private getSessionKey(sessionId: string): string {
     return `session:${sessionId}`
   }
 
-  /**
-   * 获取用户所有 Session 列表的 key
-   */
+  /** 获取用户所有 Session 列表的 key */
   private getUserSessionsKey(userId: string): string {
     return `user_sessions:${userId}`
   }
 
-  /**
-   * 创建新的会话
-   */
+  /** 创建新的会话 */
   async createSession(
     userId: string,
     roles: string[] = [],
@@ -99,7 +73,7 @@ export class SessionService {
 
     try {
       // 使用 Redis 事务确保原子性
-      const multi = this.redis.multi()
+      const multi = this.redisClient.multi()
 
       // 设置 Session 数据
       multi.hset(sessionKey, sessionData as any)
@@ -124,13 +98,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * 获取会话数据
-   */
+  /** 获取会话数据 */
   async getSession(sessionId: string): Promise<SessionData | null> {
     try {
       const sessionKey = this.getSessionKey(sessionId)
-      const data = await this.redis.hgetall(sessionKey)
+      const data = await this.redisClient.hgetall(sessionKey)
 
       if (!data || Object.keys(data).length === 0) {
         return null
@@ -151,9 +123,7 @@ export class SessionService {
     }
   }
 
-  /**
-   * 刷新会话（更新最后访问时间并重置过期时间）
-   */
+  /** 刷新会话（更新最后访问时间并重置过期时间） */
   async refreshSession(
     sessionId: string,
     options: SessionOptions = {},
@@ -163,13 +133,13 @@ export class SessionService {
       const mergedOptions = { ...this.defaultOptions, ...options }
 
       // 检查会话是否存在
-      const exists = await this.redis.exists(sessionKey)
+      const exists = await this.redisClient.exists(sessionKey)
       if (!exists) {
         return false
       }
 
       // 检查绝对超时
-      const createdAt = await this.redis.hget(sessionKey, 'createdAt')
+      const createdAt = await this.redisClient.hget(sessionKey, 'createdAt')
       if (createdAt) {
         const now = Date.now()
         const sessionAge = (now - Number(createdAt)) / 1000
@@ -182,7 +152,7 @@ export class SessionService {
       }
 
       // 更新最后访问时间并重置过期时间
-      const multi = this.redis.multi()
+      const multi = this.redisClient.multi()
       multi.hset(sessionKey, 'lastAccessed', Date.now())
       multi.expire(sessionKey, mergedOptions.idleTimeout)
       await multi.exec()
@@ -195,23 +165,21 @@ export class SessionService {
     }
   }
 
-  /**
-   * 销毁单个会话
-   */
+  /** 销毁单个会话 */
   async destroySession(sessionId: string): Promise<boolean> {
     try {
       const sessionKey = this.getSessionKey(sessionId)
 
       // 先获取用户 ID
-      const userId = await this.redis.hget(sessionKey, 'userId')
+      const userId = await this.redisClient.hget(sessionKey, 'userId')
 
       // 删除会话
-      const _deleted = await this.redis.del(sessionKey)
+      const deleted = await this.redisClient.del(sessionKey)
 
       // 从用户的会话列表中移除
       if (userId) {
         const userSessionsKey = this.getUserSessionsKey(userId)
-        await this.redis.srem(userSessionsKey, sessionId)
+        await this.redisClient.srem(userSessionsKey, sessionId)
       }
 
       this.logger.log(`会话 ${sessionId} 已销毁`)
@@ -223,13 +191,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * 销毁用户的所有会话（登出所有设备）
-   */
+  /** 销毁用户的所有会话（登出所有设备） */
   async destroyAllUserSessions(userId: string): Promise<number> {
     try {
       const userSessionsKey = this.getUserSessionsKey(userId)
-      const sessionIds = await this.redis.smembers(userSessionsKey)
+      const sessionIds = await this.redisClient.smembers(userSessionsKey)
 
       if (sessionIds.length === 0) {
         return 0
@@ -237,7 +203,7 @@ export class SessionService {
 
       // 批量删除所有会话
       const sessionKeys = sessionIds.map(id => this.getSessionKey(id))
-      const deleted = await this.redis.del(...sessionKeys, userSessionsKey)
+      await this.redisClient.del(...sessionKeys, userSessionsKey)
 
       this.logger.log(`用户 ${userId} 的 ${sessionIds.length} 个会话已全部销毁`)
       return sessionIds.length
@@ -248,13 +214,11 @@ export class SessionService {
     }
   }
 
-  /**
-   * 获取用户的所有活跃会话
-   */
+  /** 获取用户的所有活跃会话 */
   async getUserActiveSessions(userId: string): Promise<{ sessionId: string, data: SessionData }[]> {
     try {
       const userSessionsKey = this.getUserSessionsKey(userId)
-      const sessionIds = await this.redis.smembers(userSessionsKey)
+      const sessionIds = await this.redisClient.smembers(userSessionsKey)
 
       const sessions: { sessionId: string, data: SessionData }[] = []
 
@@ -265,7 +229,7 @@ export class SessionService {
         }
         else {
           // 清理无效的会话 ID
-          await this.redis.srem(userSessionsKey, sessionId)
+          await this.redisClient.srem(userSessionsKey, sessionId)
         }
       }
 
@@ -277,9 +241,7 @@ export class SessionService {
     }
   }
 
-  /**
-   * 更换会话 ID（防御会话固定攻击）
-   */
+  /** 更换会话 ID（防御会话固定攻击） */
   async regenerateSessionId(oldSessionId: string): Promise<string | null> {
     try {
       const oldSessionData = await this.getSession(oldSessionId)
@@ -295,14 +257,14 @@ export class SessionService {
       const newSessionKey = this.getSessionKey(newSessionId)
       const oldSessionKey = this.getSessionKey(oldSessionId)
 
-      const multi = this.redis.multi()
+      const multi = this.redisClient.multi()
 
       // 复制数据
-      const sessionData = await this.redis.hgetall(oldSessionKey)
+      const sessionData = await this.redisClient.hgetall(oldSessionKey)
       multi.hset(newSessionKey, sessionData)
 
       // 设置过期时间
-      const ttl = await this.redis.ttl(oldSessionKey)
+      const ttl = await this.redisClient.ttl(oldSessionKey)
       if (ttl > 0) {
         multi.expire(newSessionKey, ttl)
       }
@@ -326,11 +288,9 @@ export class SessionService {
     }
   }
 
-  /**
-   * 关闭 Redis 连接
-   */
+  /** 关闭 Redis 连接 */
   async onModuleDestroy() {
-    await this.redis.quit()
+    await this.redisClient.quit()
     this.logger.log('Redis 连接已关闭')
   }
 }

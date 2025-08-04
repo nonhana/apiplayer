@@ -1,7 +1,7 @@
-import { PipeTransform, Injectable, ArgumentMetadata } from '@nestjs/common'
-import { HanaException } from '@/common/exceptions/hana.exception'
+import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
-import type { RegisterDto } from '../dto/login.dto'
+import { HanaException } from '@/common/exceptions/hana.exception'
+import { RegisterDto } from '../dto/register.dto'
 
 /**
  * 密码确认验证管道

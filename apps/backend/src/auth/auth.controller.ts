@@ -1,13 +1,13 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
-import type {
+import { Body, Controller, Delete, Get, Inject, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { FastifyReply, FastifyRequest } from 'fastify'
+import { AuthService } from './auth.service'
+import {
   LoginDto,
   LoginResponseDto,
 } from './dto/login.dto'
-import type { RegisterDto, RegisterResponseDto } from './dto/register.dto'
-import type { ActiveSessionsResponseDto, CheckAvailabilityDto, CheckAvailabilityResponseDto, CurrentUserResponseDto, LogoutResponseDto } from './dto/utils.dto'
-import { Body, Controller, Delete, Get, Inject, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import { AuthService } from './auth.service'
+import { RegisterDto, RegisterResponseDto } from './dto/register.dto'
+import { ActiveSessionsResponseDto, CheckAvailabilityDto, CheckAvailabilityResponseDto, CurrentUserResponseDto, LogoutResponseDto } from './dto/utils.dto'
 import { AuthGuard, Public } from './guards/auth.guard'
 import { PasswordConfirmationPipe } from './pipes/password-confirmation.pipe'
 

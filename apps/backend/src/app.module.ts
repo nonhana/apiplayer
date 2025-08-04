@@ -7,6 +7,7 @@ import { PrismaModule } from './common/prisma/prisma.module'
 import { EnvConfigModule } from './env-config/env-config.module'
 import { RedisModule } from './redis/redis.module'
 import { UserModule } from './user/user.module'
+import { AppController } from './utils/app.controller'
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UserModule } from './user/user.module'
     RedisModule,
     EnvConfigModule,
   ],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_FILTER,

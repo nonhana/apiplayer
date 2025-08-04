@@ -8,5 +8,6 @@ export default antfu({
   yaml: true,
   rules: {
     'no-console': 'off',
+    'ts/consistent-type-imports': 'off',
   },
 })
