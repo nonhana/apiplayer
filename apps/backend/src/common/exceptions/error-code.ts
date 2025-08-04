@@ -19,4 +19,13 @@ export enum ErrorCode {
   ACCOUNT_LOCKED = 10009,
   /** 验证码错误或已过期 */
   INVALID_VERIFICATION_CODE = 10010,
+  /** 两次密码输入不一致 */
+  PASSWORD_MISMATCH = 10011,
+  /** 会话已过期或无效 */
+  SESSION_EXPIRED = 10012,
+  /** 无权限操作此会话 */
+  SESSION_FORBIDDEN = 10013,
+
+  /** 系统内部错误 */
+  INTERNAL_SERVER_ERROR = 99999,
 }

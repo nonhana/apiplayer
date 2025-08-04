@@ -1,3 +1,5 @@
+// It is best to run this file in place using bun
+
 import process from 'node:process'
 import { PrismaClient } from '@prisma/client'
 
@@ -110,7 +112,7 @@ async function main() {
       permissions: [
         'team:read',
         'team:write',
-        'team:admin', // ✅ 添加缺失的权限
+        'team:admin',
         'team:member:invite',
         'team:member:remove',
         'team:member:manage',
@@ -338,7 +340,6 @@ async function main() {
     })
   }
 
-  console.log('✅ 种子数据初始化完成！')
   console.log(`
 📊 数据统计:
 - 权限: ${permissions.length} 个
@@ -375,6 +376,27 @@ async function main() {
 - 支持团队和项目双重层级
 - 完整的 CRUD 权限覆盖
 - 扩展性强的权限模型
+
+🔥 认证系统功能:
+- 用户注册和登录
+- 基于 Redis 的 Session 管理
+- 密码安全哈希存储
+- 会话固定攻击防护
+- 多设备会话管理
+- 用户名和邮箱唯一性验证
+
+💡 使用提示:
+1. 登录测试: 使用上述任意邮箱和对应密码进行登录
+2. 注册测试: 可以尝试注册新用户来测试注册功能
+3. 禁用账户: inactive@example.com 账户被禁用，可用于测试登录限制
+4. 可用性检查: 可以测试邮箱和用户名的可用性检查功能
+5. 会话管理: 登录后可以查看和管理活跃会话
+
+🔧 开发建议:
+• 生产环境请删除这些测试账户
+• 建议为不同角色创建专门的测试账户
+• 定期更新测试密码以保持安全
+• 注册功能已集成完整的验证和初始化流程
   `)
 }
 
