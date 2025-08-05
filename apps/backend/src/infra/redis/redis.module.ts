@@ -6,7 +6,7 @@ export const REDIS_CLIENT = 'REDIS_CLIENT'
 
 const redisProvider: Provider<RedisClient> = {
   provide: REDIS_CLIENT,
-  useFactory: async (configService: ConfigService): Promise<RedisClient> => {
+  useFactory: async (configService: ConfigService) => {
     const client = new Redis({
       host: configService.get<string>('REDIS_HOST'),
       port: configService.get<number>('REDIS_PORT'),

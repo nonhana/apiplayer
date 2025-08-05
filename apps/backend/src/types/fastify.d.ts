@@ -9,6 +9,7 @@ declare module 'fastify' {
       name: string
       avatar: string | null
       roles: string[]
+      permissions?: string[]
       isActive: boolean
       lastLoginAt: Date | null
       createdAt: Date

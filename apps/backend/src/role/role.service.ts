@@ -1,0 +1,416 @@
+import { Injectable, Logger } from '@nestjs/common'
+import { ErrorCode } from '@/common/exceptions/error-code'
+import { HanaException } from '@/common/exceptions/hana.exception'
+import { PrismaService } from '@/infra/prisma/prisma.service'
+import {
+  AssignRolePermissionsDto,
+  CreateRoleDto,
+  QueryRolesDto,
+  RoleResponseDto,
+  RolesListResponseDto,
+  UpdateRoleDto,
+} from './dto/role.dto'
+
+@Injectable()
+export class RoleService {
+  private readonly logger = new Logger(RoleService.name)
+
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * 创建角色
+   */
+  async createRole(createDto: CreateRoleDto): Promise<RoleResponseDto> {
+    try {
+      // 检查角色名称是否已存在
+      const existingRole = await this.prisma.role.findUnique({
+        where: { name: createDto.name },
+      })
+
+      if (existingRole) {
+        throw new HanaException(
+          `角色 "${createDto.name}" 已存在`,
+          ErrorCode.ROLE_NAME_EXISTS,
+          409,
+        )
+      }
+
+      const { permissionIds, ...roleData } = createDto
+
+      // 如果提供了权限ID，验证权限是否存在
+      if (permissionIds && permissionIds.length > 0) {
+        const permissions = await this.prisma.permission.findMany({
+          where: { id: { in: permissionIds } },
+        })
+
+        if (permissions.length !== permissionIds.length) {
+          const foundIds = permissions.map(p => p.id)
+          const missingIds = permissionIds.filter(id => !foundIds.includes(id))
+          throw new HanaException(
+            `以下权限不存在: ${missingIds.join(', ')}`,
+            ErrorCode.PERMISSION_NOT_FOUND,
+            404,
+          )
+        }
+      }
+
+      // 创建角色
+      const role = await this.prisma.role.create({
+        data: {
+          ...roleData,
+          rolePermissions: permissionIds
+            ? {
+                create: permissionIds.map(permissionId => ({
+                  permissionId,
+                })),
+              }
+            : undefined,
+        },
+        include: {
+          rolePermissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      })
+
+      this.logger.log(`创建角色成功: ${role.name}`)
+      return this.mapToResponseDto(role)
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error('创建角色失败:', error)
+      throw new HanaException('创建角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /**
+   * 获取角色列表
+   */
+  async getRoles(queryDto: QueryRolesDto = {}): Promise<RolesListResponseDto> {
+    try {
+      const { keyword, isSystem } = queryDto
+
+      const where: any = {}
+
+      if (keyword) {
+        where.OR = [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { description: { contains: keyword, mode: 'insensitive' } },
+        ]
+      }
+
+      if (typeof isSystem === 'boolean') {
+        where.isSystem = isSystem
+      }
+
+      const [roles, total] = await Promise.all([
+        this.prisma.role.findMany({
+          where,
+          include: {
+            rolePermissions: {
+              include: {
+                permission: true,
+              },
+            },
+          },
+          orderBy: [
+            { isSystem: 'desc' },
+            { createdAt: 'asc' },
+          ],
+        }),
+        this.prisma.role.count({ where }),
+      ])
+
+      return {
+        roles: roles.map(role => this.mapToResponseDto(role)),
+        total,
+      }
+    }
+    catch (error) {
+      this.logger.error('获取角色列表失败:', error)
+      throw new HanaException('获取角色列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /**
+   * 根据ID获取角色详情
+   */
+  async getRoleById(id: string): Promise<RoleResponseDto> {
+    try {
+      const role = await this.prisma.role.findUnique({
+        where: { id },
+        include: {
+          rolePermissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      })
+
+      if (!role) {
+        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+      }
+
+      return this.mapToResponseDto(role)
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error('获取角色详情失败:', error)
+      throw new HanaException('获取角色详情失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /**
+   * 更新角色
+   */
+  async updateRole(id: string, updateDto: UpdateRoleDto): Promise<RoleResponseDto> {
+    try {
+      // 检查角色是否存在
+      const existingRole = await this.prisma.role.findUnique({
+        where: { id },
+      })
+
+      if (!existingRole) {
+        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+      }
+
+      // 如果要更新名称，检查新名称是否已存在
+      if (updateDto.name && updateDto.name !== existingRole.name) {
+        const nameExists = await this.prisma.role.findUnique({
+          where: { name: updateDto.name },
+        })
+
+        if (nameExists) {
+          throw new HanaException(
+            `角色名称 "${updateDto.name}" 已存在`,
+            ErrorCode.ROLE_NAME_EXISTS,
+            409,
+          )
+        }
+      }
+
+      const updatedRole = await this.prisma.role.update({
+        where: { id },
+        data: updateDto,
+        include: {
+          rolePermissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      })
+
+      this.logger.log(`更新角色成功: ${updatedRole.name}`)
+      return this.mapToResponseDto(updatedRole)
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error('更新角色失败:', error)
+      throw new HanaException('更新角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /**
+   * 删除角色
+   */
+  async deleteRole(id: string): Promise<void> {
+    try {
+      const role = await this.prisma.role.findUnique({
+        where: { id },
+      })
+
+      if (!role) {
+        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+      }
+
+      // 检查是否为系统角色
+      if (role.isSystem) {
+        throw new HanaException(
+          '系统角色不能删除',
+          ErrorCode.SYSTEM_ROLE_CANNOT_DELETE,
+          400,
+        )
+      }
+
+      await this.prisma.role.delete({
+        where: { id },
+      })
+
+      this.logger.log(`删除角色成功: ${role.name}`)
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error('删除角色失败:', error)
+      throw new HanaException('删除角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /**
+   * 为角色分配权限
+   */
+  async assignPermissions(roleId: string, assignDto: AssignRolePermissionsDto): Promise<RoleResponseDto> {
+    try {
+      const { permissionIds } = assignDto
+
+      // 检查角色是否存在
+      const role = await this.prisma.role.findUnique({
+        where: { id: roleId },
+      })
+
+      if (!role) {
+        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+      }
+
+      // 验证权限是否存在
+      const permissions = await this.prisma.permission.findMany({
+        where: { id: { in: permissionIds } },
+      })
+
+      if (permissions.length !== permissionIds.length) {
+        const foundIds = permissions.map(p => p.id)
+        const missingIds = permissionIds.filter(id => !foundIds.includes(id))
+        throw new HanaException(
+          `以下权限不存在: ${missingIds.join(', ')}`,
+          ErrorCode.PERMISSION_NOT_FOUND,
+          404,
+        )
+      }
+
+      // 删除原有权限关联，再创建新的
+      await this.prisma.$transaction(async (tx) => {
+        // 删除原有权限
+        await tx.rolePermission.deleteMany({
+          where: { roleId },
+        })
+
+        // 创建新的权限关联
+        if (permissionIds.length > 0) {
+          await tx.rolePermission.createMany({
+            data: permissionIds.map(permissionId => ({
+              roleId,
+              permissionId,
+            })),
+          })
+        }
+      })
+
+      this.logger.log(`为角色 ${role.name} 分配权限成功，共 ${permissionIds.length} 个权限`)
+
+      // 返回更新后的角色信息
+      return await this.getRoleById(roleId)
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error('分配权限失败:', error)
+      throw new HanaException('分配权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /**
+   * 获取用户在特定上下文中的所有权限
+   */
+  async getUserPermissions(userId: string, teamId?: string, projectId?: string): Promise<string[]> {
+    try {
+      const permissionSets: string[][] = []
+
+      if (teamId) {
+        // 获取团队角色权限
+        const teamMember = await this.prisma.teamMember.findUnique({
+          where: {
+            userId_teamId: {
+              userId,
+              teamId,
+            },
+          },
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        })
+
+        if (teamMember) {
+          const teamPermissions = teamMember.role.rolePermissions.map(rp => rp.permission.name)
+          permissionSets.push(teamPermissions)
+        }
+      }
+
+      if (projectId) {
+        // 获取项目角色权限
+        const projectMember = await this.prisma.projectMember.findUnique({
+          where: {
+            userId_projectId: {
+              userId,
+              projectId,
+            },
+          },
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
+          },
+        })
+
+        if (projectMember) {
+          const projectPermissions = projectMember.role.rolePermissions.map(rp => rp.permission.name)
+          permissionSets.push(projectPermissions)
+        }
+      }
+
+      // 合并所有权限（去重）
+      const allPermissions = [...new Set(permissionSets.flat())]
+      return allPermissions
+    }
+    catch (error) {
+      this.logger.error('获取用户权限失败:', error)
+      throw new HanaException('获取用户权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /**
+   * 映射到响应DTO
+   */
+  private mapToResponseDto(role: any): RoleResponseDto {
+    return {
+      id: role.id,
+      name: role.name,
+      description: role.description,
+      isSystem: role.isSystem,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+      permissions: role.rolePermissions?.map((rp: any) => ({
+        id: rp.permission.id,
+        name: rp.permission.name,
+        description: rp.permission.description,
+        resource: rp.permission.resource,
+        action: rp.permission.action,
+      })),
+    }
+  }
+}

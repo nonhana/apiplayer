@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { PrismaService } from '@/common/prisma/prisma.service'
+import { PrismaService } from '@/infra/prisma/prisma.service'
 
 @Injectable()
 export class UserService {

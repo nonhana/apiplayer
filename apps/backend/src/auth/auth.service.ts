@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common'
 import { compare, hash } from 'bcrypt'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { PrismaService } from '@/common/prisma/prisma.service'
+import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SessionService } from '@/session/session.service'
 import { LoginDto } from './dto/login.dto'
 import { RegisterDto, RegisterResponseDto } from './dto/register.dto'
@@ -72,8 +72,8 @@ export class AuthService {
         throw new HanaException('密码错误', ErrorCode.INVALID_PASSWORD, 401)
       }
 
-      // 获取用户角色（这里简化处理，实际可能需要复杂的权限查询）
-      const roles = ['user'] // 可以根据实际业务扩展
+      // 获取用户角色和权限
+      const { roles, permissions } = await this.getUserRolesAndPermissions(user.id)
 
       // 创建会话
       const sessionOptions = rememberMe
@@ -103,6 +103,7 @@ export class AuthService {
         name: user.name,
         avatar: user.avatar,
         roles,
+        permissions,
         isActive: user.isActive,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
@@ -186,6 +187,9 @@ export class AuthService {
         return null
       }
 
+      // 重新获取最新的权限信息
+      const { permissions } = await this.getUserRolesAndPermissions(user.id)
+
       return {
         id: user.id,
         email: user.email,
@@ -193,6 +197,7 @@ export class AuthService {
         name: user.name,
         avatar: user.avatar,
         roles: sessionData.roles,
+        permissions,
         isActive: user.isActive,
         lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
@@ -378,6 +383,83 @@ export class AuthService {
       }
       this.logger.error('检查可用性失败:', error)
       throw new HanaException('检查失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /**
+   * 获取用户的角色和权限
+   */
+  private async getUserRolesAndPermissions(userId: string): Promise<{ roles: string[], permissions: string[] }> {
+    try {
+      const permissionSets: string[][] = []
+      const roleNames: string[] = []
+
+      // 获取用户在所有团队中的角色和权限
+      const teamMembers = await this.prisma.teamMember.findMany({
+        where: { userId },
+        include: {
+          role: {
+            include: {
+              rolePermissions: {
+                include: {
+                  permission: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      // 获取用户在所有项目中的角色和权限
+      const projectMembers = await this.prisma.projectMember.findMany({
+        where: { userId },
+        include: {
+          role: {
+            include: {
+              rolePermissions: {
+                include: {
+                  permission: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      // 收集团队角色和权限
+      for (const member of teamMembers) {
+        roleNames.push(member.role.name)
+        const permissions = member.role.rolePermissions.map(rp => rp.permission.name)
+        permissionSets.push(permissions)
+      }
+
+      // 收集项目角色和权限
+      for (const member of projectMembers) {
+        roleNames.push(member.role.name)
+        const permissions = member.role.rolePermissions.map(rp => rp.permission.name)
+        permissionSets.push(permissions)
+      }
+
+      // 如果用户没有任何角色，给予基本角色
+      if (roleNames.length === 0) {
+        roleNames.push('user')
+      }
+
+      // 合并所有权限（去重）
+      const allPermissions = [...new Set(permissionSets.flat())]
+
+      return {
+        roles: [...new Set(roleNames)], // 去重角色名称
+        permissions: allPermissions,
+      }
+    }
+    catch (error) {
+      this.logger.error('获取用户角色和权限失败:', error)
+      // 如果查询失败，返回基本角色，但不抛出异常
+      return {
+        roles: ['user'],
+        permissions: [],
+      }
     }
   }
 }

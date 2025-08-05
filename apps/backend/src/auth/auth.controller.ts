@@ -1,6 +1,9 @@
 import { Body, Controller, Delete, Get, Inject, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { FastifyReply, FastifyRequest } from 'fastify'
+import { Public } from '../common/decorators/public.decorator'
+import { AuthGuard } from '../common/guards/auth.guard'
+import { PasswordConfirmationPipe } from '../common/pipes/password-confirmation.pipe'
 import { AuthService } from './auth.service'
 import {
   LoginDto,
@@ -8,8 +11,6 @@ import {
 } from './dto/login.dto'
 import { RegisterDto, RegisterResponseDto } from './dto/register.dto'
 import { ActiveSessionsResponseDto, CheckAvailabilityDto, CheckAvailabilityResponseDto, CurrentUserResponseDto, LogoutResponseDto } from './dto/utils.dto'
-import { AuthGuard, Public } from './guards/auth.guard'
-import { PasswordConfirmationPipe } from './pipes/password-confirmation.pipe'
 
 @Controller('auth')
 export class AuthController {

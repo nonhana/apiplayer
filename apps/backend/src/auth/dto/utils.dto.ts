@@ -42,6 +42,7 @@ export class CurrentUserResponseDto {
   name: string
   avatar: string | null
   roles: string[]
+  permissions?: string[] // 用户的所有权限
   isActive: boolean
   lastLoginAt: Date | null
   createdAt: Date

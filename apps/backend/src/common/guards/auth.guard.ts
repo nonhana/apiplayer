@@ -1,13 +1,9 @@
-import { CanActivate, ExecutionContext, Inject, Injectable, Logger, SetMetadata, UnauthorizedException } from '@nestjs/common'
+import { CanActivate, ExecutionContext, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { AuthService } from '../auth.service'
-
-export function Public() {
-  return SetMetadata('isPublic', true)
-}
+import { AuthService } from '../../auth/auth.service'
 
 /** 认证守卫，验证用户是否已登录，并将用户信息附加到请求对象上 */
 @Injectable()

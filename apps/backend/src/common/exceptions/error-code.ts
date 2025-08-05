@@ -26,6 +26,42 @@ export enum ErrorCode {
   /** 无权限操作此会话 */
   SESSION_FORBIDDEN = 10013,
 
+  /** 权限不足 */
+  INSUFFICIENT_PERMISSIONS = 20001,
+  /** 角色不存在 */
+  ROLE_NOT_FOUND = 20002,
+  /** 权限不存在 */
+  PERMISSION_NOT_FOUND = 20003,
+  /** 角色名称已存在 */
+  ROLE_NAME_EXISTS = 20004,
+  /** 权限名称已存在 */
+  PERMISSION_NAME_EXISTS = 20005,
+  /** 系统角色不能删除 */
+  SYSTEM_ROLE_CANNOT_DELETE = 20006,
+
+  /** 团队不存在 */
+  TEAM_NOT_FOUND = 30001,
+  /** 团队名称已存在 */
+  TEAM_NAME_EXISTS = 30002,
+  /** 团队标识符已存在 */
+  TEAM_SLUG_EXISTS = 30003,
+  /** 不是团队成员 */
+  NOT_TEAM_MEMBER = 30004,
+  /** 团队成员不存在 */
+  TEAM_MEMBER_NOT_FOUND = 30005,
+  /** 用户已是团队成员 */
+  USER_ALREADY_TEAM_MEMBER = 30006,
+  /** 不能移除团队所有者 */
+  CANNOT_REMOVE_TEAM_OWNER = 30007,
+  /** 不能删除有项目的团队 */
+  CANNOT_DELETE_TEAM_WITH_PROJECTS = 30008,
+  /** 团队已被禁用 */
+  TEAM_DISABLED = 30009,
+  /** 不能修改团队所有者角色 */
+  CANNOT_MODIFY_OWNER_ROLE = 30010,
+  /** 团队成员数量已达上限 */
+  TEAM_MEMBER_LIMIT_EXCEEDED = 30011,
+
   /** 系统内部错误 */
   INTERNAL_SERVER_ERROR = 99999,
 }

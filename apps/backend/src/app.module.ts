@@ -4,18 +4,27 @@ import { AppController } from './app.controller'
 import { AuthModule } from './auth/auth.module'
 import { AllExceptionFilter } from './common/filters/all-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
-import { PrismaModule } from './common/prisma/prisma.module'
-import { EnvConfigModule } from './env-config/env-config.module'
-import { RedisModule } from './redis/redis.module'
+import { EnvConfigModule } from './infra/env-config/env-config.module'
+import { PrismaModule } from './infra/prisma/prisma.module'
+import { RedisModule } from './infra/redis/redis.module'
+import { PermissionModule } from './permission/permission.module'
+import { RoleModule } from './role/role.module'
+import { TeamModule } from './team/team.module'
 import { UserModule } from './user/user.module'
 
 @Module({
   imports: [
+    // Infrastructure
+    EnvConfigModule,
     PrismaModule,
+    RedisModule,
+
+    // Business
+    TeamModule,
     AuthModule,
     UserModule,
-    RedisModule,
-    EnvConfigModule,
+    RoleModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [
