@@ -62,6 +62,33 @@ export enum ErrorCode {
   /** 团队成员数量已达上限 */
   TEAM_MEMBER_LIMIT_EXCEEDED = 30011,
 
+  /** 项目不存在 */
+  PROJECT_NOT_FOUND = 40001,
+  /** 项目名称已存在 */
+  PROJECT_NAME_EXISTS = 40002,
+  /** 项目标识符已存在 */
+  PROJECT_SLUG_EXISTS = 40003,
+  /** 不是项目成员 */
+  NOT_PROJECT_MEMBER = 40004,
+  /** 项目成员不存在 */
+  PROJECT_MEMBER_NOT_FOUND = 40005,
+  /** 用户已是项目成员 */
+  USER_ALREADY_PROJECT_MEMBER = 40006,
+  /** 不能删除包含 API 的项目 */
+  CANNOT_DELETE_PROJECT_WITH_APIS = 40007,
+  /** 项目已被删除 */
+  PROJECT_DELETED = 40008,
+  /** 不能移除项目的最后一个管理员 */
+  CANNOT_REMOVE_LAST_ADMIN = 40009,
+  /** 环境名称已存在 */
+  ENVIRONMENT_NAME_EXISTS = 40010,
+  /** 环境不存在 */
+  ENVIRONMENT_NOT_FOUND = 40011,
+  /** 不能删除项目的最后一个环境 */
+  CANNOT_DELETE_LAST_ENVIRONMENT = 40012,
+  /** 用户不是团队成员 */
+  USER_NOT_TEAM_MEMBER = 40013,
+
   /** 系统内部错误 */
   INTERNAL_SERVER_ERROR = 99999,
 }

@@ -8,6 +8,7 @@ import { EnvConfigModule } from './infra/env-config/env-config.module'
 import { PrismaModule } from './infra/prisma/prisma.module'
 import { RedisModule } from './infra/redis/redis.module'
 import { PermissionModule } from './permission/permission.module'
+import { ProjectModule } from './project/project.module'
 import { RoleModule } from './role/role.module'
 import { TeamModule } from './team/team.module'
 import { UserModule } from './user/user.module'
@@ -25,6 +26,7 @@ import { UserModule } from './user/user.module'
     UserModule,
     RoleModule,
     PermissionModule,
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [
