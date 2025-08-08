@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   Param,
   Patch,
   Post,
@@ -31,8 +30,9 @@ import { ProjectGlobalParamService } from './project-global-param.service'
 @Controller('projects')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class ProjectGlobalParamController {
-  @Inject(ProjectGlobalParamService)
-  private readonly projectGlobalParamService: ProjectGlobalParamService
+  constructor(
+    private readonly projectGlobalParamService: ProjectGlobalParamService,
+  ) {}
 
   /**
    * 创建全局参数

@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
+import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
 import { ErrorCode } from '@/common/exceptions/error-code'
@@ -10,12 +10,10 @@ import { AuthService } from '../../auth/auth.service'
 export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name)
 
-  // 注意，这里不能 import type { Reflector }
-  // 否则会导致反射器无法正常通过构造器注入
-  constructor(private readonly reflector: Reflector) {}
-
-  @Inject(AuthService)
-  private readonly authService: AuthService
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly authService: AuthService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // 检查是否为公开路由

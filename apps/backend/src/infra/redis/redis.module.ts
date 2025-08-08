@@ -29,8 +29,9 @@ const redisProvider: Provider<RedisClient> = {
   exports: [redisProvider],
 })
 export class RedisModule implements OnModuleDestroy {
-  @Inject(REDIS_CLIENT)
-  private readonly redisClient: RedisClient
+  constructor(
+    @Inject(REDIS_CLIENT) private readonly redisClient: RedisClient,
+  ) {}
 
   onModuleDestroy() {
     this.redisClient.quit()

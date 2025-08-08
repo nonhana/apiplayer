@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   Param,
   Patch,
   Post,
@@ -31,8 +30,9 @@ import { ProjectService } from './project.service'
 @Controller('projects')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class ProjectController {
-  @Inject(ProjectService)
-  private readonly projectService: ProjectService
+  constructor(
+    private readonly projectService: ProjectService,
+  ) {}
 
   /**
    * 创建项目

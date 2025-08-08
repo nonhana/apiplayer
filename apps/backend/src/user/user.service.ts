@@ -1,12 +1,13 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 
 @Injectable()
 export class UserService {
-  @Inject(PrismaService)
-  private readonly prisma: PrismaService
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
 
   /** 获取用户详细资料 */
   async getUserProfile(userId: string) {

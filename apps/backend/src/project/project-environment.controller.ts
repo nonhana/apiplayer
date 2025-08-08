@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   Param,
   Patch,
   Post,
@@ -27,8 +26,9 @@ import { ProjectEnvironmentService } from './project-environment.service'
 @Controller('projects')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class ProjectEnvironmentController {
-  @Inject(ProjectEnvironmentService)
-  private readonly projectEnvironmentService: ProjectEnvironmentService
+  constructor(
+    private readonly projectEnvironmentService: ProjectEnvironmentService,
+  ) {}
 
   /**
    * 创建项目环境

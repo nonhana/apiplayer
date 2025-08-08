@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   Param,
   Patch,
   Post,
@@ -29,8 +28,9 @@ import { ProjectMemberService } from './project-member.service'
 @Controller('projects')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class ProjectMemberController {
-  @Inject(ProjectMemberService)
-  private readonly projectMemberService: ProjectMemberService
+  constructor(
+    private readonly projectMemberService: ProjectMemberService,
+  ) {}
 
   /**
    * 邀请项目成员

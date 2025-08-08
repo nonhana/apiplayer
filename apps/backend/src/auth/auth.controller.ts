@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Inject, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { Public } from '../common/decorators/public.decorator'
@@ -14,11 +14,10 @@ import { ActiveSessionsResponseDto, CheckAvailabilityDto, CheckAvailabilityRespo
 
 @Controller('auth')
 export class AuthController {
-  @Inject(AuthService)
-  private readonly authService: AuthService
-
-  @Inject(ConfigService)
-  private readonly configService: ConfigService
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   /** 用户登录 */
   @Public()

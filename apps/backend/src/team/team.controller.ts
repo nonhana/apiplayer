@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Inject,
   Param,
   Patch,
   Post,
@@ -36,8 +35,9 @@ import { TeamService } from './team.service'
 @Controller('teams')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class TeamController {
-  @Inject(TeamService)
-  private readonly teamService: TeamService
+  constructor(
+    private readonly teamService: TeamService,
+  ) {}
 
   /**
    * 创建团队

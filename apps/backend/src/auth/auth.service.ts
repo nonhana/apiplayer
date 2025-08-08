@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { compare, hash } from 'bcrypt'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
@@ -18,11 +18,10 @@ export class AuthService {
   private readonly logger = new Logger(AuthService.name)
   private readonly saltRounds = 12 // bcrypt 盐轮数
 
-  @Inject(PrismaService)
-  private readonly prisma: PrismaService
-
-  @Inject(SessionService)
-  private readonly sessionService: SessionService
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly sessionService: SessionService,
+  ) {}
 
   /** 对密码进行哈希处理 */
   async hashPassword(password: string): Promise<string> {

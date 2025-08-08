@@ -1,16 +1,15 @@
-import { Inject, Injectable, LoggerService } from '@nestjs/common'
+import { Injectable, LoggerService } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createLogger, format, Logger, transports } from 'winston'
 import 'winston-daily-rotate-file'
 
 @Injectable()
 export class WinstonLogger implements LoggerService {
-  @Inject(ConfigService)
-  private readonly configService: ConfigService
-
   private logger: Logger
 
-  constructor() {
+  constructor(
+    private readonly configService: ConfigService,
+  ) {
     this.logger = createLogger({
       level: this.configService.get<string>('NODE_ENV') === 'production' ? 'info' : 'debug',
       format: format.combine(

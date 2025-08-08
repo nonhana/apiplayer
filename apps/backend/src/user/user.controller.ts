@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Req, UseGuards } from '@nestjs/common'
+import { Controller, Get, Req, UseGuards } from '@nestjs/common'
 import { FastifyRequest } from 'fastify'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { UserService } from './user.service'
@@ -6,8 +6,9 @@ import { UserService } from './user.service'
 @Controller('user')
 @UseGuards(AuthGuard)
 export class UserController {
-  @Inject(UserService)
-  private readonly userService: UserService
+  constructor(
+    private readonly userService: UserService,
+  ) {}
 
   /** 获取用户个人资料 */
   @Get('profile')

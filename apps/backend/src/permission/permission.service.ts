@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -15,8 +15,9 @@ import {
 export class PermissionService {
   private readonly logger = new Logger(PermissionService.name)
 
-  @Inject(PrismaService)
-  private readonly prisma: PrismaService
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
 
   /**
    * 创建单个权限

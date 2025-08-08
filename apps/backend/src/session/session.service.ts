@@ -30,8 +30,9 @@ export class SessionService {
     sessionIdLength: 32, // 32字节 = 256位
   }
 
-  @Inject(REDIS_CLIENT)
-  private readonly redisClient: Redis
+  constructor(
+    @Inject(REDIS_CLIENT) private readonly redisClient: Redis,
+  ) {}
 
   /** 生成高熵、密码学安全的 Session ID */
   private generateSessionId(length = this.defaultOptions.sessionIdLength): string {

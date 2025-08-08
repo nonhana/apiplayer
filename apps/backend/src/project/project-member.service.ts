@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -18,8 +18,9 @@ import {
 export class ProjectMemberService {
   private readonly logger = new Logger(ProjectMemberService.name)
 
-  @Inject(PrismaService)
-  private readonly prisma: PrismaService
+  constructor(
+    private readonly prisma: PrismaService,
+  ) {}
 
   /**
    * 邀请项目成员
