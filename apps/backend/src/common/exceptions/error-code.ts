@@ -89,6 +89,8 @@ export enum ErrorCode {
   /** 用户不是团队成员 */
   USER_NOT_TEAM_MEMBER = 40013,
 
+  /** 参数错误 */
+  INVALID_PARAMS = 90001,
   /** 系统内部错误 */
   INTERNAL_SERVER_ERROR = 99999,
 }

@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
@@ -15,13 +15,16 @@ import {
   UpdateGlobalParamDto,
   UpdateGlobalParamResponseDto,
 } from './dto'
+import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
 export class ProjectGlobalParamService {
   private readonly logger = new Logger(ProjectGlobalParamService.name)
 
-  @Inject(PrismaService)
-  private readonly prisma: PrismaService
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly projectUtilsService: ProjectUtilsService,
+  ) {}
 
   /**
    * 创建全局参数
@@ -31,11 +34,8 @@ export class ProjectGlobalParamService {
    */
   async createGlobalParam(projectId: string, createParamDto: CreateGlobalParamDto, userId: string): Promise<CreateGlobalParamResponseDto> {
     try {
-      // 检查项目是否存在
-      await this.getProjectById(projectId)
-
-      // 验证用户权限
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查参数名称在同一类别下是否已存在
       const existingParam = await this.prisma.globalParam.findUnique({
@@ -102,9 +102,8 @@ export class ProjectGlobalParamService {
     const { page = 1, limit = 10, search, category, type, isActive } = query
 
     try {
-      // 检查项目是否存在和用户权限
-      await this.getProjectById(projectId)
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const skip = (page - 1) * limit
 
@@ -181,11 +180,8 @@ export class ProjectGlobalParamService {
    */
   async updateGlobalParam(projectId: string, paramId: string, updateParamDto: UpdateGlobalParamDto, userId: string): Promise<UpdateGlobalParamResponseDto> {
     try {
-      // 检查项目是否存在
-      await this.getProjectById(projectId)
-
-      // 验证用户权限
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查参数是否存在
       const existingParam = await this.prisma.globalParam.findUnique({
@@ -242,11 +238,8 @@ export class ProjectGlobalParamService {
    */
   async deleteGlobalParam(projectId: string, paramId: string, userId: string): Promise<DeleteGlobalParamResponseDto> {
     try {
-      // 检查项目是否存在
-      await this.getProjectById(projectId)
-
-      // 验证用户权限
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查参数是否存在
       const existingParam = await this.prisma.globalParam.findUnique({
@@ -287,11 +280,8 @@ export class ProjectGlobalParamService {
    */
   async batchCreateGlobalParams(projectId: string, batchCreateDto: BatchCreateGlobalParamsDto, userId: string): Promise<BatchCreateGlobalParamsResponseDto> {
     try {
-      // 检查项目是否存在
-      await this.getProjectById(projectId)
-
-      // 验证用户权限
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查参数名称是否有重复
       const paramKeys = batchCreateDto.params.map(p => ({ category: p.category, name: p.name }))
@@ -363,48 +353,6 @@ export class ProjectGlobalParamService {
 
       this.logger.error(`批量创建全局参数失败: ${error.message}`, error.stack)
       throw new HanaException('批量创建全局参数失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
-    }
-  }
-
-  // ==================== 私有辅助方法 ====================
-
-  /**
-   * 根据 ID 获取项目信息
-   * @param projectId 项目 ID
-   */
-  private async getProjectById(projectId: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-    })
-
-    if (!project) {
-      throw new HanaException('项目不存在', ErrorCode.PROJECT_NOT_FOUND, 404)
-    }
-
-    if (project.status !== 'ACTIVE') {
-      throw new HanaException('项目已被删除', ErrorCode.PROJECT_DELETED)
-    }
-
-    return project
-  }
-
-  /**
-   * 检查用户是否为项目成员
-   * @param projectId 项目 ID
-   * @param userId 用户 ID
-   */
-  private async checkUserProjectMembership(projectId: string, userId: string): Promise<void> {
-    const membership = await this.prisma.projectMember.findUnique({
-      where: {
-        userId_projectId: {
-          userId,
-          projectId,
-        },
-      },
-    })
-
-    if (!membership) {
-      throw new HanaException('您不是该项目的成员', ErrorCode.NOT_PROJECT_MEMBER, 403)
     }
   }
 }

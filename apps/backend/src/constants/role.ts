@@ -18,7 +18,6 @@ export const roles = [
       'project:member:invite',
       'project:member:remove',
       'project:member:manage',
-      'project:env:manage',
       'api:read',
       'api:write',
       'api:create',
@@ -31,10 +30,6 @@ export const roles = [
       'api_group:write',
       'api_group:create',
       'api_group:delete',
-      'global_param:read',
-      'global_param:write',
-      'global_param:manage',
-      'system:log:read',
     ],
   },
   {
@@ -54,7 +49,6 @@ export const roles = [
       'project:member:invite',
       'project:member:remove',
       'project:member:manage',
-      'project:env:manage',
       'api:read',
       'api:write',
       'api:create',
@@ -67,9 +61,6 @@ export const roles = [
       'api_group:write',
       'api_group:create',
       'api_group:delete',
-      'global_param:read',
-      'global_param:write',
-      'global_param:manage',
     ],
   },
   {
@@ -88,7 +79,6 @@ export const roles = [
       'api_group:read',
       'api_group:write',
       'api_group:create',
-      'global_param:read',
     ],
   },
   {
@@ -101,7 +91,6 @@ export const roles = [
       'api:read',
       'api:test',
       'api_group:read',
-      'global_param:read',
     ],
   },
 
@@ -117,7 +106,6 @@ export const roles = [
       'project:member:invite',
       'project:member:remove',
       'project:member:manage',
-      'project:env:manage',
       'api:read',
       'api:write',
       'api:create',
@@ -130,9 +118,6 @@ export const roles = [
       'api_group:write',
       'api_group:create',
       'api_group:delete',
-      'global_param:read',
-      'global_param:write',
-      'global_param:manage',
     ],
   },
   {
@@ -152,8 +137,6 @@ export const roles = [
       'api_group:read',
       'api_group:write',
       'api_group:create',
-      'global_param:read',
-      'global_param:write',
     ],
   },
   {
@@ -165,32 +148,6 @@ export const roles = [
       'api:read',
       'api:test',
       'api_group:read',
-      'global_param:read',
-    ],
-  },
-
-  // 系统角色（可选）
-  {
-    name: 'system:admin',
-    description: '系统管理员',
-    isSystem: true,
-    permissions: [
-      'system:config:read',
-      'system:config:write',
-      'system:log:read',
-      'system:user:manage',
-      'team:read',
-      'team:write',
-      'team:admin',
-      'project:read',
-      'project:write',
-      'project:admin',
-      'api:read',
-      'api:write',
-      'api:create',
-      'api:delete',
-      'api:publish',
-      'api:version:manage',
     ],
   },
 ] as const
@@ -205,5 +162,4 @@ export enum RoleName {
   PROJECT_ADMIN = 'project:admin',
   PROJECT_EDITOR = 'project:editor',
   PROJECT_VIEWER = 'project:viewer',
-  SYSTEM_ADMIN = 'system:admin',
 }

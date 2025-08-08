@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { FastifyRequest } from 'fastify'
-import { Permissions } from '@/common/decorators/permissions.decorator'
+import { TeamPermissions } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import {
@@ -70,7 +70,7 @@ export class TeamController {
    * 需要是团队成员才能查看详情
    */
   @Get(':teamId')
-  @Permissions('team:read')
+  @TeamPermissions(['team:read'])
   async getTeamDetail(
     @Param('teamId') teamId: string,
     @Req() request: FastifyRequest,
@@ -85,7 +85,7 @@ export class TeamController {
    * 需要团队写入权限
    */
   @Patch(':teamId')
-  @Permissions('team:write')
+  @TeamPermissions(['team:write'])
   async updateTeam(
     @Param('teamId') teamId: string,
     @Body() updateTeamDto: UpdateTeamDto,
@@ -100,7 +100,7 @@ export class TeamController {
    * 需要团队管理权限
    */
   @Delete(':teamId')
-  @Permissions('team:admin')
+  @TeamPermissions(['team:admin'])
   async deleteTeam(
     @Param('teamId') teamId: string,
     @Req() request: FastifyRequest,
@@ -120,7 +120,7 @@ export class TeamController {
    * 需要成员邀请权限
    */
   @Post(':teamId/members')
-  @Permissions('team:member:invite')
+  @TeamPermissions(['team:member:invite'])
   async inviteTeamMember(
     @Param('teamId') teamId: string,
     @Body() inviteDto: InviteTeamMemberDto,
@@ -135,7 +135,7 @@ export class TeamController {
    * 需要团队读取权限
    */
   @Get(':teamId/members')
-  @Permissions('team:read')
+  @TeamPermissions(['team:read'])
   async getTeamMembers(
     @Param('teamId') teamId: string,
     @Query() query: TeamListQueryDto,
@@ -150,7 +150,7 @@ export class TeamController {
    * 需要成员管理权限
    */
   @Patch(':teamId/members/:memberId')
-  @Permissions('team:member:manage')
+  @TeamPermissions(['team:member:manage'])
   async updateTeamMemberRole(
     @Param('teamId') teamId: string,
     @Param('memberId') memberId: string,
@@ -166,7 +166,7 @@ export class TeamController {
    * 需要成员移除权限
    */
   @Delete(':teamId/members/:memberId')
-  @Permissions('team:member:remove')
+  @TeamPermissions(['team:member:remove'])
   async removeTeamMember(
     @Param('teamId') teamId: string,
     @Param('memberId') memberId: string,
@@ -183,7 +183,7 @@ export class TeamController {
    * 用于前端权限控制
    */
   @Get(':teamId/my-role')
-  @Permissions('team:read')
+  @TeamPermissions(['team:read'])
   async getMyTeamRole(
     @Param('teamId') teamId: string,
     @Req() request: FastifyRequest,

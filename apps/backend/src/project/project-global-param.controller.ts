@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { FastifyRequest } from 'fastify'
-import { Permissions } from '@/common/decorators/permissions.decorator'
+import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import {
@@ -39,7 +39,7 @@ export class ProjectGlobalParamController {
    * 需要全局参数管理权限
    */
   @Post(':projectId/global-params')
-  @Permissions('global_param:manage')
+  @ProjectPermissions(['project:write'])
   async createGlobalParam(
     @Param('projectId') projectId: string,
     @Body() createParamDto: CreateGlobalParamDto,
@@ -54,7 +54,7 @@ export class ProjectGlobalParamController {
    * 需要全局参数管理权限
    */
   @Post(':projectId/global-params/batch')
-  @Permissions('global_param:manage')
+  @ProjectPermissions(['project:write'])
   async batchCreateGlobalParams(
     @Param('projectId') projectId: string,
     @Body() batchCreateDto: BatchCreateGlobalParamsDto,
@@ -69,7 +69,7 @@ export class ProjectGlobalParamController {
    * 需要项目读取权限
    */
   @Get(':projectId/global-params')
-  @Permissions('project:read')
+  @ProjectPermissions(['project:read'])
   async getGlobalParams(
     @Param('projectId') projectId: string,
     @Query() query: GlobalParamQueryDto,
@@ -84,7 +84,7 @@ export class ProjectGlobalParamController {
    * 需要全局参数管理权限
    */
   @Patch(':projectId/global-params/:paramId')
-  @Permissions('global_param:manage')
+  @ProjectPermissions(['project:write'])
   async updateGlobalParam(
     @Param('projectId') projectId: string,
     @Param('paramId') paramId: string,
@@ -100,7 +100,7 @@ export class ProjectGlobalParamController {
    * 需要全局参数管理权限
    */
   @Delete(':projectId/global-params/:paramId')
-  @Permissions('global_param:manage')
+  @ProjectPermissions(['project:write'])
   async deleteGlobalParam(
     @Param('projectId') projectId: string,
     @Param('paramId') paramId: string,

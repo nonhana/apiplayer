@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common'
-import { Permissions } from '@/common/decorators/permissions.decorator'
+import { RequireSystemAdmin } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import {
@@ -21,7 +21,7 @@ export class RoleController {
    * 创建角色
    */
   @Post()
-  @Permissions('system:config:write')
+  @RequireSystemAdmin()
   async createRole(@Body() createDto: CreateRoleDto): Promise<RoleResponseDto> {
     return await this.roleService.createRole(createDto)
   }
@@ -30,7 +30,7 @@ export class RoleController {
    * 获取角色列表
    */
   @Get()
-  @Permissions('system:config:read')
+  @RequireSystemAdmin()
   async getRoles(@Query() queryDto: QueryRolesDto): Promise<RolesListResponseDto> {
     return await this.roleService.getRoles(queryDto)
   }
@@ -39,7 +39,7 @@ export class RoleController {
    * 获取角色详情
    */
   @Get(':id')
-  @Permissions('system:config:read')
+  @RequireSystemAdmin()
   async getRoleById(@Param('id') id: string): Promise<RoleResponseDto> {
     return await this.roleService.getRoleById(id)
   }
@@ -48,7 +48,7 @@ export class RoleController {
    * 更新角色基本信息
    */
   @Patch(':id')
-  @Permissions('system:config:write')
+  @RequireSystemAdmin()
   async updateRole(
     @Param('id') id: string,
     @Body() updateDto: UpdateRoleDto,
@@ -60,7 +60,7 @@ export class RoleController {
    * 为角色分配权限
    */
   @Put(':id/permissions')
-  @Permissions('system:config:write')
+  @RequireSystemAdmin()
   async assignPermissions(
     @Param('id') id: string,
     @Body() assignDto: AssignRolePermissionsDto,
@@ -72,23 +72,9 @@ export class RoleController {
    * 删除角色
    */
   @Delete(':id')
-  @Permissions('system:config:write')
+  @RequireSystemAdmin()
   async deleteRole(@Param('id') id: string): Promise<{ message: string }> {
     await this.roleService.deleteRole(id)
     return { message: '角色删除成功' }
-  }
-
-  /**
-   * 获取用户在特定上下文中的权限
-   */
-  @Get('user/:userId/permissions')
-  @Permissions('team:read', 'project:read')
-  async getUserPermissions(
-    @Param('userId') userId: string,
-    @Query('teamId') teamId?: string,
-    @Query('projectId') projectId?: string,
-  ): Promise<{ permissions: string[] }> {
-    const permissions = await this.roleService.getUserPermissions(userId, teamId, projectId)
-    return { permissions }
   }
 }

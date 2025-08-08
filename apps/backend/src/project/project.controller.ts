@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { FastifyRequest } from 'fastify'
-import { Permissions } from '@/common/decorators/permissions.decorator'
+import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import {
@@ -39,7 +39,7 @@ export class ProjectController {
    * 需要项目创建权限
    */
   @Post(':teamId')
-  @Permissions('project:create')
+  @ProjectPermissions(['project:create'])
   async createProject(
     @Param('teamId') teamId: string,
     @Body() createProjectDto: CreateProjectDto,
@@ -67,7 +67,7 @@ export class ProjectController {
    * 需要是项目成员才能查看详情
    */
   @Get(':projectId')
-  @Permissions('project:read')
+  @ProjectPermissions(['project:read'])
   async getProjectDetail(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,
@@ -82,7 +82,7 @@ export class ProjectController {
    * 需要项目写入权限
    */
   @Patch(':projectId')
-  @Permissions('project:write')
+  @ProjectPermissions(['project:write'])
   async updateProject(
     @Param('projectId') projectId: string,
     @Body() updateProjectDto: UpdateProjectDto,
@@ -97,7 +97,7 @@ export class ProjectController {
    * 需要项目管理权限
    */
   @Delete(':projectId')
-  @Permissions('project:admin')
+  @ProjectPermissions(['project:admin'])
   async deleteProject(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,
@@ -123,7 +123,7 @@ export class ProjectController {
    * 用于前端权限控制
    */
   @Get(':projectId/my-role')
-  @Permissions('project:read')
+  @ProjectPermissions(['project:read'])
   async getMyProjectRole(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,

@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -11,13 +11,16 @@ import {
   UpdateProjectEnvironmentDto,
   UpdateProjectEnvironmentResponseDto,
 } from './dto'
+import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
 export class ProjectEnvironmentService {
   private readonly logger = new Logger(ProjectEnvironmentService.name)
 
-  @Inject(PrismaService)
-  private readonly prisma: PrismaService
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly projectUtilsService: ProjectUtilsService,
+  ) {}
 
   /**
    * 创建项目环境
@@ -28,10 +31,10 @@ export class ProjectEnvironmentService {
   async createProjectEnvironment(projectId: string, createEnvDto: CreateProjectEnvironmentDto, userId: string): Promise<CreateProjectEnvironmentResponseDto> {
     try {
       // 检查项目是否存在
-      await this.getProjectById(projectId)
+      await this.projectUtilsService.getProjectById(projectId)
 
       // 验证用户权限
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查环境名称是否已存在
       const existingEnv = await this.prisma.projectEnvironment.findUnique({
@@ -106,8 +109,8 @@ export class ProjectEnvironmentService {
   async getProjectEnvironments(projectId: string, userId: string): Promise<ProjectEnvironmentsResponseDto> {
     try {
       // 检查项目是否存在和用户权限
-      await this.getProjectById(projectId)
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const environments = await this.prisma.projectEnvironment.findMany({
         where: { projectId },
@@ -154,10 +157,10 @@ export class ProjectEnvironmentService {
   async updateProjectEnvironment(projectId: string, environmentId: string, updateEnvDto: UpdateProjectEnvironmentDto, userId: string): Promise<UpdateProjectEnvironmentResponseDto> {
     try {
       // 检查项目是否存在
-      await this.getProjectById(projectId)
+      await this.projectUtilsService.getProjectById(projectId)
 
       // 验证用户权限
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查环境是否存在
       const existingEnv = await this.prisma.projectEnvironment.findUnique({
@@ -244,10 +247,10 @@ export class ProjectEnvironmentService {
   async deleteProjectEnvironment(projectId: string, environmentId: string, userId: string): Promise<DeleteProjectEnvironmentResponseDto> {
     try {
       // 检查项目是否存在
-      await this.getProjectById(projectId)
+      await this.projectUtilsService.getProjectById(projectId)
 
       // 验证用户权限
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查环境是否存在
       const environment = await this.prisma.projectEnvironment.findUnique({
@@ -303,48 +306,6 @@ export class ProjectEnvironmentService {
 
       this.logger.error(`删除项目环境失败: ${error.message}`, error.stack)
       throw new HanaException('删除项目环境失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
-    }
-  }
-
-  // ==================== 私有辅助方法 ====================
-
-  /**
-   * 根据 ID 获取项目信息
-   * @param projectId 项目 ID
-   */
-  private async getProjectById(projectId: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-    })
-
-    if (!project) {
-      throw new HanaException('项目不存在', ErrorCode.PROJECT_NOT_FOUND, 404)
-    }
-
-    if (project.status !== 'ACTIVE') {
-      throw new HanaException('项目已被删除', ErrorCode.PROJECT_DELETED)
-    }
-
-    return project
-  }
-
-  /**
-   * 检查用户是否为项目成员
-   * @param projectId 项目 ID
-   * @param userId 用户 ID
-   */
-  private async checkUserProjectMembership(projectId: string, userId: string): Promise<void> {
-    const membership = await this.prisma.projectMember.findUnique({
-      where: {
-        userId_projectId: {
-          userId,
-          projectId,
-        },
-      },
-    })
-
-    if (!membership) {
-      throw new HanaException('您不是该项目的成员', ErrorCode.NOT_PROJECT_MEMBER, 403)
     }
   }
 }

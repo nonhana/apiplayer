@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { FastifyRequest } from 'fastify'
-import { Permissions } from '@/common/decorators/permissions.decorator'
+import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import {
@@ -37,7 +37,7 @@ export class ProjectMemberController {
    * 需要项目成员邀请权限
    */
   @Post(':projectId/members')
-  @Permissions('project:member:invite')
+  @ProjectPermissions(['project:member:invite'])
   async inviteProjectMember(
     @Param('projectId') projectId: string,
     @Body() inviteDto: InviteProjectMemberDto,
@@ -52,7 +52,7 @@ export class ProjectMemberController {
    * 需要项目读取权限
    */
   @Get(':projectId/members')
-  @Permissions('project:read')
+  @ProjectPermissions(['project:read'])
   async getProjectMembers(
     @Param('projectId') projectId: string,
     @Query() query: ProjectListQueryDto,
@@ -67,7 +67,7 @@ export class ProjectMemberController {
    * 需要项目成员管理权限
    */
   @Patch(':projectId/members/:memberId')
-  @Permissions('project:member:manage')
+  @ProjectPermissions(['project:member:manage'])
   async updateProjectMemberRole(
     @Param('projectId') projectId: string,
     @Param('memberId') memberId: string,
@@ -83,7 +83,7 @@ export class ProjectMemberController {
    * 需要项目成员移除权限
    */
   @Delete(':projectId/members/:memberId')
-  @Permissions('project:member:remove')
+  @ProjectPermissions(['project:member:remove'])
   async removeProjectMember(
     @Param('projectId') projectId: string,
     @Param('memberId') memberId: string,

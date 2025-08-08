@@ -15,7 +15,6 @@ export const permissions = [
   { name: 'project:member:invite', description: '邀请项目成员', resource: 'project', action: 'member:invite' },
   { name: 'project:member:remove', description: '移除项目成员', resource: 'project', action: 'member:remove' },
   { name: 'project:member:manage', description: '管理项目成员角色', resource: 'project', action: 'member:manage' },
-  { name: 'project:env:manage', description: '管理项目环境', resource: 'project', action: 'env:manage' },
 
   // API 权限
   { name: 'api:read', description: '查看 API', resource: 'api', action: 'read' },
@@ -32,17 +31,6 @@ export const permissions = [
   { name: 'api_group:write', description: '编辑 API 分组', resource: 'api_group', action: 'write' },
   { name: 'api_group:create', description: '创建 API 分组', resource: 'api_group', action: 'create' },
   { name: 'api_group:delete', description: '删除 API 分组', resource: 'api_group', action: 'delete' },
-
-  // 系统权限
-  { name: 'system:config:read', description: '查看系统配置', resource: 'system', action: 'config:read' },
-  { name: 'system:config:write', description: '修改系统配置', resource: 'system', action: 'config:write' },
-  { name: 'system:log:read', description: '查看系统日志', resource: 'system', action: 'log:read' },
-  { name: 'system:user:manage', description: '管理系统用户', resource: 'system', action: 'user:manage' },
-
-  // 全局参数权限
-  { name: 'global_param:read', description: '查看全局参数', resource: 'global_param', action: 'read' },
-  { name: 'global_param:write', description: '编辑全局参数', resource: 'global_param', action: 'write' },
-  { name: 'global_param:manage', description: '管理全局参数', resource: 'global_param', action: 'manage' },
 ] as const
 
 export type PermissionType = (typeof permissions)[number]['name']

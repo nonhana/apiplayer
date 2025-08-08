@@ -9,5 +9,6 @@ export default antfu({
   rules: {
     'no-console': 'off',
     'ts/consistent-type-imports': 'off',
+    'no-case-declarations': 'off',
   },
 })

@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { FastifyRequest } from 'fastify'
-import { Permissions } from '@/common/decorators/permissions.decorator'
+import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import {
@@ -35,7 +35,7 @@ export class ProjectEnvironmentController {
    * 需要项目环境管理权限
    */
   @Post(':projectId/environments')
-  @Permissions('project:env:manage')
+  @ProjectPermissions(['project:write'])
   async createProjectEnvironment(
     @Param('projectId') projectId: string,
     @Body() createEnvDto: CreateProjectEnvironmentDto,
@@ -50,7 +50,7 @@ export class ProjectEnvironmentController {
    * 需要项目读取权限
    */
   @Get(':projectId/environments')
-  @Permissions('project:read')
+  @ProjectPermissions(['project:read'])
   async getProjectEnvironments(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,
@@ -64,7 +64,7 @@ export class ProjectEnvironmentController {
    * 需要项目环境管理权限
    */
   @Patch(':projectId/environments/:environmentId')
-  @Permissions('project:env:manage')
+  @ProjectPermissions(['project:write'])
   async updateProjectEnvironment(
     @Param('projectId') projectId: string,
     @Param('environmentId') environmentId: string,
@@ -80,7 +80,7 @@ export class ProjectEnvironmentController {
    * 需要项目环境管理权限
    */
   @Delete(':projectId/environments/:environmentId')
-  @Permissions('project:env:manage')
+  @ProjectPermissions(['project:write'])
   async deleteProjectEnvironment(
     @Param('projectId') projectId: string,
     @Param('environmentId') environmentId: string,
