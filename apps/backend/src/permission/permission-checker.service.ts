@@ -4,18 +4,8 @@ import { RoleType } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ErrorCode } from '../common/exceptions/error-code'
 import { HanaException } from '../common/exceptions/hana.exception'
-
-export interface PermissionContext {
-  type: 'team' | 'project' | 'system'
-  id?: string // teamId or projectId
-}
-
-export interface UserPermissions {
-  userId: string
-  context: PermissionContext
-  roles: RoleType[]
-  permissions: PermissionType[]
-}
+import { PermissionContextDto } from './dto/permission-context.dto'
+import { UserPermissionsDto } from './dto/user-permissions.dto'
 
 @Injectable()
 export class PermissionCheckerService {
@@ -23,12 +13,10 @@ export class PermissionCheckerService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * 检查用户在特定上下文中是否拥有指定权限
-   */
+  /** 检查用户是否拥有特定权限 */
   async hasPermissions(
     userId: string,
-    context: PermissionContext,
+    context: PermissionContextDto,
     requiredPermissions: PermissionType[],
   ): Promise<boolean> {
     try {
@@ -51,13 +39,11 @@ export class PermissionCheckerService {
     }
   }
 
-  /**
-   * 获取用户在特定上下文中的权限信息
-   */
+  /** 获取用户在特定上下文中的权限信息 */
   async getUserPermissionsInContext(
     userId: string,
-    context: PermissionContext,
-  ): Promise<UserPermissions> {
+    context: PermissionContextDto,
+  ): Promise<UserPermissionsDto> {
     try {
       let roles: RoleType[] = []
       let permissions: PermissionType[] = []
@@ -103,9 +89,7 @@ export class PermissionCheckerService {
     }
   }
 
-  /**
-   * 获取用户在特定团队中的权限
-   */
+  /** 获取用户在特定团队中的权限 */
   private async getTeamPermissions(userId: string, teamId: string):
   Promise<{ roles: RoleType[], permissions: PermissionType[] }> {
     const teamMember = await this.prisma.teamMember.findUnique({
@@ -139,9 +123,7 @@ export class PermissionCheckerService {
     return { roles, permissions }
   }
 
-  /**
-   * 获取用户在特定项目中的权限
-   */
+  /** 获取用户在特定项目中的权限 */
   private async getProjectPermissions(userId: string, projectId: string):
   Promise<{ roles: RoleType[], permissions: PermissionType[] }> {
     // 首先检查用户是否是项目的直接成员
@@ -175,9 +157,7 @@ export class PermissionCheckerService {
     return { roles, permissions }
   }
 
-  /**
-   * 检查用户是否是系统管理员
-   */
+  /** 检查用户是否是系统管理员 */
   async isSystemAdmin(userId: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -186,9 +166,7 @@ export class PermissionCheckerService {
     return user?.isAdmin ?? false
   }
 
-  /**
-   * 检查用户是否是团队成员
-   */
+  /** 检查用户是否是团队成员 */
   async isTeamMember(userId: string, teamId: string): Promise<boolean> {
     const teamMember = await this.prisma.teamMember.findUnique({
       where: {
@@ -202,9 +180,7 @@ export class PermissionCheckerService {
     return !!teamMember
   }
 
-  /**
-   * 检查用户是否是项目成员
-   */
+  /** 检查用户是否是项目成员 */
   async isProjectMember(userId: string, projectId: string): Promise<boolean> {
     const projectMember = await this.prisma.projectMember.findUnique({
       where: {

@@ -12,6 +12,7 @@ import { ProjectModule } from './project/project.module'
 import { RoleModule } from './role/role.module'
 import { TeamModule } from './team/team.module'
 import { UserModule } from './user/user.module'
+import { CookieModule } from './cookie/cookie.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UserModule } from './user/user.module'
     RoleModule,
     PermissionModule,
     ProjectModule,
+    CookieModule,
   ],
   controllers: [AppController],
   providers: [

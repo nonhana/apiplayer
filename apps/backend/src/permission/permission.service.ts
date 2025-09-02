@@ -1,28 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { Permission } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import {
-  BatchCreatePermissionsDto,
-  CreatePermissionDto,
-  PermissionResponseDto,
-  PermissionsListResponseDto,
-  QueryPermissionsDto,
-  UpdatePermissionDto,
-} from './dto/permission.dto'
+import { CreatePermissionDto } from './dto/create-permission.dto'
+import { CreatePermissionsDto } from './dto/create-permissions.dto'
+import { QueryPermissionsDto } from './dto/get-permissions.dto'
+import { UpdatePermissionDto } from './dto/update-permission.dto'
 
 @Injectable()
 export class PermissionService {
   private readonly logger = new Logger(PermissionService.name)
 
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * 创建单个权限
-   */
-  async createPermission(createDto: CreatePermissionDto): Promise<PermissionResponseDto> {
+  /** 创建单个权限 */
+  async createPermission(createDto: CreatePermissionDto): Promise<Permission> {
     try {
       // 检查权限名称是否已存在
       const existingPermission = await this.prisma.permission.findUnique({
@@ -37,12 +30,11 @@ export class PermissionService {
         )
       }
 
-      const permission = await this.prisma.permission.create({
-        data: createDto,
-      })
+      const permission = await this.prisma.permission.create({ data: createDto })
 
       this.logger.log(`创建权限成功: ${permission.name}`)
-      return this.mapToResponseDto(permission)
+
+      return permission
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -53,13 +45,11 @@ export class PermissionService {
     }
   }
 
-  /**
-   * 批量创建权限
-   */
-  async batchCreatePermissions(batchDto: BatchCreatePermissionsDto): Promise<PermissionResponseDto[]> {
+  /** 批量创建权限 */
+  async createPermissions(createDto: CreatePermissionsDto): Promise<Permission[]> {
     try {
-      const { permissions } = batchDto
-      const createdPermissions: PermissionResponseDto[] = []
+      const { permissions } = createDto
+      const createdPermissions: Permission[] = []
 
       // 检查所有权限名称是否已存在
       const permissionNames = permissions.map(p => p.name)
@@ -83,7 +73,7 @@ export class PermissionService {
         const permission = await this.prisma.permission.create({
           data: permissionDto,
         })
-        createdPermissions.push(this.mapToResponseDto(permission))
+        createdPermissions.push(permission)
       }
 
       this.logger.log(`批量创建权限成功，共创建 ${createdPermissions.length} 个权限`)
@@ -98,20 +88,16 @@ export class PermissionService {
     }
   }
 
-  /**
-   * 根据ID获取权限详情
-   */
-  async getPermissionById(id: string): Promise<PermissionResponseDto> {
+  /** 根据ID获取权限详情 */
+  async getPermissionById(id: string): Promise<Permission> {
     try {
-      const permission = await this.prisma.permission.findUnique({
-        where: { id },
-      })
+      const permission = await this.prisma.permission.findUnique({ where: { id } })
 
       if (!permission) {
         throw new HanaException('权限不存在', ErrorCode.PERMISSION_NOT_FOUND, 404)
       }
 
-      return this.mapToResponseDto(permission)
+      return permission
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -122,10 +108,8 @@ export class PermissionService {
     }
   }
 
-  /**
-   * 查询权限列表
-   */
-  async getPermissions(queryDto: QueryPermissionsDto = {}): Promise<PermissionsListResponseDto> {
+  /** 查询权限列表 */
+  async getPermissions(queryDto: QueryPermissionsDto = {}): Promise<{ permissions: Permission[], total: number }> {
     try {
       const { resource, action, keyword } = queryDto
 
@@ -159,7 +143,7 @@ export class PermissionService {
       ])
 
       return {
-        permissions: permissions.map(p => this.mapToResponseDto(p)),
+        permissions,
         total,
       }
     }
@@ -169,15 +153,11 @@ export class PermissionService {
     }
   }
 
-  /**
-   * 更新权限
-   */
-  async updatePermission(id: string, updateDto: UpdatePermissionDto): Promise<PermissionResponseDto> {
+  /** 更新权限 */
+  async updatePermission(id: string, updateDto: UpdatePermissionDto): Promise<Permission> {
     try {
       // 检查权限是否存在
-      const existingPermission = await this.prisma.permission.findUnique({
-        where: { id },
-      })
+      const existingPermission = await this.prisma.permission.findUnique({ where: { id } })
 
       if (!existingPermission) {
         throw new HanaException('权限不存在', ErrorCode.PERMISSION_NOT_FOUND, 404)
@@ -204,7 +184,7 @@ export class PermissionService {
       })
 
       this.logger.log(`更新权限成功: ${updatedPermission.name}`)
-      return this.mapToResponseDto(updatedPermission)
+      return updatedPermission
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -215,22 +195,16 @@ export class PermissionService {
     }
   }
 
-  /**
-   * 删除权限
-   */
+  /** 删除权限 */
   async deletePermission(id: string): Promise<void> {
     try {
-      const permission = await this.prisma.permission.findUnique({
-        where: { id },
-      })
+      const permission = await this.prisma.permission.findUnique({ where: { id } })
 
       if (!permission) {
         throw new HanaException('权限不存在', ErrorCode.PERMISSION_NOT_FOUND, 404)
       }
 
-      await this.prisma.permission.delete({
-        where: { id },
-      })
+      await this.prisma.permission.delete({ where: { id } })
 
       this.logger.log(`删除权限成功: ${permission.name}`)
     }
@@ -243,16 +217,10 @@ export class PermissionService {
     }
   }
 
-  /**
-   * 根据权限名称获取权限
-   */
-  async getPermissionByName(name: string): Promise<PermissionResponseDto | null> {
+  /** 根据权限名称获取权限 */
+  async getPermissionByName(name: string): Promise<Permission | null> {
     try {
-      const permission = await this.prisma.permission.findUnique({
-        where: { name },
-      })
-
-      return permission ? this.mapToResponseDto(permission) : null
+      return await this.prisma.permission.findUnique({ where: { name } })
     }
     catch (error) {
       this.logger.error('根据名称获取权限失败:', error)
@@ -260,17 +228,13 @@ export class PermissionService {
     }
   }
 
-  /**
-   * 根据资源类型获取权限列表
-   */
-  async getPermissionsByResource(resource: string): Promise<PermissionResponseDto[]> {
+  /** 根据资源类型获取权限列表 */
+  async getPermissionsByResource(resource: string): Promise<Permission[]> {
     try {
-      const permissions = await this.prisma.permission.findMany({
+      return await this.prisma.permission.findMany({
         where: { resource },
         orderBy: { action: 'asc' },
       })
-
-      return permissions.map(p => this.mapToResponseDto(p))
     }
     catch (error) {
       this.logger.error('根据资源类型获取权限失败:', error)
@@ -278,9 +242,7 @@ export class PermissionService {
     }
   }
 
-  /**
-   * 获取所有资源类型
-   */
+  /** 获取所有资源类型 */
   async getResources(): Promise<string[]> {
     try {
       const result = await this.prisma.permission.findMany({
@@ -294,20 +256,6 @@ export class PermissionService {
     catch (error) {
       this.logger.error('获取资源类型失败:', error)
       throw new HanaException('获取资源类型失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
-    }
-  }
-
-  /**
-   * 映射到响应DTO
-   */
-  private mapToResponseDto(permission: any): PermissionResponseDto {
-    return {
-      id: permission.id,
-      name: permission.name,
-      description: permission.description,
-      resource: permission.resource,
-      action: permission.action,
-      createdAt: permission.createdAt,
     }
   }
 }

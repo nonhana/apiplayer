@@ -1,17 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { User } from '@prisma/client'
 import { compare, hash } from 'bcrypt'
+import { UserSessionDto } from '@/common/dto/user.dto'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SessionService } from '@/session/session.service'
-import { LoginDto } from './dto/login.dto'
-import { RegisterDto, RegisterResponseDto } from './dto/register.dto'
-import {
-  CheckAvailabilityDto,
-  CheckAvailabilityResponseDto,
-  CurrentUserResponseDto,
-  UserSessionDto,
-} from './dto/utils.dto'
+import { CheckAvailabilityReqDto, CheckAvailabilityResDto } from './dto/check-availability.dto'
+import { LoginReqDto } from './dto/login.dto'
+import { RegisterReqDto } from './dto/register.dto'
 
 @Injectable()
 export class AuthService {
@@ -35,27 +32,14 @@ export class AuthService {
 
   /** 用户登录 */
   async login(
-    loginDto: LoginDto,
+    loginDto: LoginReqDto,
     metadata?: { userAgent?: string, ipAddress?: string },
-  ): Promise<{ user: CurrentUserResponseDto, sessionId: string }> {
+  ): Promise<{ user: User, sessionId: string }> {
     const { email, password, rememberMe } = loginDto
 
     try {
       // 查找用户
-      const user = await this.prisma.user.findUnique({
-        where: { email },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          name: true,
-          password: true,
-          avatar: true,
-          isActive: true,
-          lastLoginAt: true,
-          createdAt: true,
-        },
-      })
+      const user = await this.prisma.user.findUnique({ where: { email } })
 
       if (!user) {
         throw new HanaException('该邮箱未注册', ErrorCode.USER_NOT_FOUND, 401)
@@ -71,9 +55,6 @@ export class AuthService {
         throw new HanaException('密码错误', ErrorCode.INVALID_PASSWORD, 401)
       }
 
-      // 获取用户角色和权限
-      const { roles, permissions } = await this.getUserRolesAndPermissions(user.id)
-
       // 创建会话
       const sessionOptions = rememberMe
         ? { idleTimeout: 30 * 24 * 60 * 60 } // 记住我：30天
@@ -81,7 +62,6 @@ export class AuthService {
 
       const sessionId = await this.sessionService.createSession(
         user.id,
-        roles,
         sessionOptions,
         metadata,
       )
@@ -94,21 +74,7 @@ export class AuthService {
 
       this.logger.log(`用户 ${user.email} 登录成功`)
 
-      // 返回用户信息（不包含密码）
-      const userResponse: CurrentUserResponseDto = {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        name: user.name,
-        avatar: user.avatar,
-        roles,
-        permissions,
-        isActive: user.isActive,
-        lastLoginAt: user.lastLoginAt,
-        createdAt: user.createdAt,
-      }
-
-      return { user: userResponse, sessionId }
+      return { user, sessionId }
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -149,36 +115,22 @@ export class AuthService {
   }
 
   /** 验证会话并获取用户信息 */
-  async validateSession(sessionId: string): Promise<CurrentUserResponseDto | null> {
+  async validateSession(sessionId: string): Promise<User | null> {
     try {
       // 刷新会话（更新最后访问时间）
       const isValid = await this.sessionService.refreshSession(sessionId)
 
-      if (!isValid) {
+      if (!isValid)
         return null
-      }
 
       // 获取会话数据
       const sessionData = await this.sessionService.getSession(sessionId)
 
-      if (!sessionData) {
+      if (!sessionData)
         return null
-      }
 
       // 获取用户详细信息
-      const user = await this.prisma.user.findUnique({
-        where: { id: sessionData.userId },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          name: true,
-          avatar: true,
-          isActive: true,
-          lastLoginAt: true,
-          createdAt: true,
-        },
-      })
+      const user = await this.prisma.user.findUnique({ where: { id: sessionData.userId } })
 
       if (!user || !user.isActive) {
         // 用户不存在或已被禁用，销毁会话
@@ -186,21 +138,7 @@ export class AuthService {
         return null
       }
 
-      // 重新获取最新的权限信息
-      const { permissions } = await this.getUserRolesAndPermissions(user.id)
-
-      return {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        name: user.name,
-        avatar: user.avatar,
-        roles: sessionData.roles,
-        permissions,
-        isActive: user.isActive,
-        lastLoginAt: user.lastLoginAt,
-        createdAt: user.createdAt,
-      }
+      return user
     }
     catch (error) {
       this.logger.error('验证会话失败:', error)
@@ -268,7 +206,7 @@ export class AuthService {
   }
 
   /** 用户注册 */
-  async register(registerDto: RegisterDto): Promise<RegisterResponseDto> {
+  async register(registerDto: RegisterReqDto): Promise<{ user: User, message: string }> {
     const { email, username, name, password, confirmPassword } = registerDto
 
     try {
@@ -278,18 +216,14 @@ export class AuthService {
       }
 
       // 检查邮箱是否已被注册
-      const existingEmailUser = await this.prisma.user.findUnique({
-        where: { email },
-      })
+      const existingEmailUser = await this.prisma.user.findUnique({ where: { email } })
 
       if (existingEmailUser) {
         throw new HanaException('该邮箱已被注册', ErrorCode.EMAIL_ALREADY_REGISTERED, 409)
       }
 
       // 检查用户名是否已被占用
-      const existingUsernameUser = await this.prisma.user.findUnique({
-        where: { username },
-      })
+      const existingUsernameUser = await this.prisma.user.findUnique({ where: { username } })
 
       if (existingUsernameUser) {
         throw new HanaException('该用户名已被占用', ErrorCode.USERNAME_ALREADY_EXISTS, 409)
@@ -306,14 +240,6 @@ export class AuthService {
           name,
           password: hashedPassword,
           isActive: true,
-        },
-        select: {
-          id: true,
-          email: true,
-          username: true,
-          name: true,
-          avatar: true,
-          createdAt: true,
         },
       })
 
@@ -334,14 +260,12 @@ export class AuthService {
   }
 
   /** 检查邮箱或用户名可用性 */
-  async checkAvailability(checkDto: CheckAvailabilityDto): Promise<CheckAvailabilityResponseDto> {
+  async checkAvailability(checkDto: CheckAvailabilityReqDto): Promise<CheckAvailabilityResDto> {
     try {
       const { email, username } = checkDto
 
       if (email) {
-        const existingUser = await this.prisma.user.findUnique({
-          where: { email },
-        })
+        const existingUser = await this.prisma.user.findUnique({ where: { email } })
 
         if (existingUser) {
           return {
@@ -357,9 +281,7 @@ export class AuthService {
       }
 
       if (username) {
-        const existingUser = await this.prisma.user.findUnique({
-          where: { username },
-        })
+        const existingUser = await this.prisma.user.findUnique({ where: { username } })
 
         if (existingUser) {
           return {
@@ -382,83 +304,6 @@ export class AuthService {
       }
       this.logger.error('检查可用性失败:', error)
       throw new HanaException('检查失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
-    }
-  }
-
-  /**
-   * 获取用户的角色和权限
-   */
-  private async getUserRolesAndPermissions(userId: string): Promise<{ roles: string[], permissions: string[] }> {
-    try {
-      const permissionSets: string[][] = []
-      const roleNames: string[] = []
-
-      // 获取用户在所有团队中的角色和权限
-      const teamMembers = await this.prisma.teamMember.findMany({
-        where: { userId },
-        include: {
-          role: {
-            include: {
-              rolePermissions: {
-                include: {
-                  permission: true,
-                },
-              },
-            },
-          },
-        },
-      })
-
-      // 获取用户在所有项目中的角色和权限
-      const projectMembers = await this.prisma.projectMember.findMany({
-        where: { userId },
-        include: {
-          role: {
-            include: {
-              rolePermissions: {
-                include: {
-                  permission: true,
-                },
-              },
-            },
-          },
-        },
-      })
-
-      // 收集团队角色和权限
-      for (const member of teamMembers) {
-        roleNames.push(member.role.name)
-        const permissions = member.role.rolePermissions.map(rp => rp.permission.name)
-        permissionSets.push(permissions)
-      }
-
-      // 收集项目角色和权限
-      for (const member of projectMembers) {
-        roleNames.push(member.role.name)
-        const permissions = member.role.rolePermissions.map(rp => rp.permission.name)
-        permissionSets.push(permissions)
-      }
-
-      // 如果用户没有任何角色，给予基本角色
-      if (roleNames.length === 0) {
-        roleNames.push('user')
-      }
-
-      // 合并所有权限（去重）
-      const allPermissions = [...new Set(permissionSets.flat())]
-
-      return {
-        roles: [...new Set(roleNames)], // 去重角色名称
-        permissions: allPermissions,
-      }
-    }
-    catch (error) {
-      this.logger.error('获取用户角色和权限失败:', error)
-      // 如果查询失败，返回基本角色，但不抛出异常
-      return {
-        roles: ['user'],
-        permissions: [],
-      }
     }
   }
 }

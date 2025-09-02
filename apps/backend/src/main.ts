@@ -4,6 +4,7 @@ import { Logger, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { AppModule } from './app.module'
 import { WinstonLogger } from './common/logger/winston-logger.service'
 
@@ -53,6 +54,28 @@ async function bootstrap() {
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    })
+
+    // Swagger
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('Apiplayer API')
+      .setDescription('API documentation for Apiplayer backend.')
+      .setVersion('1.0.0')
+      .addCookieAuth('sid', {
+        type: 'apiKey',
+        in: 'cookie',
+        name: 'sid',
+        description: 'Session ID cookie set after successful login',
+      })
+      .build()
+
+    const document = SwaggerModule.createDocument(app, swaggerConfig)
+    SwaggerModule.setup('docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+        displayRequestDuration: true,
+      },
+      jsonDocumentUrl: 'docs-json',
     })
   }
 

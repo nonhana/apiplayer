@@ -5,7 +5,6 @@ import { REDIS_CLIENT } from '@/infra/redis/redis.module'
 
 export interface SessionData {
   userId: string
-  roles: string[]
   createdAt: number
   lastAccessed: number
   userAgent?: string
@@ -52,7 +51,6 @@ export class SessionService {
   /** 创建 Session */
   async createSession(
     userId: string,
-    roles: string[] = [],
     options: SessionOptions = {},
     metadata?: { userAgent?: string, ipAddress?: string },
   ): Promise<string> {
@@ -62,7 +60,6 @@ export class SessionService {
 
     const sessionData: SessionData = {
       userId,
-      roles,
       createdAt: now,
       lastAccessed: now,
       userAgent: metadata?.userAgent,
@@ -113,7 +110,6 @@ export class SessionService {
 
       return {
         userId: data.userId,
-        roles: data.roles ? data.roles.split(',') : [],
         createdAt: Number(data.createdAt),
         lastAccessed: Number(data.lastAccessed),
         userAgent: data.userAgent,
@@ -289,11 +285,5 @@ export class SessionService {
       this.logger.error('更换会话 ID 失败:', error)
       return null
     }
-  }
-
-  /** 关闭 Redis 连接 */
-  async onModuleDestroy() {
-    await this.redisClient.quit()
-    this.logger.log('Redis 连接已关闭')
   }
 }
