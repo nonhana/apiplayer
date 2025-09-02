@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { PermissionContextDTO } from '@/permission/dto/utils.dto'
+import { PermissionContext } from '@/common/types/permission'
 import { PermissionCheckerService } from '@/permission/permission-checker.service'
 import {
   CONTEXT_PERMISSIONS_KEY,
@@ -167,8 +167,8 @@ export class PermissionsGuard implements CanActivate {
   private async buildPermissionContext(
     request: FastifyRequest,
     config: PermissionContextConfig,
-  ): Promise<PermissionContextDTO> {
-    const context: PermissionContextDTO = {
+  ): Promise<PermissionContext> {
+    const context: PermissionContext = {
       type: config.type,
     }
 

@@ -1,10 +1,14 @@
 import { PermissionType } from '@/constants/permission'
 import { RoleType } from '@/constants/role'
-import { PermissionContextDto } from './permission-context.dto'
 
-export class UserPermissionsDto {
+export class UserPermissions {
   userId: string
-  context: PermissionContextDto
+  context: PermissionContext
   roles: RoleType[]
   permissions: PermissionType[]
+}
+
+export class PermissionContext {
+  type: 'team' | 'project' | 'system'
+  id?: string // teamId or projectId
 }

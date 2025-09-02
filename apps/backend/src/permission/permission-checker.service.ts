@@ -1,11 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { ErrorCode } from '@/common/exceptions/error-code'
+import { HanaException } from '@/common/exceptions/hana.exception'
+import { PermissionContext, UserPermissions } from '@/common/types/permission'
 import { PermissionType } from '@/constants/permission'
 import { RoleType } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { ErrorCode } from '../common/exceptions/error-code'
-import { HanaException } from '../common/exceptions/hana.exception'
-import { PermissionContextDto } from './dto/permission-context.dto'
-import { UserPermissionsDto } from './dto/user-permissions.dto'
 
 @Injectable()
 export class PermissionCheckerService {
@@ -16,7 +15,7 @@ export class PermissionCheckerService {
   /** 检查用户是否拥有特定权限 */
   async hasPermissions(
     userId: string,
-    context: PermissionContextDto,
+    context: PermissionContext,
     requiredPermissions: PermissionType[],
   ): Promise<boolean> {
     try {
@@ -42,8 +41,8 @@ export class PermissionCheckerService {
   /** 获取用户在特定上下文中的权限信息 */
   async getUserPermissionsInContext(
     userId: string,
-    context: PermissionContextDto,
-  ): Promise<UserPermissionsDto> {
+    context: PermissionContext,
+  ): Promise<UserPermissions> {
     try {
       let roles: RoleType[] = []
       let permissions: PermissionType[] = []
