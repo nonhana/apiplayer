@@ -11,6 +11,13 @@ datasource db {
 // 基础枚举定义
 // ============================================================================
 
+// 角色类型
+enum RoleType {
+  TEAM
+  PROJECT
+  SYSTEM
+}
+
 // 项目环境
 enum ProjectEnvType {
   DEV
@@ -106,9 +113,9 @@ model Permission {
 
 model Role {
   id          String   @id @default(cuid())
+  type        RoleType // 角色类型，包含团队、项目、系统
   name        String   @unique // 角色名称必须唯一
   description String?
-  isSystem    Boolean  @default(false) // 系统内置角色
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

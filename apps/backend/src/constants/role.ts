@@ -163,3 +163,7 @@ export enum RoleName {
   PROJECT_EDITOR = 'project:editor',
   PROJECT_VIEWER = 'project:viewer',
 }
+
+export const ROLE_CATEGORIES = ['TEAM', 'PROJECT', 'SYSTEM'] as const
+
+export type RoleCategory = (typeof ROLE_CATEGORIES)[number]

@@ -1,15 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import {
-  AssignRolePermissionsDto,
-  CreateRoleDto,
-  QueryRolesDto,
-  RoleResponseDto,
-  RolesListResponseDto,
-  UpdateRoleDto,
-} from './dto/role.dto'
+import { AssignPermissionsDto } from './dto/assign-permissions.dto'
+import { CreateRoleDto } from './dto/create-role.dto'
+import { QueryRolesDto } from './dto/query-roles.dto'
+import { UpdateRoleDto } from './dto/update-role.dto'
 
 @Injectable()
 export class RoleService {
@@ -17,10 +14,8 @@ export class RoleService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * 创建角色
-   */
-  async createRole(createDto: CreateRoleDto): Promise<RoleResponseDto> {
+  /** 创建角色 */
+  async createRole(createDto: CreateRoleDto) {
     try {
       // 检查角色名称是否已存在
       const existingRole = await this.prisma.role.findUnique({
@@ -76,7 +71,7 @@ export class RoleService {
       })
 
       this.logger.log(`创建角色成功: ${role.name}`)
-      return this.mapToResponseDto(role)
+      return role
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -87,14 +82,12 @@ export class RoleService {
     }
   }
 
-  /**
-   * 获取角色列表
-   */
-  async getRoles(queryDto: QueryRolesDto = {}): Promise<RolesListResponseDto> {
+  /** 获取角色列表 */
+  async getRoles(queryDto: QueryRolesDto = {}) {
     try {
-      const { keyword, isSystem } = queryDto
+      const { keyword, type } = queryDto
 
-      const where: any = {}
+      const where: Prisma.RoleWhereInput = {}
 
       if (keyword) {
         where.OR = [
@@ -103,8 +96,8 @@ export class RoleService {
         ]
       }
 
-      if (typeof isSystem === 'boolean') {
-        where.isSystem = isSystem
+      if (type) {
+        where.type = type
       }
 
       const [roles, total] = await Promise.all([
@@ -118,7 +111,7 @@ export class RoleService {
             },
           },
           orderBy: [
-            { isSystem: 'desc' },
+            { type: 'desc' },
             { createdAt: 'asc' },
           ],
         }),
@@ -126,7 +119,7 @@ export class RoleService {
       ])
 
       return {
-        roles: roles.map(role => this.mapToResponseDto(role)),
+        roles,
         total,
       }
     }
@@ -136,10 +129,8 @@ export class RoleService {
     }
   }
 
-  /**
-   * 根据ID获取角色详情
-   */
-  async getRoleById(id: string): Promise<RoleResponseDto> {
+  /** 根据ID获取角色详情 */
+  async getRoleById(id: string) {
     try {
       const role = await this.prisma.role.findUnique({
         where: { id },
@@ -156,7 +147,7 @@ export class RoleService {
         throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
       }
 
-      return this.mapToResponseDto(role)
+      return role
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -167,15 +158,11 @@ export class RoleService {
     }
   }
 
-  /**
-   * 更新角色
-   */
-  async updateRole(id: string, updateDto: UpdateRoleDto): Promise<RoleResponseDto> {
+  /** 更新角色 */
+  async updateRole(id: string, updateDto: UpdateRoleDto) {
     try {
       // 检查角色是否存在
-      const existingRole = await this.prisma.role.findUnique({
-        where: { id },
-      })
+      const existingRole = await this.prisma.role.findUnique({ where: { id } })
 
       if (!existingRole) {
         throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
@@ -209,7 +196,7 @@ export class RoleService {
       })
 
       this.logger.log(`更新角色成功: ${updatedRole.name}`)
-      return this.mapToResponseDto(updatedRole)
+      return updatedRole
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -220,9 +207,7 @@ export class RoleService {
     }
   }
 
-  /**
-   * 删除角色
-   */
+  /** 删除角色 */
   async deleteRole(id: string): Promise<void> {
     try {
       const role = await this.prisma.role.findUnique({
@@ -234,7 +219,7 @@ export class RoleService {
       }
 
       // 检查是否为系统角色
-      if (role.isSystem) {
+      if (role.type === 'SYSTEM') {
         throw new HanaException(
           '系统角色不能删除',
           ErrorCode.SYSTEM_ROLE_CANNOT_DELETE,
@@ -257,10 +242,9 @@ export class RoleService {
     }
   }
 
-  /**
-   * 为角色分配权限
-   */
-  async assignPermissions(roleId: string, assignDto: AssignRolePermissionsDto): Promise<RoleResponseDto> {
+  /** 为角色分配权限 */
+  // TODO: 某些权限不能分配给当前 type 以外的角色
+  async assignPermissions(roleId: string, assignDto: AssignPermissionsDto) {
     try {
       const { permissionIds } = assignDto
 
@@ -288,14 +272,11 @@ export class RoleService {
         )
       }
 
-      // 删除原有权限关联，再创建新的
       await this.prisma.$transaction(async (tx) => {
-        // 删除原有权限
         await tx.rolePermission.deleteMany({
           where: { roleId },
         })
 
-        // 创建新的权限关联
         if (permissionIds.length > 0) {
           await tx.rolePermission.createMany({
             data: permissionIds.map(permissionId => ({
@@ -308,7 +289,6 @@ export class RoleService {
 
       this.logger.log(`为角色 ${role.name} 分配权限成功，共 ${permissionIds.length} 个权限`)
 
-      // 返回更新后的角色信息
       return await this.getRoleById(roleId)
     }
     catch (error) {
@@ -320,10 +300,8 @@ export class RoleService {
     }
   }
 
-  /**
-   * 获取用户在特定上下文中的所有权限
-   */
-  async getUserPermissions(userId: string, teamId?: string, projectId?: string): Promise<string[]> {
+  /** 获取用户在特定上下文中的所有权限 */
+  async getUserPermissions(userId: string, teamId?: string, projectId?: string) {
     try {
       const permissionSets: string[][] = []
 
@@ -390,27 +368,6 @@ export class RoleService {
     catch (error) {
       this.logger.error('获取用户权限失败:', error)
       throw new HanaException('获取用户权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
-    }
-  }
-
-  /**
-   * 映射到响应DTO
-   */
-  private mapToResponseDto(role: any): RoleResponseDto {
-    return {
-      id: role.id,
-      name: role.name,
-      description: role.description,
-      isSystem: role.isSystem,
-      createdAt: role.createdAt,
-      updatedAt: role.updatedAt,
-      permissions: role.rolePermissions?.map((rp: any) => ({
-        id: rp.permission.id,
-        name: rp.permission.name,
-        description: rp.permission.description,
-        resource: rp.permission.resource,
-        action: rp.permission.action,
-      })),
     }
   }
 }
