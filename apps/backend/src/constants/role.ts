@@ -3,7 +3,7 @@ export const roles = [
   {
     name: 'team:owner',
     description: '团队所有者',
-    isSystem: true,
+    type: 'TEAM',
     permissions: [
       'team:read',
       'team:write',
@@ -35,7 +35,7 @@ export const roles = [
   {
     name: 'team:admin',
     description: '团队管理员',
-    isSystem: true,
+    type: 'TEAM',
     permissions: [
       'team:read',
       'team:write',
@@ -66,7 +66,7 @@ export const roles = [
   {
     name: 'team:member',
     description: '团队成员',
-    isSystem: true,
+    type: 'TEAM',
     permissions: [
       'team:read',
       'project:read',
@@ -84,7 +84,7 @@ export const roles = [
   {
     name: 'team:guest',
     description: '团队访客',
-    isSystem: true,
+    type: 'TEAM',
     permissions: [
       'team:read',
       'project:read',
@@ -98,7 +98,7 @@ export const roles = [
   {
     name: 'project:admin',
     description: '项目管理员',
-    isSystem: true,
+    type: 'PROJECT',
     permissions: [
       'project:read',
       'project:write',
@@ -123,7 +123,7 @@ export const roles = [
   {
     name: 'project:editor',
     description: '项目编辑者',
-    isSystem: true,
+    type: 'PROJECT',
     permissions: [
       'project:read',
       'project:write',
@@ -142,7 +142,7 @@ export const roles = [
   {
     name: 'project:viewer',
     description: '项目查看者',
-    isSystem: true,
+    type: 'PROJECT',
     permissions: [
       'project:read',
       'api:read',

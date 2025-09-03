@@ -1,4 +1,5 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
+import { RoleCategory } from '@/constants/role'
 import { PermissionDto } from '@/permission/dto/permission.dto'
 
 @Exclude()
@@ -14,7 +15,7 @@ export class RoleDto {
   description?: string
 
   @Expose()
-  isSystem: boolean
+  type: RoleCategory
 
   @Expose()
   createdAt: Date
