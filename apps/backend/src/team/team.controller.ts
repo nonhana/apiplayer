@@ -10,13 +10,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common'
+import { plainToInstance } from 'class-transformer'
 import { FastifyRequest } from 'fastify'
 import { TeamPermissions } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import {
-  CreateTeamDto,
-  CreateTeamResponseDto,
   DeleteTeamResponseDto,
   InviteTeamMemberDto,
   InviteTeamMemberResponseDto,
@@ -30,14 +29,16 @@ import {
   UpdateTeamMemberRoleDto,
   UpdateTeamResponseDto,
 } from './dto'
+import { CreateTeamDto } from './dto/create-team.dto'
+import { QueryTeamsDto } from './dto/query-teams.dto'
+import { TeamDto } from './dto/team.dto'
+import { TeamsDto } from './dto/teams.dto'
 import { TeamService } from './team.service'
 
 @Controller('teams')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class TeamController {
-  constructor(
-    private readonly teamService: TeamService,
-  ) {}
+  constructor(private readonly teamService: TeamService) {}
 
   /**
    * 创建团队
@@ -47,9 +48,10 @@ export class TeamController {
   async createTeam(
     @Body() createTeamDto: CreateTeamDto,
     @Req() request: FastifyRequest,
-  ): Promise<CreateTeamResponseDto> {
+  ): Promise<TeamDto> {
     const user = request.user!
-    return await this.teamService.createTeam(createTeamDto, user.id)
+    const newTeam = await this.teamService.createTeam(createTeamDto, user.id)
+    return plainToInstance(TeamDto, newTeam)
   }
 
   /**
@@ -58,11 +60,12 @@ export class TeamController {
    */
   @Get()
   async getUserTeams(
-    @Query() query: TeamListQueryDto,
+    @Query() query: QueryTeamsDto,
     @Req() request: FastifyRequest,
-  ): Promise<TeamListResponseDto> {
+  ): Promise<TeamsDto> {
     const user = request.user!
-    return await this.teamService.getUserTeams(user.id, query)
+    const teams = await this.teamService.getUserTeams(user.id, query)
+    return plainToInstance(TeamsDto, teams)
   }
 
   /**

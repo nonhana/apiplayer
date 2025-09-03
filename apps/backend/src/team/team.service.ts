@@ -22,31 +22,22 @@ import {
   UpdateTeamMemberRoleDto,
   UpdateTeamResponseDto,
 } from './dto'
+import { QueryTeamsDto } from './dto/query-teams.dto'
 
 @Injectable()
 export class TeamService {
   private readonly logger = new Logger(TeamService.name)
 
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * 创建团队
-   * @param createTeamDto 创建团队参数
-   * @param creatorId 创建者 ID
-   */
-  async createTeam(createTeamDto: CreateTeamDto, creatorId: string): Promise<CreateTeamResponseDto> {
+  async createTeam(createTeamDto: CreateTeamDto, creatorId: string) {
     const { name, slug, description, avatar } = createTeamDto
 
     try {
-      // 检查团队名称是否已存在
       await this.checkTeamNameExists(name)
 
-      // 检查团队标识符是否已存在
       await this.checkTeamSlugExists(slug)
 
-      // 获取团队所有者角色
       const ownerRole = await this.prisma.role.findUnique({
         where: { name: RoleName.TEAM_OWNER },
       })
@@ -55,9 +46,7 @@ export class TeamService {
         throw new HanaException('系统角色配置错误', ErrorCode.ROLE_NOT_FOUND)
       }
 
-      // 使用事务创建团队和成员关系
       const result = await this.prisma.$transaction(async (tx) => {
-        // 创建团队
         const team = await tx.team.create({
           data: {
             name,
@@ -67,7 +56,6 @@ export class TeamService {
           },
         })
 
-        // 将创建者添加为团队所有者
         await tx.teamMember.create({
           data: {
             userId: creatorId,
@@ -81,17 +69,7 @@ export class TeamService {
 
       this.logger.log(`用户 ${creatorId} 创建了团队 ${result.name} (${result.id})`)
 
-      return {
-        message: '团队创建成功',
-        team: {
-          id: result.id,
-          name: result.name,
-          slug: result.slug,
-          description: nullToUndefined(result.description),
-          avatar: nullToUndefined(result.avatar),
-          createdAt: result.createdAt,
-        },
-      }
+      return result
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -103,12 +81,7 @@ export class TeamService {
     }
   }
 
-  /**
-   * 获取用户的团队列表
-   * @param userId 用户 ID
-   * @param query 查询参数
-   */
-  async getUserTeams(userId: string, query: TeamListQueryDto): Promise<TeamListResponseDto> {
+  async getUserTeams(userId: string, query: QueryTeamsDto) {
     const { page = 1, limit = 10, search } = query
 
     try {
@@ -155,31 +128,10 @@ export class TeamService {
         this.prisma.team.count({ where: whereCondition }),
       ])
 
-      // 转换为响应格式
-      const teamList: TeamInfoDto[] = teams.map(team => ({
-        id: team.id,
-        name: team.name,
-        slug: team.slug,
-        description: nullToUndefined(team.description),
-        avatar: nullToUndefined(team.avatar),
-        isActive: team.isActive,
-        createdAt: team.createdAt,
-        updatedAt: team.updatedAt,
-        memberCount: team._count.members,
-        projectCount: team._count.projects,
-        currentUserRole: team.members[0]?.role
-          ? {
-              id: team.members[0].role.id,
-              name: team.members[0].role.name,
-              description: nullToUndefined(team.members[0].role.description),
-            }
-          : undefined,
-      }))
-
       const totalPages = Math.ceil(total / limit)
 
       return {
-        teams: teamList,
+        teams,
         total,
         pagination: {
           page,
@@ -196,12 +148,7 @@ export class TeamService {
     }
   }
 
-  /**
-   * 获取团队详情
-   * @param teamId 团队 ID
-   * @param userId 当前用户 ID
-   */
-  async getTeamDetail(teamId: string, userId: string): Promise<TeamDetailDto> {
+  async getTeamDetail(teamId: string, userId: string) {
     try {
       const team = await this.prisma.team.findUnique({
         where: { id: teamId },
