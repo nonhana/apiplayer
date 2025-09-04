@@ -5,9 +5,7 @@ import { PrismaService } from '@/infra/prisma/prisma.service'
 
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /** 获取用户详细资料 */
   async getUserProfile(userId: string) {
@@ -39,31 +37,6 @@ export class UserService {
         throw error
       }
       throw new HanaException('获取用户资料失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
-    }
-  }
-
-  /** 获取用户设置（示例） */
-  async getUserSettings(userId: string) {
-    try {
-      // 这里可以扩展用户设置相关的逻辑
-      return {
-        userId,
-        notifications: {
-          email: true,
-          push: false,
-        },
-        privacy: {
-          profileVisible: true,
-          activityVisible: false,
-        },
-        preferences: {
-          theme: 'light',
-          language: 'zh-CN',
-        },
-      }
-    }
-    catch {
-      throw new HanaException('获取用户设置失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 }

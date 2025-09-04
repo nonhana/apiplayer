@@ -1,5 +1,5 @@
+import type { RoleCategory } from '@/constants/role'
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
-import { RoleCategory } from '@/constants/role'
 import { PermissionDto } from '@/permission/dto/permission.dto'
 
 @Exclude()

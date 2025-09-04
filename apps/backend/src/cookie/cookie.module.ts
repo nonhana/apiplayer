@@ -3,5 +3,6 @@ import { CookieService } from './cookie.service'
 
 @Module({
   providers: [CookieService],
+  exports: [CookieService],
 })
 export class CookieModule {}

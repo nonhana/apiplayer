@@ -1,5 +1,6 @@
+import type { RoleCategory } from '@/constants/role'
 import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'
-import { ROLE_CATEGORIES, RoleCategory } from '@/constants/role'
+import { ROLE_CATEGORIES } from '@/constants/role'
 
 export class CreateRoleDto {
   @IsString({ message: '角色名称必须是字符串' })

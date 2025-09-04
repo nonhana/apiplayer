@@ -1,8 +1,9 @@
 import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
+import { plainToInstance } from 'class-transformer'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { Public } from '@/common/decorators/public.decorator'
 import { MessageResDto } from '@/common/dto/message.dto'
-import { UserDetailInfoDto } from '@/common/dto/user.dto'
+import { UserBriefInfoDto, UserDetailInfoDto } from '@/common/dto/user.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PasswordConfirmationPipe } from '@/common/pipes/password-confirmation.pipe'
 import { CookieService } from '@/cookie/cookie.service'
@@ -49,7 +50,7 @@ export class AuthController {
 
     return {
       message: '登录成功',
-      user,
+      user: plainToInstance(UserBriefInfoDto, user),
       token: finalSessionId,
     }
   }
@@ -58,7 +59,11 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(@Body(PasswordConfirmationPipe) registerDto: RegisterReqDto): Promise<RegisterResDto> {
-    return await this.authService.register(registerDto)
+    const { user, message } = await this.authService.register(registerDto)
+    return {
+      message,
+      user: plainToInstance(UserBriefInfoDto, user),
+    }
   }
 
   /** 检查邮箱或用户名可用性 */
