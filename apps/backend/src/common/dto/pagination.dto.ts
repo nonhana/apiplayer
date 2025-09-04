@@ -1,5 +1,6 @@
 import { Exclude, Expose } from 'class-transformer'
 
+/** 分页信息 DTO */
 @Exclude()
 export class PaginationDto {
   @Expose()

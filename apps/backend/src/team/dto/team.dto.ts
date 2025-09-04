@@ -1,4 +1,6 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
+import { TeamMemberDto } from './member.dto'
+import { TeamProjectDto } from './team-project.dto'
 import { TeamUserRoleDto } from './team-user-role.dto'
 
 @Exclude()
@@ -25,29 +27,9 @@ export class TeamDto {
 }
 
 @Exclude()
-export class TeamItemDto {
-  @Expose()
-  id: string
-
-  @Expose()
-  name: string
-
-  @Expose()
-  slug: string
-
-  @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
-  description?: string
-
-  @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
-  avatar?: string
-
+export class TeamItemDto extends TeamDto {
   @Expose()
   isActive: boolean
-
-  @Expose()
-  createdAt: Date
 
   @Expose()
   updatedAt: Date
@@ -76,4 +58,15 @@ export class TeamItemDto {
   currentUserRole?: TeamUserRoleDto
 }
 
-export class TeamDetailDto {}
+@Exclude()
+export class TeamDetailDto extends TeamItemDto {
+  @Expose()
+  @Type(() => TeamMemberDto)
+  @Transform(({ obj }) => obj.members)
+  recentMembers: TeamMemberDto[]
+
+  @Expose()
+  @Type(() => TeamProjectDto)
+  @Transform(({ obj }) => obj.projects)
+  recentProjects: TeamProjectDto[]
+}
