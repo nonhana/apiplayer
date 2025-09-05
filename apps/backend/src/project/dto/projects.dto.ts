@@ -1,12 +1,12 @@
 import { Exclude, Expose, Type } from 'class-transformer'
 import { PaginationDto } from '@/common/dto/pagination.dto'
-import { TeamMemberDto } from './member.dto'
+import { ProjectItemDto } from './project.dto'
 
 @Exclude()
-export class TeamMembersDto {
+export class ProjectsDto {
   @Expose()
-  @Type(() => TeamMemberDto)
-  members: TeamMemberDto[]
+  @Type(() => ProjectItemDto)
+  projects: ProjectItemDto[]
 
   @Expose()
   total: number

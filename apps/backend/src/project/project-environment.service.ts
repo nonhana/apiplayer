@@ -10,7 +10,7 @@ import {
   ProjectEnvironmentsResponseDto,
   UpdateProjectEnvironmentDto,
   UpdateProjectEnvironmentResponseDto,
-} from './dto'
+} from './old-dto'
 import { ProjectUtilsService } from './utils.service'
 
 @Injectable()

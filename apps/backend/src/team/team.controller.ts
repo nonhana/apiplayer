@@ -13,15 +13,13 @@ import {
 import { plainToInstance } from 'class-transformer'
 import { FastifyRequest } from 'fastify'
 import { TeamPermissions } from '@/common/decorators/permissions.decorator'
+import { TeamMemberDto, TeamMembersDto } from '@/common/dto/member.dto'
+import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import { CreateTeamDto } from './dto/create-team.dto'
 import { DeleteTeamResDto } from './dto/delete-team.dto'
 import { InviteMemberDto } from './dto/invite-member.dto'
-import { TeamMemberDto } from './dto/member.dto'
-import { TeamMembersDto } from './dto/members.dto'
-import { QueryMemberDto } from './dto/query-member.dto'
-import { QueryTeamsDto } from './dto/query-teams.dto'
 import { RemoveMemberResDto } from './dto/remove-member.dto'
 import { TeamDetailDto, TeamDto } from './dto/team.dto'
 import { TeamsDto } from './dto/teams.dto'
@@ -54,7 +52,7 @@ export class TeamController {
    */
   @Get()
   async getUserTeams(
-    @Query() query: QueryTeamsDto,
+    @Query() query: BasePaginatedQueryDto,
     @Req() request: FastifyRequest,
   ): Promise<TeamsDto> {
     const user = request.user!
@@ -133,7 +131,7 @@ export class TeamController {
   @TeamPermissions(['team:read'])
   async getTeamMembers(
     @Param('teamId') teamId: string,
-    @Query() query: QueryMemberDto,
+    @Query() query: BasePaginatedQueryDto,
     @Req() request: FastifyRequest,
   ): Promise<TeamMembersDto> {
     const user = request.user!

@@ -1,23 +1,16 @@
-import { Exclude, Expose, Type } from 'class-transformer'
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
+import { Expose, Type } from 'class-transformer'
+import { IsBoolean, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
 import { MessageResDto } from '@/common/dto/message.dto'
 import { ProjectBriefDto } from './project.dto'
 
-/** 创建项目请求 DTO */
-export class CreateProjectDto {
+/** 更新项目请求 DTO */
+export class UpdateProjectDto {
   /** 项目名称 */
-  @IsNotEmpty({ message: '项目名称不能为空' })
+  @IsOptional()
   @IsString({ message: '项目名称必须是字符串' })
   @MinLength(2, { message: '项目名称长度不能少于 2 个字符' })
   @MaxLength(50, { message: '项目名称长度不能超过 50 个字符' })
-  name: string
-
-  /** 项目标识符（URL 友好） */
-  @IsNotEmpty({ message: '项目标识符不能为空' })
-  @IsString({ message: '项目标识符必须是字符串' })
-  @MinLength(2, { message: '项目标识符长度不能少于 2 个字符' })
-  @MaxLength(30, { message: '项目标识符长度不能超过 30 个字符' })
-  slug: string
+  name?: string
 
   /** 项目描述 */
   @IsOptional()
@@ -36,8 +29,8 @@ export class CreateProjectDto {
   isPublic?: boolean
 }
 
-@Exclude()
-export class CreateProjectResDto extends MessageResDto {
+/** 更新项目响应 DTO */
+export class UpdateProjectResDto extends MessageResDto {
   @Expose()
   @Type(() => ProjectBriefDto)
   project: ProjectBriefDto

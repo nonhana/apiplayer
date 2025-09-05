@@ -22,7 +22,7 @@ import {
   RemoveProjectMemberResponseDto,
   UpdateProjectMemberResponseDto,
   UpdateProjectMemberRoleDto,
-} from './dto'
+} from './old-dto'
 import { ProjectMemberService } from './project-member.service'
 
 @Controller('projects')

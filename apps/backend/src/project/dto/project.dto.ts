@@ -1,10 +1,11 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
-import { TeamMemberDto } from '@/common/dto/member.dto'
+import { MemberDto } from '@/common/dto/member.dto'
 import { RoleBriefDto } from '@/common/dto/role.dto'
-import { TeamProjectDto } from './team-project.dto'
+import { ProjectEnvDto } from './environment.dto'
+import { ProjectTeamDto } from './project-team.dto'
 
 @Exclude()
-export class TeamDto {
+export class ProjectBriefDto {
   @Expose()
   id: string
 
@@ -20,17 +21,17 @@ export class TeamDto {
 
   @Expose()
   @Transform(({ value }) => (value !== null ? value : undefined))
-  avatar?: string
+  icon?: string
+
+  @Expose()
+  isPublic: boolean
 
   @Expose()
   createdAt: Date
 }
 
 @Exclude()
-export class TeamItemDto extends TeamDto {
-  @Expose()
-  isActive: boolean
-
+export class ProjectItemDto extends ProjectBriefDto {
   @Expose()
   updatedAt: Date
 
@@ -39,8 +40,12 @@ export class TeamItemDto extends TeamDto {
   memberCount: number
 
   @Expose()
-  @Transform(({ obj }) => obj._count.projects)
-  projectCount: number
+  @Transform(({ obj }) => obj._count.apis)
+  apiCount: number
+
+  @Expose()
+  @Type(() => ProjectTeamDto)
+  team: ProjectTeamDto
 
   @Expose()
   @Type(() => RoleBriefDto)
@@ -51,7 +56,7 @@ export class TeamItemDto extends TeamDto {
 
     return {
       id: curUser.role.id,
-      name: curUser.role.id,
+      name: curUser.role.name,
       description: curUser.role.description,
     }
   })
@@ -59,14 +64,18 @@ export class TeamItemDto extends TeamDto {
 }
 
 @Exclude()
-export class TeamDetailDto extends TeamItemDto {
+export class ProjectDetailDto extends ProjectItemDto {
   @Expose()
-  @Type(() => TeamMemberDto)
+  @Type(() => MemberDto)
   @Transform(({ obj }) => obj.members)
-  recentMembers: TeamMemberDto[]
+  recentMembers: MemberDto[]
 
   @Expose()
-  @Type(() => TeamProjectDto)
-  @Transform(({ obj }) => obj.projects)
-  recentProjects: TeamProjectDto[]
+  @Transform(({ obj }) => obj._count.environments)
+  environmentCount: number
+
+  @Expose()
+  @Type(() => ProjectEnvDto)
+  @Transform(({ obj }) => obj.members)
+  environments: ProjectEnvDto[]
 }

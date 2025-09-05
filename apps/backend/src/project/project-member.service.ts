@@ -12,7 +12,7 @@ import {
   RemoveProjectMemberResponseDto,
   UpdateProjectMemberResponseDto,
   UpdateProjectMemberRoleDto,
-} from './dto'
+} from './old-dto'
 
 @Injectable()
 export class ProjectMemberService {

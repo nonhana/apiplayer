@@ -24,7 +24,7 @@ import {
   GlobalParamsResponseDto,
   UpdateGlobalParamDto,
   UpdateGlobalParamResponseDto,
-} from './dto'
+} from './old-dto'
 import { ProjectGlobalParamService } from './project-global-param.service'
 
 @Controller('projects')

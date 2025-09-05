@@ -1,13 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
+import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { CreateTeamDto } from './dto/create-team.dto'
 import { InviteMemberDto } from './dto/invite-member.dto'
-import { QueryMemberDto } from './dto/query-member.dto'
-import { QueryTeamsDto } from './dto/query-teams.dto'
 import { UpdateMemberDto } from './dto/update-member.dto'
 import { UpdateTeamDto } from './dto/update-team.dto'
 
@@ -68,7 +67,7 @@ export class TeamService {
     }
   }
 
-  async getUserTeams(userId: string, query: QueryTeamsDto) {
+  async getUserTeams(userId: string, query: BasePaginatedQueryDto) {
     const { page = 1, limit = 10, search } = query
 
     try {
@@ -147,6 +146,7 @@ export class TeamService {
                   id: true,
                   username: true,
                   name: true,
+                  email: true,
                   avatar: true,
                 },
               },
@@ -377,7 +377,7 @@ export class TeamService {
     }
   }
 
-  async getTeamMembers(teamId: string, userId: string, query: QueryMemberDto) {
+  async getTeamMembers(teamId: string, userId: string, query: BasePaginatedQueryDto) {
     const { page = 1, limit = 10, search } = query
 
     try {

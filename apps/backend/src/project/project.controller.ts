@@ -10,29 +10,25 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common'
+import { plainToInstance } from 'class-transformer'
 import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import {
-  CreateProjectDto,
-  CreateProjectResponseDto,
-  DeleteProjectResponseDto,
-  ProjectDetailResponseDto,
-  ProjectListQueryDto,
-  ProjectListResponseDto,
-  RecentlyProjectsResponseDto,
-  UpdateProjectDto,
-  UpdateProjectResponseDto,
-} from './dto'
+import { CreateProjectDto, CreateProjectResDto } from './dto/create-project.dto'
+import { DeleteProjectResDto } from './dto/delete-project.dto'
+import { GetPermissionsResDto } from './dto/get-permissions.dto'
+import { ProjectDetailDto } from './dto/project.dto'
+import { ProjectsDto } from './dto/projects.dto'
+import { QueryProjectsDto } from './dto/query-projects.dto'
+import { RecentlyProjectsResDto } from './dto/recent-projects.dto'
+import { UpdateProjectDto, UpdateProjectResDto } from './dto/update-project.dto'
 import { ProjectService } from './project.service'
 
 @Controller('projects')
 @UseGuards(AuthGuard, PermissionsGuard)
 export class ProjectController {
-  constructor(
-    private readonly projectService: ProjectService,
-  ) {}
+  constructor(private readonly projectService: ProjectService) {}
 
   /**
    * 创建项目
@@ -44,9 +40,10 @@ export class ProjectController {
     @Param('teamId') teamId: string,
     @Body() createProjectDto: CreateProjectDto,
     @Req() request: FastifyRequest,
-  ): Promise<CreateProjectResponseDto> {
+  ): Promise<CreateProjectResDto> {
     const user = request.user!
-    return await this.projectService.createProject(teamId, createProjectDto, user.id)
+    const result = await this.projectService.createProject(teamId, createProjectDto, user.id)
+    return plainToInstance(CreateProjectResDto, result)
   }
 
   /**
@@ -55,11 +52,12 @@ export class ProjectController {
    */
   @Get()
   async getUserProjects(
-    @Query() query: ProjectListQueryDto,
+    @Query() query: QueryProjectsDto,
     @Req() request: FastifyRequest,
-  ): Promise<ProjectListResponseDto> {
+  ): Promise<ProjectsDto> {
     const user = request.user!
-    return await this.projectService.getUserProjects(user.id, query)
+    const result = await this.projectService.getUserProjects(user.id, query)
+    return plainToInstance(ProjectsDto, result)
   }
 
   /**
@@ -71,10 +69,10 @@ export class ProjectController {
   async getProjectDetail(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,
-  ): Promise<ProjectDetailResponseDto> {
+  ): Promise<ProjectDetailDto> {
     const user = request.user!
     const projectDetail = await this.projectService.getProjectDetail(projectId, user.id)
-    return { project: projectDetail }
+    return plainToInstance(ProjectDetailDto, projectDetail)
   }
 
   /**
@@ -87,9 +85,10 @@ export class ProjectController {
     @Param('projectId') projectId: string,
     @Body() updateProjectDto: UpdateProjectDto,
     @Req() request: FastifyRequest,
-  ): Promise<UpdateProjectResponseDto> {
+  ): Promise<UpdateProjectResDto> {
     const user = request.user!
-    return await this.projectService.updateProject(projectId, updateProjectDto, user.id)
+    const result = await this.projectService.updateProject(projectId, updateProjectDto, user.id)
+    return plainToInstance(UpdateProjectResDto, result)
   }
 
   /**
@@ -101,7 +100,7 @@ export class ProjectController {
   async deleteProject(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,
-  ): Promise<DeleteProjectResponseDto> {
+  ): Promise<DeleteProjectResDto> {
     const user = request.user!
     return await this.projectService.deleteProject(projectId, user.id)
   }
@@ -113,9 +112,10 @@ export class ProjectController {
   @Get('recently/visited')
   async getRecentlyProjects(
     @Req() request: FastifyRequest,
-  ): Promise<RecentlyProjectsResponseDto> {
+  ): Promise<RecentlyProjectsResDto> {
     const user = request.user!
-    return await this.projectService.getRecentlyProjects(user.id)
+    const result = await this.projectService.getRecentlyProjects(user.id)
+    return plainToInstance(RecentlyProjectsResDto, result)
   }
 
   /**
@@ -127,8 +127,9 @@ export class ProjectController {
   async getMyProjectRole(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,
-  ): Promise<{ role: any, permissions: string[] }> {
+  ): Promise<GetPermissionsResDto> {
     const user = request.user!
-    return await this.projectService.getUserProjectRole(projectId, user.id)
+    const result = await this.projectService.getUserProjectRole(projectId, user.id)
+    return plainToInstance(GetPermissionsResDto, result)
   }
 }

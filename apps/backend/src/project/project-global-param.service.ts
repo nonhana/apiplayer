@@ -14,7 +14,7 @@ import {
   GlobalParamsResponseDto,
   UpdateGlobalParamDto,
   UpdateGlobalParamResponseDto,
-} from './dto'
+} from './old-dto'
 import { ProjectUtilsService } from './utils.service'
 
 @Injectable()

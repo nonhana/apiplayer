@@ -20,7 +20,7 @@ import {
   ProjectEnvironmentsResponseDto,
   UpdateProjectEnvironmentDto,
   UpdateProjectEnvironmentResponseDto,
-} from './dto'
+} from './old-dto'
 import { ProjectEnvironmentService } from './project-environment.service'
 
 @Controller('projects')

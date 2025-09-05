@@ -4,36 +4,19 @@ import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { nullToUndefined } from '@/utils'
-import {
-  CreateProjectDto,
-  CreateProjectResponseDto,
-  DeleteProjectResponseDto,
-  ProjectDetailDto,
-  ProjectListQueryDto,
-  ProjectListResponseDto,
-  RecentlyProjectsResponseDto,
-  UpdateProjectDto,
-  UpdateProjectResponseDto,
-} from './dto'
+import { CreateProjectDto } from './dto/create-project.dto'
+import { QueryProjectsDto } from './dto/query-projects.dto'
+import { UpdateProjectDto } from './dto/update-project.dto'
 
 @Injectable()
 export class ProjectService {
   private readonly logger = new Logger(ProjectService.name)
 
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   // ==================== 项目基本管理 ====================
 
-  /**
-   * 创建项目
-   * @param teamId 团队 ID
-   * @param createProjectDto 创建项目参数
-   * @param creatorId 创建者 ID
-   */
-  async createProject(teamId: string, createProjectDto: CreateProjectDto, creatorId: string): Promise<CreateProjectResponseDto> {
+  async createProject(teamId: string, createProjectDto: CreateProjectDto, creatorId: string) {
     const { name, slug, description, icon, isPublic = false } = createProjectDto
 
     try {
@@ -56,7 +39,7 @@ export class ProjectService {
       }
 
       // 使用事务创建项目和成员关系
-      const result = await this.prisma.$transaction(async (tx) => {
+      const project = await this.prisma.$transaction(async (tx) => {
         // 创建项目
         const project = await tx.project.create({
           data: {
@@ -92,19 +75,11 @@ export class ProjectService {
         return project
       })
 
-      this.logger.log(`用户 ${creatorId} 在团队 ${teamId} 中创建了项目 ${result.name} (${result.id})`)
+      this.logger.log(`用户 ${creatorId} 在团队 ${teamId} 中创建了项目 ${project.name} (${project.id})`)
 
       return {
         message: '项目创建成功',
-        project: {
-          id: result.id,
-          name: result.name,
-          slug: result.slug,
-          description: nullToUndefined(result.description),
-          icon: nullToUndefined(result.icon),
-          isPublic: result.isPublic,
-          createdAt: result.createdAt,
-        },
+        project,
       }
     }
     catch (error) {
@@ -117,12 +92,7 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 获取用户的项目列表
-   * @param userId 用户 ID
-   * @param query 查询参数
-   */
-  async getUserProjects(userId: string, query: ProjectListQueryDto): Promise<ProjectListResponseDto> {
+  async getUserProjects(userId: string, query: QueryProjectsDto) {
     const { page = 1, limit = 10, search, isPublic, teamId } = query
 
     try {
@@ -180,32 +150,10 @@ export class ProjectService {
         this.prisma.project.count({ where: whereCondition }),
       ])
 
-      // 转换为响应格式
-      const projectList = projects.map(project => ({
-        id: project.id,
-        name: project.name,
-        slug: project.slug,
-        description: nullToUndefined(project.description),
-        icon: nullToUndefined(project.icon),
-        isPublic: project.isPublic,
-        createdAt: project.createdAt,
-        updatedAt: project.updatedAt,
-        memberCount: project._count.members,
-        apiCount: project._count.apis,
-        team: project.team,
-        currentUserRole: project.members[0]?.role
-          ? {
-              id: project.members[0].role.id,
-              name: project.members[0].role.name,
-              description: nullToUndefined(project.members[0].role.description),
-            }
-          : undefined,
-      }))
-
       const totalPages = Math.ceil(total / limit)
 
       return {
-        projects: projectList,
+        projects,
         total,
         pagination: {
           page,
@@ -222,12 +170,7 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 获取项目详情
-   * @param projectId 项目 ID
-   * @param userId 当前用户 ID
-   */
-  async getProjectDetail(projectId: string, userId: string): Promise<ProjectDetailDto> {
+  async getProjectDetail(projectId: string, userId: string) {
     try {
       const project = await this.prisma.project.findUnique({
         where: { id: projectId },
@@ -246,6 +189,7 @@ export class ProjectService {
                   id: true,
                   username: true,
                   name: true,
+                  email: true,
                   avatar: true,
                 },
               },
@@ -295,47 +239,7 @@ export class ProjectService {
       // 记录用户访问
       await this.recordUserVisit(userId, projectId)
 
-      // 构建响应数据
-      const projectDetail: ProjectDetailDto = {
-        id: project.id,
-        name: project.name,
-        slug: project.slug,
-        description: nullToUndefined(project.description),
-        icon: nullToUndefined(project.icon),
-        isPublic: project.isPublic,
-        createdAt: project.createdAt,
-        updatedAt: project.updatedAt,
-        memberCount: project._count.members,
-        apiCount: project._count.apis,
-        environmentCount: project._count.environments,
-        currentUserRole: {
-          id: currentUserMember.role.id,
-          name: currentUserMember.role.name,
-          description: nullToUndefined(currentUserMember.role.description),
-        },
-        team: project.team,
-        recentMembers: project.members.map(member => ({
-          id: member.id,
-          user: {
-            ...member.user,
-            avatar: nullToUndefined(member.user.avatar),
-          },
-          role: {
-            id: member.role.id,
-            name: member.role.name,
-          },
-          joinedAt: member.joinedAt,
-        })),
-        environments: project.environments.map(env => ({
-          id: env.id,
-          name: env.name,
-          type: env.type,
-          baseUrl: env.baseUrl,
-          isDefault: env.isDefault,
-        })),
-      }
-
-      return projectDetail
+      return project
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -347,13 +251,7 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 更新项目信息
-   * @param projectId 项目 ID
-   * @param updateProjectDto 更新数据
-   * @param userId 操作用户 ID
-   */
-  async updateProject(projectId: string, updateProjectDto: UpdateProjectDto, userId: string): Promise<UpdateProjectResponseDto> {
+  async updateProject(projectId: string, updateProjectDto: UpdateProjectDto, userId: string) {
     try {
       // 检查项目是否存在
       const existingProject = await this.getProjectById(projectId)
@@ -381,15 +279,7 @@ export class ProjectService {
 
       return {
         message: '项目信息更新成功',
-        project: {
-          id: updatedProject.id,
-          name: updatedProject.name,
-          slug: updatedProject.slug,
-          description: nullToUndefined(updatedProject.description),
-          icon: nullToUndefined(updatedProject.icon),
-          isPublic: updatedProject.isPublic,
-          updatedAt: updatedProject.updatedAt,
-        },
+        project: updatedProject,
       }
     }
     catch (error) {
@@ -402,12 +292,7 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 删除项目
-   * @param projectId 项目 ID
-   * @param userId 操作用户 ID
-   */
-  async deleteProject(projectId: string, userId: string): Promise<DeleteProjectResponseDto> {
+  async deleteProject(projectId: string, userId: string) {
     try {
       // 检查项目是否存在
       const project = await this.getProjectById(projectId)
@@ -450,12 +335,7 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 获取用户最近访问的项目
-   * @param userId 用户 ID
-   * @param limit 数量限制
-   */
-  async getRecentlyProjects(userId: string, limit: number = 10): Promise<RecentlyProjectsResponseDto> {
+  async getRecentlyProjects(userId: string, limit: number = 10) {
     try {
       const recentlyProjects = await this.prisma.recentlyProject.findMany({
         where: { userId },
@@ -476,22 +356,9 @@ export class ProjectService {
         take: limit,
       })
 
-      const projects = recentlyProjects
-        .filter(rp => rp.project) // 过滤掉已删除的项目
-        .map(rp => ({
-          id: rp.project.id,
-          name: rp.project.name,
-          slug: rp.project.slug,
-          description: nullToUndefined(rp.project.description),
-          icon: nullToUndefined(rp.project.icon),
-          isPublic: rp.project.isPublic,
-          team: rp.project.team,
-          lastVisitedAt: rp.lastVisitedAt,
-        }))
-
       return {
-        projects,
-        total: projects.length,
+        projects: recentlyProjects,
+        total: recentlyProjects.length,
       }
     }
     catch (error) {
@@ -500,12 +367,7 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 获取用户在项目中的角色和权限
-   * @param projectId 项目 ID
-   * @param userId 用户 ID
-   */
-  async getUserProjectRole(projectId: string, userId: string): Promise<{ role: any, permissions: string[] }> {
+  async getUserProjectRole(projectId: string, userId: string) {
     try {
       const membership = await this.prisma.projectMember.findUnique({
         where: {
@@ -550,12 +412,7 @@ export class ProjectService {
 
   // ==================== 私有辅助方法 ====================
 
-  /**
-   * 检查项目名称在团队内是否已存在
-   * @param teamId 团队 ID
-   * @param name 项目名称
-   */
-  private async checkProjectNameExists(teamId: string, name: string): Promise<void> {
+  private async checkProjectNameExists(teamId: string, name: string) {
     const existingProject = await this.prisma.project.findFirst({
       where: {
         teamId,
@@ -569,12 +426,7 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 检查项目标识符在团队内是否已存在
-   * @param teamId 团队 ID
-   * @param slug 项目标识符
-   */
-  private async checkProjectSlugExists(teamId: string, slug: string): Promise<void> {
+  private async checkProjectSlugExists(teamId: string, slug: string) {
     const existingProject = await this.prisma.project.findUnique({
       where: {
         teamId_slug: {
@@ -589,10 +441,6 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 根据 ID 获取项目信息
-   * @param projectId 项目 ID
-   */
   private async getProjectById(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -609,12 +457,7 @@ export class ProjectService {
     return project
   }
 
-  /**
-   * 检查用户是否为团队成员
-   * @param teamId 团队 ID
-   * @param userId 用户 ID
-   */
-  private async checkUserTeamMembership(teamId: string, userId: string): Promise<void> {
+  private async checkUserTeamMembership(teamId: string, userId: string) {
     const membership = await this.prisma.teamMember.findUnique({
       where: {
         userId_teamId: {
@@ -629,12 +472,7 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 检查用户是否为项目成员
-   * @param projectId 项目 ID
-   * @param userId 用户 ID
-   */
-  private async checkUserProjectMembership(projectId: string, userId: string): Promise<void> {
+  private async checkUserProjectMembership(projectId: string, userId: string) {
     const membership = await this.prisma.projectMember.findUnique({
       where: {
         userId_projectId: {
@@ -649,12 +487,7 @@ export class ProjectService {
     }
   }
 
-  /**
-   * 记录用户访问项目
-   * @param userId 用户 ID
-   * @param projectId 项目 ID
-   */
-  private async recordUserVisit(userId: string, projectId: string): Promise<void> {
+  private async recordUserVisit(userId: string, projectId: string) {
     try {
       await this.prisma.recentlyProject.upsert({
         where: {
