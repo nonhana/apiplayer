@@ -1,5 +1,6 @@
+import type { ParamType, RequestParamCategory } from '@/common/types/global-param'
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
-import { paramType, ParamType, requestParamCategory, RequestParamCategory } from '@/common/types/global-param'
+import { paramType, requestParamCategory } from '@/common/types/global-param'
 
 /** 创建全局参数请求 DTO */
 export class CreateGlobalParamDto {

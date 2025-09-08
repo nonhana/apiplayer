@@ -1,5 +1,5 @@
+import type { ProjectEnvType } from '@/constants/project-env'
 import { Exclude, Expose } from 'class-transformer'
-import { ProjectEnvType } from '@/constants/project-env'
 
 @Exclude()
 export class ProjectEnvDto {

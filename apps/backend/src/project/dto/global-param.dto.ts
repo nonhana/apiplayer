@@ -1,5 +1,5 @@
+import type { ParamType, RequestParamCategory } from '@/common/types/global-param'
 import { Exclude, Expose, Transform } from 'class-transformer'
-import { ParamType, RequestParamCategory } from '@/common/types/global-param'
 
 @Exclude()
 export class GlobalParamDto {
