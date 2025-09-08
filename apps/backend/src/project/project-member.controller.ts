@@ -10,19 +10,16 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common'
+import { plainToInstance } from 'class-transformer'
 import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { MemberDto, MembersDto } from '@/common/dto/member.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import {
-  InviteProjectMemberDto,
-  InviteProjectMemberResponseDto,
-  ProjectListQueryDto,
-  ProjectMembersResponseDto,
-  RemoveProjectMemberResponseDto,
-  UpdateProjectMemberResponseDto,
-  UpdateProjectMemberRoleDto,
-} from './old-dto'
+import { GetMembersDto } from './dto/get-members.dto'
+import { InviteMemberDto } from './dto/invite-member.dto'
+import { RemoveMemberResDto } from './dto/remove-member.dto'
+import { UpdateMemberDto } from './dto/update-member.dto'
 import { ProjectMemberService } from './project-member.service'
 
 @Controller('projects')
@@ -40,11 +37,12 @@ export class ProjectMemberController {
   @ProjectPermissions(['project:member:invite'])
   async inviteProjectMember(
     @Param('projectId') projectId: string,
-    @Body() inviteDto: InviteProjectMemberDto,
+    @Body() inviteDto: InviteMemberDto,
     @Req() request: FastifyRequest,
-  ): Promise<InviteProjectMemberResponseDto> {
+  ): Promise<MemberDto> {
     const user = request.user!
-    return await this.projectMemberService.inviteProjectMember(projectId, inviteDto, user.id)
+    const newMember = await this.projectMemberService.inviteProjectMember(projectId, inviteDto, user.id)
+    return plainToInstance(MemberDto, newMember)
   }
 
   /**
@@ -55,11 +53,12 @@ export class ProjectMemberController {
   @ProjectPermissions(['project:read'])
   async getProjectMembers(
     @Param('projectId') projectId: string,
-    @Query() query: ProjectListQueryDto,
+    @Query() query: GetMembersDto,
     @Req() request: FastifyRequest,
-  ): Promise<ProjectMembersResponseDto> {
+  ): Promise<MembersDto> {
     const user = request.user!
-    return await this.projectMemberService.getProjectMembers(projectId, user.id, query)
+    const result = await this.projectMemberService.getProjectMembers(projectId, user.id, query)
+    return plainToInstance(MembersDto, result)
   }
 
   /**
@@ -71,11 +70,12 @@ export class ProjectMemberController {
   async updateProjectMemberRole(
     @Param('projectId') projectId: string,
     @Param('memberId') memberId: string,
-    @Body() updateDto: UpdateProjectMemberRoleDto,
+    @Body() updateDto: UpdateMemberDto,
     @Req() request: FastifyRequest,
-  ): Promise<UpdateProjectMemberResponseDto> {
+  ): Promise<MemberDto> {
     const user = request.user!
-    return await this.projectMemberService.updateProjectMemberRole(projectId, memberId, updateDto, user.id)
+    const updatedMember = await this.projectMemberService.updateProjectMember(projectId, memberId, updateDto, user.id)
+    return plainToInstance(MemberDto, updatedMember)
   }
 
   /**
@@ -88,7 +88,7 @@ export class ProjectMemberController {
     @Param('projectId') projectId: string,
     @Param('memberId') memberId: string,
     @Req() request: FastifyRequest,
-  ): Promise<RemoveProjectMemberResponseDto> {
+  ): Promise<RemoveMemberResDto> {
     const user = request.user!
     return await this.projectMemberService.removeProjectMember(projectId, memberId, user.id)
   }

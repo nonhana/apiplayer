@@ -1,18 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { nullToUndefined } from '@/utils'
-import {
-  InviteProjectMemberDto,
-  InviteProjectMemberResponseDto,
-  ProjectListQueryDto,
-  ProjectMemberInfoDto,
-  ProjectMembersResponseDto,
-  RemoveProjectMemberResponseDto,
-  UpdateProjectMemberResponseDto,
-  UpdateProjectMemberRoleDto,
-} from './old-dto'
+import { GetMembersDto } from './dto/get-members.dto'
+import { InviteMemberDto } from './dto/invite-member.dto'
+import { UpdateMemberDto } from './dto/update-member.dto'
 
 @Injectable()
 export class ProjectMemberService {
@@ -22,13 +15,7 @@ export class ProjectMemberService {
     private readonly prisma: PrismaService,
   ) {}
 
-  /**
-   * 邀请项目成员
-   * @param projectId 项目 ID
-   * @param inviteDto 邀请信息
-   * @param inviterId 邀请者 ID
-   */
-  async inviteProjectMember(projectId: string, inviteDto: InviteProjectMemberDto, inviterId: string): Promise<InviteProjectMemberResponseDto> {
+  async inviteProjectMember(projectId: string, inviteDto: InviteMemberDto, inviterId: string) {
     const { email, roleId } = inviteDto
 
     try {
@@ -89,7 +76,7 @@ export class ProjectMemberService {
       }
 
       // 创建项目成员关系
-      const projectMember = await this.prisma.projectMember.create({
+      const newMember = await this.prisma.projectMember.create({
         data: {
           userId: invitedUser.id,
           projectId,
@@ -117,21 +104,7 @@ export class ProjectMemberService {
 
       this.logger.log(`用户 ${inviterId} 邀请了用户 ${invitedUser.username} 加入项目 ${projectId}`)
 
-      return {
-        message: '成员邀请成功',
-        member: {
-          id: projectMember.id,
-          user: {
-            ...projectMember.user,
-            avatar: nullToUndefined(projectMember.user.avatar),
-          },
-          role: {
-            ...projectMember.role,
-            description: nullToUndefined(projectMember.role.description),
-          },
-          joinedAt: projectMember.joinedAt,
-        },
-      }
+      return newMember
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -143,13 +116,7 @@ export class ProjectMemberService {
     }
   }
 
-  /**
-   * 获取项目成员列表
-   * @param projectId 项目 ID
-   * @param userId 当前用户 ID
-   * @param query 查询参数
-   */
-  async getProjectMembers(projectId: string, userId: string, query: ProjectListQueryDto): Promise<ProjectMembersResponseDto> {
+  async getProjectMembers(projectId: string, userId: string, query: GetMembersDto) {
     const { page = 1, limit = 10, search } = query
 
     try {
@@ -160,7 +127,7 @@ export class ProjectMemberService {
       const skip = (page - 1) * limit
 
       // 构建搜索条件
-      const searchCondition = search
+      const searchCondition: Prisma.ProjectMemberWhereInput = search
         ? {
             OR: [
               { user: { username: { contains: search, mode: 'insensitive' as const } } },
@@ -207,28 +174,17 @@ export class ProjectMemberService {
         }),
       ])
 
-      const memberList: ProjectMemberInfoDto[] = members.map(member => ({
-        id: member.id,
-        user: {
-          ...member.user,
-          avatar: nullToUndefined(member.user.avatar),
-        },
-        role: {
-          ...member.role,
-          description: nullToUndefined(member.role.description),
-        },
-        joinedAt: member.joinedAt,
-      }))
-
       const totalPages = Math.ceil(total / limit)
 
       return {
-        members: memberList,
+        members,
         total,
         pagination: {
           page,
           limit,
           totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
         },
       }
     }
@@ -242,14 +198,7 @@ export class ProjectMemberService {
     }
   }
 
-  /**
-   * 更新项目成员角色
-   * @param projectId 项目 ID
-   * @param memberId 成员 ID
-   * @param updateDto 更新数据
-   * @param operatorId 操作者 ID
-   */
-  async updateProjectMemberRole(projectId: string, memberId: string, updateDto: UpdateProjectMemberRoleDto, operatorId: string): Promise<UpdateProjectMemberResponseDto> {
+  async updateProjectMember(projectId: string, memberId: string, updateDto: UpdateMemberDto, operatorId: string) {
     const { roleId } = updateDto
 
     try {
@@ -307,21 +256,7 @@ export class ProjectMemberService {
 
       this.logger.log(`用户 ${operatorId} 更新了项目 ${projectId} 中成员 ${member.user.username} 的角色`)
 
-      return {
-        message: '成员角色更新成功',
-        member: {
-          id: updatedMember.id,
-          user: {
-            ...updatedMember.user,
-            avatar: nullToUndefined(updatedMember.user.avatar),
-          },
-          role: {
-            ...updatedMember.role,
-            description: nullToUndefined(updatedMember.role.description),
-          },
-          joinedAt: updatedMember.joinedAt,
-        },
-      }
+      return updatedMember
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -333,13 +268,7 @@ export class ProjectMemberService {
     }
   }
 
-  /**
-   * 移除项目成员
-   * @param projectId 项目 ID
-   * @param memberId 成员 ID
-   * @param operatorId 操作者 ID
-   */
-  async removeProjectMember(projectId: string, memberId: string, operatorId: string): Promise<RemoveProjectMemberResponseDto> {
+  async removeProjectMember(projectId: string, memberId: string, operatorId: string) {
     try {
       // 检查项目是否存在
       await this.getProjectById(projectId)
@@ -398,10 +327,6 @@ export class ProjectMemberService {
 
   // ==================== 私有辅助方法 ====================
 
-  /**
-   * 根据 ID 获取项目信息
-   * @param projectId 项目 ID
-   */
   private async getProjectById(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -418,12 +343,7 @@ export class ProjectMemberService {
     return project
   }
 
-  /**
-   * 检查用户是否为项目成员
-   * @param projectId 项目 ID
-   * @param userId 用户 ID
-   */
-  private async checkUserProjectMembership(projectId: string, userId: string): Promise<void> {
+  private async checkUserProjectMembership(projectId: string, userId: string) {
     const membership = await this.prisma.projectMember.findUnique({
       where: {
         userId_projectId: {

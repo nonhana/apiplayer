@@ -2,33 +2,20 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import {
-  CreateProjectEnvironmentDto,
-  CreateProjectEnvironmentResponseDto,
-  DeleteProjectEnvironmentResponseDto,
-  ProjectEnvironmentInfoDto,
-  ProjectEnvironmentsResponseDto,
-  UpdateProjectEnvironmentDto,
-  UpdateProjectEnvironmentResponseDto,
-} from './old-dto'
+import { CreateProjectEnvDto } from './dto/create-env.dto'
+import { UpdateProjectEnvDto } from './dto/update-env.dto'
 import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
-export class ProjectEnvironmentService {
-  private readonly logger = new Logger(ProjectEnvironmentService.name)
+export class ProjectEnvService {
+  private readonly logger = new Logger(ProjectEnvService.name)
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly projectUtilsService: ProjectUtilsService,
   ) {}
 
-  /**
-   * 创建项目环境
-   * @param projectId 项目 ID
-   * @param createEnvDto 创建环境参数
-   * @param userId 操作用户 ID
-   */
-  async createProjectEnvironment(projectId: string, createEnvDto: CreateProjectEnvironmentDto, userId: string): Promise<CreateProjectEnvironmentResponseDto> {
+  async createProjectEnv(projectId: string, dto: CreateProjectEnvDto, userId: string) {
     try {
       // 检查项目是否存在
       await this.projectUtilsService.getProjectById(projectId)
@@ -41,7 +28,7 @@ export class ProjectEnvironmentService {
         where: {
           projectId_name: {
             projectId,
-            name: createEnvDto.name,
+            name: dto.name,
           },
         },
       })
@@ -51,7 +38,7 @@ export class ProjectEnvironmentService {
       }
 
       // 如果设置为默认环境，需要先取消其他默认环境
-      if (createEnvDto.isDefault) {
+      if (dto.isDefault) {
         await this.prisma.projectEnvironment.updateMany({
           where: {
             projectId,
@@ -65,31 +52,18 @@ export class ProjectEnvironmentService {
       const environment = await this.prisma.projectEnvironment.create({
         data: {
           projectId,
-          name: createEnvDto.name,
-          type: createEnvDto.type,
-          baseUrl: createEnvDto.baseUrl,
-          variables: createEnvDto.variables || {},
-          headers: createEnvDto.headers || {},
-          isDefault: createEnvDto.isDefault || false,
+          name: dto.name,
+          type: dto.type,
+          baseUrl: dto.baseUrl,
+          variables: dto.variables || {},
+          headers: dto.headers || {},
+          isDefault: dto.isDefault || false,
         },
       })
 
       this.logger.log(`用户 ${userId} 在项目 ${projectId} 中创建了环境 ${environment.name}`)
 
-      return {
-        message: '环境创建成功',
-        environment: {
-          id: environment.id,
-          name: environment.name,
-          type: environment.type as any,
-          baseUrl: environment.baseUrl,
-          variables: environment.variables as Record<string, any>,
-          headers: environment.headers as Record<string, any>,
-          isDefault: environment.isDefault,
-          createdAt: environment.createdAt,
-          updatedAt: environment.updatedAt,
-        },
-      }
+      return environment
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -101,12 +75,7 @@ export class ProjectEnvironmentService {
     }
   }
 
-  /**
-   * 获取项目环境列表
-   * @param projectId 项目 ID
-   * @param userId 当前用户 ID
-   */
-  async getProjectEnvironments(projectId: string, userId: string): Promise<ProjectEnvironmentsResponseDto> {
+  async getProjectEnvs(projectId: string, userId: string) {
     try {
       // 检查项目是否存在和用户权限
       await this.projectUtilsService.getProjectById(projectId)
@@ -120,21 +89,9 @@ export class ProjectEnvironmentService {
         ],
       })
 
-      const environmentList: ProjectEnvironmentInfoDto[] = environments.map(env => ({
-        id: env.id,
-        name: env.name,
-        type: env.type as any,
-        baseUrl: env.baseUrl,
-        variables: env.variables as Record<string, any>,
-        headers: env.headers as Record<string, any>,
-        isDefault: env.isDefault,
-        createdAt: env.createdAt,
-        updatedAt: env.updatedAt,
-      }))
-
       return {
-        environments: environmentList,
-        total: environmentList.length,
+        environments,
+        total: environments.length,
       }
     }
     catch (error) {
@@ -147,14 +104,7 @@ export class ProjectEnvironmentService {
     }
   }
 
-  /**
-   * 更新项目环境
-   * @param projectId 项目 ID
-   * @param environmentId 环境 ID
-   * @param updateEnvDto 更新数据
-   * @param userId 操作用户 ID
-   */
-  async updateProjectEnvironment(projectId: string, environmentId: string, updateEnvDto: UpdateProjectEnvironmentDto, userId: string): Promise<UpdateProjectEnvironmentResponseDto> {
+  async updateProjectEnv(projectId: string, environmentId: string, dto: UpdateProjectEnvDto, userId: string) {
     try {
       // 检查项目是否存在
       await this.projectUtilsService.getProjectById(projectId)
@@ -172,12 +122,12 @@ export class ProjectEnvironmentService {
       }
 
       // 如果更新名称，检查是否重复
-      if (updateEnvDto.name && updateEnvDto.name !== existingEnv.name) {
+      if (dto.name && dto.name !== existingEnv.name) {
         const duplicateEnv = await this.prisma.projectEnvironment.findUnique({
           where: {
             projectId_name: {
               projectId,
-              name: updateEnvDto.name,
+              name: dto.name,
             },
           },
         })
@@ -188,7 +138,7 @@ export class ProjectEnvironmentService {
       }
 
       // 如果设置为默认环境，需要先取消其他默认环境
-      if (updateEnvDto.isDefault && !existingEnv.isDefault) {
+      if (dto.isDefault && !existingEnv.isDefault) {
         await this.prisma.projectEnvironment.updateMany({
           where: {
             projectId,
@@ -202,31 +152,18 @@ export class ProjectEnvironmentService {
       const updatedEnv = await this.prisma.projectEnvironment.update({
         where: { id: environmentId },
         data: {
-          ...(updateEnvDto.name && { name: updateEnvDto.name }),
-          ...(updateEnvDto.type && { type: updateEnvDto.type }),
-          ...(updateEnvDto.baseUrl && { baseUrl: updateEnvDto.baseUrl }),
-          ...(updateEnvDto.variables !== undefined && { variables: updateEnvDto.variables }),
-          ...(updateEnvDto.headers !== undefined && { headers: updateEnvDto.headers }),
-          ...(updateEnvDto.isDefault !== undefined && { isDefault: updateEnvDto.isDefault }),
+          ...(dto.name && { name: dto.name }),
+          ...(dto.type && { type: dto.type }),
+          ...(dto.baseUrl && { baseUrl: dto.baseUrl }),
+          ...(dto.variables !== undefined && { variables: dto.variables }),
+          ...(dto.headers !== undefined && { headers: dto.headers }),
+          ...(dto.isDefault !== undefined && { isDefault: dto.isDefault }),
         },
       })
 
       this.logger.log(`用户 ${userId} 更新了项目 ${projectId} 中的环境 ${updatedEnv.name}`)
 
-      return {
-        message: '环境更新成功',
-        environment: {
-          id: updatedEnv.id,
-          name: updatedEnv.name,
-          type: updatedEnv.type as any,
-          baseUrl: updatedEnv.baseUrl,
-          variables: updatedEnv.variables as Record<string, any>,
-          headers: updatedEnv.headers as Record<string, any>,
-          isDefault: updatedEnv.isDefault,
-          createdAt: updatedEnv.createdAt,
-          updatedAt: updatedEnv.updatedAt,
-        },
-      }
+      return updatedEnv
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -238,13 +175,7 @@ export class ProjectEnvironmentService {
     }
   }
 
-  /**
-   * 删除项目环境
-   * @param projectId 项目 ID
-   * @param environmentId 环境 ID
-   * @param userId 操作用户 ID
-   */
-  async deleteProjectEnvironment(projectId: string, environmentId: string, userId: string): Promise<DeleteProjectEnvironmentResponseDto> {
+  async deleteProjectEnv(projectId: string, environmentId: string, userId: string) {
     try {
       // 检查项目是否存在
       await this.projectUtilsService.getProjectById(projectId)
@@ -296,7 +227,7 @@ export class ProjectEnvironmentService {
 
       return {
         message: '环境删除成功',
-        deletedEnvironmentId: environmentId,
+        deletedEnvId: environmentId,
       }
     }
     catch (error) {

@@ -10,21 +10,18 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common'
+import { plainToInstance } from 'class-transformer'
 import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import {
-  BatchCreateGlobalParamsDto,
-  BatchCreateGlobalParamsResponseDto,
-  CreateGlobalParamDto,
-  CreateGlobalParamResponseDto,
-  DeleteGlobalParamResponseDto,
-  GlobalParamQueryDto,
-  GlobalParamsResponseDto,
-  UpdateGlobalParamDto,
-  UpdateGlobalParamResponseDto,
-} from './old-dto'
+import { CreateGlobalParamDto } from './dto/create-global-param.dto'
+import { CreateGlobalParamsDto, CreateGlobalParamsResDto } from './dto/create-global-params.dto'
+import { DeleteGlobalParamResDto } from './dto/delete-global-param.dto'
+import { GetGlobalParamsDto } from './dto/get-global-params.dto'
+import { GlobalParamDto } from './dto/global-param.dto'
+import { GlobalParamsDto } from './dto/global-params.dto'
+import { UpdateGlobalParamDto } from './dto/update-global-param.dto'
 import { ProjectGlobalParamService } from './project-global-param.service'
 
 @Controller('projects')
@@ -44,9 +41,10 @@ export class ProjectGlobalParamController {
     @Param('projectId') projectId: string,
     @Body() createParamDto: CreateGlobalParamDto,
     @Req() request: FastifyRequest,
-  ): Promise<CreateGlobalParamResponseDto> {
+  ): Promise<GlobalParamDto> {
     const user = request.user!
-    return await this.projectGlobalParamService.createGlobalParam(projectId, createParamDto, user.id)
+    const newGlobalParam = await this.projectGlobalParamService.createGlobalParam(projectId, createParamDto, user.id)
+    return plainToInstance(GlobalParamDto, newGlobalParam)
   }
 
   /**
@@ -55,13 +53,14 @@ export class ProjectGlobalParamController {
    */
   @Post(':projectId/global-params/batch')
   @ProjectPermissions(['project:write'])
-  async batchCreateGlobalParams(
+  async createGlobalParams(
     @Param('projectId') projectId: string,
-    @Body() batchCreateDto: BatchCreateGlobalParamsDto,
+    @Body() dto: CreateGlobalParamsDto,
     @Req() request: FastifyRequest,
-  ): Promise<BatchCreateGlobalParamsResponseDto> {
+  ): Promise<CreateGlobalParamsResDto> {
     const user = request.user!
-    return await this.projectGlobalParamService.batchCreateGlobalParams(projectId, batchCreateDto, user.id)
+    const result = await this.projectGlobalParamService.createGlobalParams(projectId, dto, user.id)
+    return plainToInstance(CreateGlobalParamsResDto, result)
   }
 
   /**
@@ -72,11 +71,12 @@ export class ProjectGlobalParamController {
   @ProjectPermissions(['project:read'])
   async getGlobalParams(
     @Param('projectId') projectId: string,
-    @Query() query: GlobalParamQueryDto,
+    @Query() dto: GetGlobalParamsDto,
     @Req() request: FastifyRequest,
-  ): Promise<GlobalParamsResponseDto> {
+  ): Promise<GlobalParamsDto> {
     const user = request.user!
-    return await this.projectGlobalParamService.getGlobalParams(projectId, user.id, query)
+    const result = await this.projectGlobalParamService.getGlobalParams(projectId, user.id, dto)
+    return plainToInstance(GlobalParamsDto, result)
   }
 
   /**
@@ -90,9 +90,10 @@ export class ProjectGlobalParamController {
     @Param('paramId') paramId: string,
     @Body() updateParamDto: UpdateGlobalParamDto,
     @Req() request: FastifyRequest,
-  ): Promise<UpdateGlobalParamResponseDto> {
+  ): Promise<GlobalParamDto> {
     const user = request.user!
-    return await this.projectGlobalParamService.updateGlobalParam(projectId, paramId, updateParamDto, user.id)
+    const result = await this.projectGlobalParamService.updateGlobalParam(projectId, paramId, updateParamDto, user.id)
+    return plainToInstance(GlobalParamDto, result)
   }
 
   /**
@@ -105,7 +106,7 @@ export class ProjectGlobalParamController {
     @Param('projectId') projectId: string,
     @Param('paramId') paramId: string,
     @Req() request: FastifyRequest,
-  ): Promise<DeleteGlobalParamResponseDto> {
+  ): Promise<DeleteGlobalParamResDto> {
     const user = request.user!
     return await this.projectGlobalParamService.deleteGlobalParam(projectId, paramId, user.id)
   }

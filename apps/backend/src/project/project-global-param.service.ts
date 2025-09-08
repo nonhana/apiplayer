@@ -3,18 +3,10 @@ import { Prisma } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import {
-  BatchCreateGlobalParamsDto,
-  BatchCreateGlobalParamsResponseDto,
-  CreateGlobalParamDto,
-  CreateGlobalParamResponseDto,
-  DeleteGlobalParamResponseDto,
-  GlobalParamInfoDto,
-  GlobalParamQueryDto,
-  GlobalParamsResponseDto,
-  UpdateGlobalParamDto,
-  UpdateGlobalParamResponseDto,
-} from './old-dto'
+import { CreateGlobalParamDto } from './dto/create-global-param.dto'
+import { CreateGlobalParamsDto } from './dto/create-global-params.dto'
+import { GetGlobalParamsDto } from './dto/get-global-params.dto'
+import { UpdateGlobalParamDto } from './dto/update-global-param.dto'
 import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
@@ -26,13 +18,7 @@ export class ProjectGlobalParamService {
     private readonly projectUtilsService: ProjectUtilsService,
   ) {}
 
-  /**
-   * 创建全局参数
-   * @param projectId 项目 ID
-   * @param createParamDto 创建参数信息
-   * @param userId 操作用户 ID
-   */
-  async createGlobalParam(projectId: string, createParamDto: CreateGlobalParamDto, userId: string): Promise<CreateGlobalParamResponseDto> {
+  async createGlobalParam(projectId: string, createParamDto: CreateGlobalParamDto, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
@@ -53,7 +39,7 @@ export class ProjectGlobalParamService {
       }
 
       // 创建全局参数
-      const globalParam = await this.prisma.globalParam.create({
+      const newGlobalParam = await this.prisma.globalParam.create({
         data: {
           projectId,
           category: createParamDto.category,
@@ -65,22 +51,9 @@ export class ProjectGlobalParamService {
         },
       })
 
-      this.logger.log(`用户 ${userId} 在项目 ${projectId} 中创建了全局参数 ${globalParam.name}`)
+      this.logger.log(`用户 ${userId} 在项目 ${projectId} 中创建了全局参数 ${newGlobalParam.name}`)
 
-      return {
-        message: '全局参数创建成功',
-        param: {
-          id: globalParam.id,
-          category: globalParam.category as any,
-          name: globalParam.name,
-          type: globalParam.type as any,
-          value: globalParam.value,
-          description: globalParam.description || undefined,
-          isActive: globalParam.isActive,
-          createdAt: globalParam.createdAt,
-          updatedAt: globalParam.updatedAt,
-        },
-      }
+      return newGlobalParam
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -92,14 +65,8 @@ export class ProjectGlobalParamService {
     }
   }
 
-  /**
-   * 获取全局参数列表
-   * @param projectId 项目 ID
-   * @param userId 当前用户 ID
-   * @param query 查询参数
-   */
-  async getGlobalParams(projectId: string, userId: string, query: GlobalParamQueryDto): Promise<GlobalParamsResponseDto> {
-    const { page = 1, limit = 10, search, category, type, isActive } = query
+  async getGlobalParams(projectId: string, userId: string, dto: GetGlobalParamsDto) {
+    const { page = 1, limit = 10, search, category, type, isActive } = dto
 
     try {
       await this.projectUtilsService.getProjectById(projectId)
@@ -135,22 +102,10 @@ export class ProjectGlobalParamService {
         this.prisma.globalParam.count({ where: whereCondition }),
       ])
 
-      const paramList: GlobalParamInfoDto[] = params.map(param => ({
-        id: param.id,
-        category: param.category as any,
-        name: param.name,
-        type: param.type as any,
-        value: param.value,
-        description: param.description || undefined,
-        isActive: param.isActive,
-        createdAt: param.createdAt,
-        updatedAt: param.updatedAt,
-      }))
-
       const totalPages = Math.ceil(total / limit)
 
       return {
-        params: paramList,
+        params,
         total,
         pagination: {
           page,
@@ -171,14 +126,7 @@ export class ProjectGlobalParamService {
     }
   }
 
-  /**
-   * 更新全局参数
-   * @param projectId 项目 ID
-   * @param paramId 参数 ID
-   * @param updateParamDto 更新数据
-   * @param userId 操作用户 ID
-   */
-  async updateGlobalParam(projectId: string, paramId: string, updateParamDto: UpdateGlobalParamDto, userId: string): Promise<UpdateGlobalParamResponseDto> {
+  async updateGlobalParam(projectId: string, paramId: string, updateParamDto: UpdateGlobalParamDto, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
@@ -205,20 +153,7 @@ export class ProjectGlobalParamService {
 
       this.logger.log(`用户 ${userId} 更新了项目 ${projectId} 中的全局参数 ${updatedParam.name}`)
 
-      return {
-        message: '全局参数更新成功',
-        param: {
-          id: updatedParam.id,
-          category: updatedParam.category as any,
-          name: updatedParam.name,
-          type: updatedParam.type as any,
-          value: updatedParam.value,
-          description: updatedParam.description || undefined,
-          isActive: updatedParam.isActive,
-          createdAt: updatedParam.createdAt,
-          updatedAt: updatedParam.updatedAt,
-        },
-      }
+      return updatedParam
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -230,13 +165,7 @@ export class ProjectGlobalParamService {
     }
   }
 
-  /**
-   * 删除全局参数
-   * @param projectId 项目 ID
-   * @param paramId 参数 ID
-   * @param userId 操作用户 ID
-   */
-  async deleteGlobalParam(projectId: string, paramId: string, userId: string): Promise<DeleteGlobalParamResponseDto> {
+  async deleteGlobalParam(projectId: string, paramId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
@@ -272,19 +201,13 @@ export class ProjectGlobalParamService {
     }
   }
 
-  /**
-   * 批量创建全局参数
-   * @param projectId 项目 ID
-   * @param batchCreateDto 批量创建参数信息
-   * @param userId 操作用户 ID
-   */
-  async batchCreateGlobalParams(projectId: string, batchCreateDto: BatchCreateGlobalParamsDto, userId: string): Promise<BatchCreateGlobalParamsResponseDto> {
+  async createGlobalParams(projectId: string, dto: CreateGlobalParamsDto, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查参数名称是否有重复
-      const paramKeys = batchCreateDto.params.map(p => ({ category: p.category, name: p.name }))
+      const paramKeys = dto.params.map(p => ({ category: p.category, name: p.name }))
       const duplicateKeys = paramKeys.filter((key, index) =>
         paramKeys.findIndex(k => k.category === key.category && k.name === key.name) !== index,
       )
@@ -311,7 +234,7 @@ export class ProjectGlobalParamService {
 
       // 使用事务批量创建参数
       const createdParams = await this.prisma.$transaction(
-        batchCreateDto.params.map(paramDto =>
+        dto.params.map(paramDto =>
           this.prisma.globalParam.create({
             data: {
               projectId,
@@ -328,22 +251,10 @@ export class ProjectGlobalParamService {
 
       this.logger.log(`用户 ${userId} 在项目 ${projectId} 中批量创建了 ${createdParams.length} 个全局参数`)
 
-      const paramList: GlobalParamInfoDto[] = createdParams.map(param => ({
-        id: param.id,
-        category: param.category as any,
-        name: param.name,
-        type: param.type as any,
-        value: param.value,
-        description: param.description || undefined,
-        isActive: param.isActive,
-        createdAt: param.createdAt,
-        updatedAt: param.updatedAt,
-      }))
-
       return {
         message: '批量创建全局参数成功',
         createdCount: createdParams.length,
-        params: paramList,
+        params: createdParams,
       }
     }
     catch (error) {

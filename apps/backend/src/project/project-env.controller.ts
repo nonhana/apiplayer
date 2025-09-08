@@ -13,21 +13,18 @@ import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import {
-  CreateProjectEnvironmentDto,
-  CreateProjectEnvironmentResponseDto,
-  DeleteProjectEnvironmentResponseDto,
-  ProjectEnvironmentsResponseDto,
-  UpdateProjectEnvironmentDto,
-  UpdateProjectEnvironmentResponseDto,
-} from './old-dto'
-import { ProjectEnvironmentService } from './project-environment.service'
+import { CreateProjectEnvDto } from './dto/create-env.dto'
+import { DeleteProjectEnvResDto } from './dto/delete-env.dto'
+import { ProjectEnvsResDto } from './dto/envs.dto'
+import { ProjectEnvDto } from './dto/project-env.dto'
+import { UpdateProjectEnvDto } from './dto/update-env.dto'
+import { ProjectEnvService } from './project-env.service'
 
 @Controller('projects')
 @UseGuards(AuthGuard, PermissionsGuard)
-export class ProjectEnvironmentController {
+export class ProjectEnvController {
   constructor(
-    private readonly projectEnvironmentService: ProjectEnvironmentService,
+    private readonly projectEnvService: ProjectEnvService,
   ) {}
 
   /**
@@ -38,11 +35,11 @@ export class ProjectEnvironmentController {
   @ProjectPermissions(['project:write'])
   async createProjectEnvironment(
     @Param('projectId') projectId: string,
-    @Body() createEnvDto: CreateProjectEnvironmentDto,
+    @Body() createEnvDto: CreateProjectEnvDto,
     @Req() request: FastifyRequest,
-  ): Promise<CreateProjectEnvironmentResponseDto> {
+  ): Promise<ProjectEnvDto> {
     const user = request.user!
-    return await this.projectEnvironmentService.createProjectEnvironment(projectId, createEnvDto, user.id)
+    return await this.projectEnvService.createProjectEnv(projectId, createEnvDto, user.id)
   }
 
   /**
@@ -54,9 +51,9 @@ export class ProjectEnvironmentController {
   async getProjectEnvironments(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,
-  ): Promise<ProjectEnvironmentsResponseDto> {
+  ): Promise<ProjectEnvsResDto> {
     const user = request.user!
-    return await this.projectEnvironmentService.getProjectEnvironments(projectId, user.id)
+    return await this.projectEnvService.getProjectEnvs(projectId, user.id)
   }
 
   /**
@@ -68,11 +65,11 @@ export class ProjectEnvironmentController {
   async updateProjectEnvironment(
     @Param('projectId') projectId: string,
     @Param('environmentId') environmentId: string,
-    @Body() updateEnvDto: UpdateProjectEnvironmentDto,
+    @Body() updateEnvDto: UpdateProjectEnvDto,
     @Req() request: FastifyRequest,
-  ): Promise<UpdateProjectEnvironmentResponseDto> {
+  ): Promise<ProjectEnvDto> {
     const user = request.user!
-    return await this.projectEnvironmentService.updateProjectEnvironment(projectId, environmentId, updateEnvDto, user.id)
+    return await this.projectEnvService.updateProjectEnv(projectId, environmentId, updateEnvDto, user.id)
   }
 
   /**
@@ -85,8 +82,8 @@ export class ProjectEnvironmentController {
     @Param('projectId') projectId: string,
     @Param('environmentId') environmentId: string,
     @Req() request: FastifyRequest,
-  ): Promise<DeleteProjectEnvironmentResponseDto> {
+  ): Promise<DeleteProjectEnvResDto> {
     const user = request.user!
-    return await this.projectEnvironmentService.deleteProjectEnvironment(projectId, environmentId, user.id)
+    return await this.projectEnvService.deleteProjectEnv(projectId, environmentId, user.id)
   }
 }
