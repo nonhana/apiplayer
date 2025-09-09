@@ -1,9 +1,7 @@
-import { Exclude, Expose, Type } from 'class-transformer'
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
-import { ProjectBriefDto } from './project.dto'
 
 /** 创建项目请求 DTO */
-export class CreateProjectDto {
+export class CreateProjectReqDto {
   /** 项目名称 */
   @IsNotEmpty({ message: '项目名称不能为空' })
   @IsString({ message: '项目名称必须是字符串' })
@@ -33,11 +31,4 @@ export class CreateProjectDto {
   @IsOptional()
   @IsBoolean({ message: '公开状态必须是布尔值' })
   isPublic?: boolean
-}
-
-@Exclude()
-export class CreateProjectResDto {
-  @Expose()
-  @Type(() => ProjectBriefDto)
-  project: ProjectBriefDto
 }

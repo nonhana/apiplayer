@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { CreateProjectEnvDto } from './dto/create-env.dto'
-import { UpdateProjectEnvDto } from './dto/update-env.dto'
+import { CreateProjectEnvReqDto } from './dto/env/create-env.dto'
+import { UpdateProjectEnvReqDto } from './dto/env/update-env.dto'
 import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
@@ -15,7 +15,7 @@ export class ProjectEnvService {
     private readonly projectUtilsService: ProjectUtilsService,
   ) {}
 
-  async createProjectEnv(projectId: string, dto: CreateProjectEnvDto, userId: string) {
+  async createProjectEnv(projectId: string, dto: CreateProjectEnvReqDto, userId: string) {
     try {
       // 检查项目是否存在
       await this.projectUtilsService.getProjectById(projectId)
@@ -89,10 +89,7 @@ export class ProjectEnvService {
         ],
       })
 
-      return {
-        environments,
-        total: environments.length,
-      }
+      return environments
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -104,7 +101,7 @@ export class ProjectEnvService {
     }
   }
 
-  async updateProjectEnv(projectId: string, environmentId: string, dto: UpdateProjectEnvDto, userId: string) {
+  async updateProjectEnv(projectId: string, environmentId: string, dto: UpdateProjectEnvReqDto, userId: string) {
     try {
       // 检查项目是否存在
       await this.projectUtilsService.getProjectById(projectId)

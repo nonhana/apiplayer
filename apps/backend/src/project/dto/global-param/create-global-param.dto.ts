@@ -3,7 +3,7 @@ import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLeng
 import { paramType, requestParamCategory } from '@/constants/global-param'
 
 /** 创建全局参数请求 DTO */
-export class CreateGlobalParamDto {
+export class CreateGlobalParamReqDto {
   /** 参数类别 */
   @IsNotEmpty({ message: '参数类别不能为空' })
   @IsEnum(requestParamCategory, { message: '参数类别必须是有效的枚举值' })
@@ -35,4 +35,9 @@ export class CreateGlobalParamDto {
   @IsOptional()
   @IsBoolean({ message: '启用状态必须是布尔值' })
   isActive?: boolean
+}
+
+export class CreateGlobalParamsReqDto {
+  @IsNotEmpty({ message: '参数列表不能为空' })
+  params: CreateGlobalParamReqDto[]
 }

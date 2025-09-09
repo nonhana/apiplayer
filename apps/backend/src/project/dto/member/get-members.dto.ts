@@ -1,8 +1,7 @@
 import { IsBoolean, IsOptional, IsString } from 'class-validator'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 
-/** 项目列表查询 DTO */
-export class QueryProjectsDto extends BasePaginatedQueryDto {
+export class GetMembersReqDto extends BasePaginatedQueryDto {
   /** 是否只显示公开项目 */
   @IsOptional()
   @IsBoolean({ message: '公开状态必须是布尔值' })

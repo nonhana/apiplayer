@@ -4,7 +4,7 @@ import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { paramType, requestParamCategory } from '@/constants/global-param'
 
 /** 全局参数查询 DTO */
-export class GetGlobalParamsDto extends BasePaginatedQueryDto {
+export class GetGlobalParamsReqDto extends BasePaginatedQueryDto {
   /** 参数类别过滤 */
   @IsOptional()
   @IsEnum(requestParamCategory, { message: '参数类别必须是有效的枚举值' })

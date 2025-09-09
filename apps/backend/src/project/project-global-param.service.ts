@@ -3,10 +3,7 @@ import { Prisma } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { CreateGlobalParamDto } from './dto/create-global-param.dto'
-import { CreateGlobalParamsDto } from './dto/create-global-params.dto'
-import { GetGlobalParamsDto } from './dto/get-global-params.dto'
-import { UpdateGlobalParamDto } from './dto/update-global-param.dto'
+import { CreateGlobalParamReqDto, CreateGlobalParamsReqDto, GetGlobalParamsReqDto, UpdateGlobalParamReqDto } from './dto'
 import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
@@ -18,7 +15,7 @@ export class ProjectGlobalParamService {
     private readonly projectUtilsService: ProjectUtilsService,
   ) {}
 
-  async createGlobalParam(projectId: string, createParamDto: CreateGlobalParamDto, userId: string) {
+  async createGlobalParam(projectId: string, dto: CreateGlobalParamReqDto, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
@@ -28,26 +25,26 @@ export class ProjectGlobalParamService {
         where: {
           projectId_category_name: {
             projectId,
-            category: createParamDto.category,
-            name: createParamDto.name,
+            category: dto.category,
+            name: dto.name,
           },
         },
       })
 
       if (existingParam) {
-        throw new HanaException(`参数 "${createParamDto.name}" 在类别 "${createParamDto.category}" 下已存在`, ErrorCode.PERMISSION_NAME_EXISTS)
+        throw new HanaException(`参数 "${dto.name}" 在类别 "${dto.category}" 下已存在`, ErrorCode.PERMISSION_NAME_EXISTS)
       }
 
       // 创建全局参数
       const newGlobalParam = await this.prisma.globalParam.create({
         data: {
           projectId,
-          category: createParamDto.category,
-          name: createParamDto.name,
-          type: createParamDto.type,
-          value: createParamDto.value,
-          description: createParamDto.description,
-          isActive: createParamDto.isActive ?? true,
+          category: dto.category,
+          name: dto.name,
+          type: dto.type,
+          value: dto.value,
+          description: dto.description,
+          isActive: dto.isActive ?? true,
         },
       })
 
@@ -65,7 +62,7 @@ export class ProjectGlobalParamService {
     }
   }
 
-  async getGlobalParams(projectId: string, userId: string, dto: GetGlobalParamsDto) {
+  async getGlobalParams(projectId: string, userId: string, dto: GetGlobalParamsReqDto) {
     const { page = 1, limit = 10, search, category, type, isActive } = dto
 
     try {
@@ -126,7 +123,7 @@ export class ProjectGlobalParamService {
     }
   }
 
-  async updateGlobalParam(projectId: string, paramId: string, updateParamDto: UpdateGlobalParamDto, userId: string) {
+  async updateGlobalParam(projectId: string, paramId: string, dto: UpdateGlobalParamReqDto, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
@@ -144,10 +141,10 @@ export class ProjectGlobalParamService {
       const updatedParam = await this.prisma.globalParam.update({
         where: { id: paramId },
         data: {
-          ...(updateParamDto.type && { type: updateParamDto.type }),
-          ...(updateParamDto.value !== undefined && { value: updateParamDto.value }),
-          ...(updateParamDto.description !== undefined && { description: updateParamDto.description }),
-          ...(updateParamDto.isActive !== undefined && { isActive: updateParamDto.isActive }),
+          ...(dto.type && { type: dto.type }),
+          ...(dto.value !== undefined && { value: dto.value }),
+          ...(dto.description !== undefined && { description: dto.description }),
+          ...(dto.isActive !== undefined && { isActive: dto.isActive }),
         },
       })
 
@@ -200,7 +197,7 @@ export class ProjectGlobalParamService {
     }
   }
 
-  async createGlobalParams(projectId: string, dto: CreateGlobalParamsDto, userId: string) {
+  async createGlobalParams(projectId: string, dto: CreateGlobalParamsReqDto, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
@@ -250,10 +247,7 @@ export class ProjectGlobalParamService {
 
       this.logger.log(`用户 ${userId} 在项目 ${projectId} 中批量创建了 ${createdParams.length} 个全局参数`)
 
-      return {
-        createdCount: createdParams.length,
-        params: createdParams,
-      }
+      return createdParams
     }
     catch (error) {
       if (error instanceof HanaException) {

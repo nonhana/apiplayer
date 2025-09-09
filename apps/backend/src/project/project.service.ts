@@ -4,30 +4,30 @@ import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { CreateProjectDto } from './dto/create-project.dto'
-import { QueryProjectsDto } from './dto/query-projects.dto'
-import { UpdateProjectDto } from './dto/update-project.dto'
+import { CreateProjectReqDto, GetProjectsReqDto, UpdateProjectReqDto } from './dto'
+import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
 export class ProjectService {
   private readonly logger = new Logger(ProjectService.name)
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly projectUtilsService: ProjectUtilsService,
+  ) {}
 
-  // ==================== 项目基本管理 ====================
-
-  async createProject(teamId: string, createProjectDto: CreateProjectDto, creatorId: string) {
+  async createProject(teamId: string, createProjectDto: CreateProjectReqDto, creatorId: string) {
     const { name, slug, description, icon, isPublic = false } = createProjectDto
 
     try {
       // 检查用户是否是团队成员
-      await this.checkUserTeamMembership(teamId, creatorId)
+      await this.projectUtilsService.checkUserTeamMembership(teamId, creatorId)
 
       // 检查项目名称在团队内是否已存在
-      await this.checkProjectNameExists(teamId, name)
+      await this.projectUtilsService.checkProjectNameExists(teamId, name)
 
       // 检查项目标识符在团队内是否已存在
-      await this.checkProjectSlugExists(teamId, slug)
+      await this.projectUtilsService.checkProjectSlugExists(teamId, slug)
 
       // 获取项目管理员角色
       const adminRole = await this.prisma.role.findUnique({
@@ -91,7 +91,7 @@ export class ProjectService {
     }
   }
 
-  async getUserProjects(userId: string, query: QueryProjectsDto) {
+  async getUserProjects(userId: string, query: GetProjectsReqDto) {
     const { page = 1, limit = 10, search, isPublic, teamId } = query
 
     try {
@@ -236,7 +236,7 @@ export class ProjectService {
       }
 
       // 记录用户访问
-      await this.recordUserVisit(userId, projectId)
+      await this.projectUtilsService.recordUserVisit(userId, projectId)
 
       return project
     }
@@ -250,17 +250,17 @@ export class ProjectService {
     }
   }
 
-  async updateProject(projectId: string, updateProjectDto: UpdateProjectDto, userId: string) {
+  async updateProject(projectId: string, updateProjectDto: UpdateProjectReqDto, userId: string) {
     try {
       // 检查项目是否存在
-      const existingProject = await this.getProjectById(projectId)
+      const existingProject = await this.projectUtilsService.getProjectById(projectId)
 
       // 验证用户权限
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 如果要更新名称，检查是否重复
       if (updateProjectDto.name && updateProjectDto.name !== existingProject.name) {
-        await this.checkProjectNameExists(existingProject.teamId, updateProjectDto.name)
+        await this.projectUtilsService.checkProjectNameExists(existingProject.teamId, updateProjectDto.name)
       }
 
       // 更新项目信息
@@ -276,9 +276,7 @@ export class ProjectService {
 
       this.logger.log(`用户 ${userId} 更新了项目 ${updatedProject.name} (${projectId})`)
 
-      return {
-        project: updatedProject,
-      }
+      return updatedProject
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -293,10 +291,10 @@ export class ProjectService {
   async deleteProject(projectId: string, userId: string) {
     try {
       // 检查项目是否存在
-      const project = await this.getProjectById(projectId)
+      const project = await this.projectUtilsService.getProjectById(projectId)
 
       // 验证用户权限
-      await this.checkUserProjectMembership(projectId, userId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查项目是否有 API
       const apiCount = await this.prisma.aPI.count({
@@ -353,10 +351,7 @@ export class ProjectService {
         take: limit,
       })
 
-      return {
-        projects: recentlyProjects,
-        total: recentlyProjects.length,
-      }
+      return recentlyProjects
     }
     catch (error) {
       this.logger.error(`获取最近访问项目失败: ${error.message}`, error.stack)
@@ -404,108 +399,6 @@ export class ProjectService {
 
       this.logger.error(`获取用户项目角色失败: ${error.message}`, error.stack)
       throw new HanaException('获取用户项目角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
-    }
-  }
-
-  // ==================== 私有辅助方法 ====================
-
-  private async checkProjectNameExists(teamId: string, name: string) {
-    const existingProject = await this.prisma.project.findFirst({
-      where: {
-        teamId,
-        name,
-        status: 'ACTIVE',
-      },
-    })
-
-    if (existingProject) {
-      throw new HanaException('项目名称已存在', ErrorCode.PROJECT_NAME_EXISTS)
-    }
-  }
-
-  private async checkProjectSlugExists(teamId: string, slug: string) {
-    const existingProject = await this.prisma.project.findUnique({
-      where: {
-        teamId_slug: {
-          teamId,
-          slug,
-        },
-      },
-    })
-
-    if (existingProject) {
-      throw new HanaException('项目标识符已存在', ErrorCode.PROJECT_SLUG_EXISTS)
-    }
-  }
-
-  private async getProjectById(projectId: string) {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-    })
-
-    if (!project) {
-      throw new HanaException('项目不存在', ErrorCode.PROJECT_NOT_FOUND, 404)
-    }
-
-    if (project.status !== 'ACTIVE') {
-      throw new HanaException('项目已被删除', ErrorCode.PROJECT_DELETED)
-    }
-
-    return project
-  }
-
-  private async checkUserTeamMembership(teamId: string, userId: string) {
-    const membership = await this.prisma.teamMember.findUnique({
-      where: {
-        userId_teamId: {
-          userId,
-          teamId,
-        },
-      },
-    })
-
-    if (!membership) {
-      throw new HanaException('您不是该团队的成员', ErrorCode.NOT_TEAM_MEMBER, 403)
-    }
-  }
-
-  private async checkUserProjectMembership(projectId: string, userId: string) {
-    const membership = await this.prisma.projectMember.findUnique({
-      where: {
-        userId_projectId: {
-          userId,
-          projectId,
-        },
-      },
-    })
-
-    if (!membership) {
-      throw new HanaException('您不是该项目的成员', ErrorCode.NOT_PROJECT_MEMBER, 403)
-    }
-  }
-
-  private async recordUserVisit(userId: string, projectId: string) {
-    try {
-      await this.prisma.recentlyProject.upsert({
-        where: {
-          userId_projectId: {
-            userId,
-            projectId,
-          },
-        },
-        update: {
-          lastVisitedAt: new Date(),
-        },
-        create: {
-          userId,
-          projectId,
-          lastVisitedAt: new Date(),
-        },
-      })
-    }
-    catch (error) {
-      // 记录访问失败不影响主要功能
-      this.logger.warn(`记录用户访问失败: ${error.message}`)
     }
   }
 }

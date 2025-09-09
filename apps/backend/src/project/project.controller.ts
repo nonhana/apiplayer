@@ -16,14 +16,16 @@ import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { CreateProjectDto, CreateProjectResDto } from './dto/create-project.dto'
-import { DeleteProjectResDto } from './dto/delete-project.dto'
-import { GetPermissionsResDto } from './dto/get-permissions.dto'
-import { ProjectDetailDto } from './dto/project.dto'
-import { ProjectsDto } from './dto/projects.dto'
-import { QueryProjectsDto } from './dto/query-projects.dto'
-import { RecentlyProjectsResDto } from './dto/recent-projects.dto'
-import { UpdateProjectDto, UpdateProjectResDto } from './dto/update-project.dto'
+import {
+  CreateProjectReqDto,
+  GetPermissionsResDto,
+  GetProjectsReqDto,
+  ProjectBriefDto,
+  ProjectDetailDto,
+  ProjectsDto,
+  RecentProjectItemDto,
+  UpdateProjectReqDto,
+} from './dto'
 import { ProjectService } from './project.service'
 
 @Controller('projects')
@@ -33,28 +35,26 @@ export class ProjectController {
 
   /**
    * 创建项目
-   * 需要项目创建权限
    */
   @Post(':teamId')
   @ProjectPermissions(['project:create'])
   @ResMsg('项目创建成功')
   async createProject(
     @Param('teamId') teamId: string,
-    @Body() createProjectDto: CreateProjectDto,
+    @Body() createProjectDto: CreateProjectReqDto,
     @Req() request: FastifyRequest,
-  ): Promise<CreateProjectResDto> {
+  ): Promise<ProjectBriefDto> {
     const user = request.user!
     const result = await this.projectService.createProject(teamId, createProjectDto, user.id)
-    return plainToInstance(CreateProjectResDto, result)
+    return plainToInstance(ProjectBriefDto, result)
   }
 
   /**
    * 获取用户的项目列表
-   * 只需要登录即可查看自己的项目
    */
   @Get()
   async getUserProjects(
-    @Query() query: QueryProjectsDto,
+    @Query() query: GetProjectsReqDto,
     @Req() request: FastifyRequest,
   ): Promise<ProjectsDto> {
     const user = request.user!
@@ -64,7 +64,6 @@ export class ProjectController {
 
   /**
    * 获取项目详情
-   * 需要是项目成员才能查看详情
    */
   @Get(':projectId')
   @ProjectPermissions(['project:read'])
@@ -79,24 +78,22 @@ export class ProjectController {
 
   /**
    * 更新项目信息
-   * 需要项目写入权限
    */
   @Patch(':projectId')
   @ProjectPermissions(['project:write'])
   @ResMsg('项目更新成功')
   async updateProject(
     @Param('projectId') projectId: string,
-    @Body() updateProjectDto: UpdateProjectDto,
+    @Body() updateProjectDto: UpdateProjectReqDto,
     @Req() request: FastifyRequest,
-  ): Promise<UpdateProjectResDto> {
+  ): Promise<ProjectBriefDto> {
     const user = request.user!
     const result = await this.projectService.updateProject(projectId, updateProjectDto, user.id)
-    return plainToInstance(UpdateProjectResDto, result)
+    return plainToInstance(ProjectBriefDto, result)
   }
 
   /**
    * 删除项目
-   * 需要项目管理权限
    */
   @Delete(':projectId')
   @ProjectPermissions(['project:admin'])
@@ -104,27 +101,25 @@ export class ProjectController {
   async deleteProject(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,
-  ): Promise<DeleteProjectResDto> {
+  ): Promise<void> {
     const user = request.user!
-    return await this.projectService.deleteProject(projectId, user.id)
+    await this.projectService.deleteProject(projectId, user.id)
   }
 
   /**
    * 获取用户最近访问的项目
-   * 只需要登录即可
    */
   @Get('recently/visited')
   async getRecentlyProjects(
     @Req() request: FastifyRequest,
-  ): Promise<RecentlyProjectsResDto> {
+  ): Promise<RecentProjectItemDto[]> {
     const user = request.user!
     const result = await this.projectService.getRecentlyProjects(user.id)
-    return plainToInstance(RecentlyProjectsResDto, result)
+    return plainToInstance(RecentProjectItemDto, result)
   }
 
   /**
    * 获取当前用户在项目中的角色和权限
-   * 用于前端权限控制
    */
   @Get(':projectId/my-role')
   @ProjectPermissions(['project:read'])

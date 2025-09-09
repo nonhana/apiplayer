@@ -30,13 +30,3 @@ export class RecentProjectItemDto {
   @Expose()
   lastVisitedAt: Date
 }
-
-@Exclude()
-export class RecentlyProjectsResDto {
-  @Expose()
-  @Type(() => RecentProjectItemDto)
-  projects: RecentProjectItemDto[]
-
-  @Expose()
-  total: number
-}

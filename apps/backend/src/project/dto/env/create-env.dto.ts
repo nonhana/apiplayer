@@ -1,24 +1,24 @@
 import type { ProjectEnvType } from '@/constants/project-env'
-import { IsBoolean, IsEnum, IsObject, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
+import { IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
 import { projectEnvType } from '@/constants/project-env'
 
-export class UpdateProjectEnvDto {
+export class CreateProjectEnvReqDto {
   /** 环境名称 */
-  @IsOptional()
+  @IsNotEmpty({ message: '环境名称不能为空' })
   @IsString({ message: '环境名称必须是字符串' })
   @MinLength(2, { message: '环境名称长度不能少于 2 个字符' })
   @MaxLength(30, { message: '环境名称长度不能超过 30 个字符' })
-  name?: string
+  name: string
 
   /** 环境类型 */
-  @IsOptional()
+  @IsNotEmpty({ message: '环境类型不能为空' })
   @IsEnum(projectEnvType, { message: '环境类型必须是有效的枚举值' })
-  type?: ProjectEnvType
+  type: ProjectEnvType
 
   /** 基础 URL */
-  @IsOptional()
+  @IsNotEmpty({ message: '基础 URL 不能为空' })
   @IsUrl({}, { message: '基础 URL 必须是有效的 URL' })
-  baseUrl?: string
+  baseUrl: string
 
   /** 环境变量 */
   @IsOptional()

@@ -1,7 +1,8 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
 import { MemberDto } from '@/common/dto/member.dto'
+import { PaginationDto } from '@/common/dto/pagination.dto'
 import { RoleBriefDto } from '@/common/dto/role.dto'
-import { ProjectEnvDto } from './env.dto'
+import { ProjectEnvDto } from './env/env.dto'
 import { ProjectTeamDto } from './project-team.dto'
 
 @Exclude()
@@ -78,4 +79,18 @@ export class ProjectDetailDto extends ProjectItemDto {
   @Type(() => ProjectEnvDto)
   @Transform(({ obj }) => obj.members, { toClassOnly: true })
   environments: ProjectEnvDto[]
+}
+
+@Exclude()
+export class ProjectsDto {
+  @Expose()
+  @Type(() => ProjectItemDto)
+  projects: ProjectItemDto[]
+
+  @Expose()
+  total: number
+
+  @Expose()
+  @Type(() => PaginationDto)
+  pagination: PaginationDto
 }

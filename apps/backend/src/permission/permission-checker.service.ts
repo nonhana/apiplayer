@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { PermissionContext, UserPermissions } from '@/common/types/permission'
+import { PermissionContext } from '@/common/types/permission'
 import { PermissionType } from '@/constants/permission'
 import { RoleType } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -17,7 +17,7 @@ export class PermissionCheckerService {
     userId: string,
     context: PermissionContext,
     requiredPermissions: PermissionType[],
-  ): Promise<boolean> {
+  ) {
     try {
       const userPermissions = await this.getUserPermissionsInContext(userId, context)
 
@@ -42,7 +42,7 @@ export class PermissionCheckerService {
   async getUserPermissionsInContext(
     userId: string,
     context: PermissionContext,
-  ): Promise<UserPermissions> {
+  ) {
     try {
       let roles: RoleType[] = []
       let permissions: PermissionType[] = []
@@ -89,8 +89,7 @@ export class PermissionCheckerService {
   }
 
   /** 获取用户在特定团队中的权限 */
-  private async getTeamPermissions(userId: string, teamId: string):
-  Promise<{ roles: RoleType[], permissions: PermissionType[] }> {
+  private async getTeamPermissions(userId: string, teamId: string) {
     const teamMember = await this.prisma.teamMember.findUnique({
       where: {
         userId_teamId: {
@@ -123,8 +122,7 @@ export class PermissionCheckerService {
   }
 
   /** 获取用户在特定项目中的权限 */
-  private async getProjectPermissions(userId: string, projectId: string):
-  Promise<{ roles: RoleType[], permissions: PermissionType[] }> {
+  private async getProjectPermissions(userId: string, projectId: string) {
     // 首先检查用户是否是项目的直接成员
     const projectMember = await this.prisma.projectMember.findUnique({
       where: {
@@ -157,7 +155,7 @@ export class PermissionCheckerService {
   }
 
   /** 检查用户是否是系统管理员 */
-  async isSystemAdmin(userId: string): Promise<boolean> {
+  async isSystemAdmin(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     })
@@ -166,7 +164,7 @@ export class PermissionCheckerService {
   }
 
   /** 检查用户是否是团队成员 */
-  async isTeamMember(userId: string, teamId: string): Promise<boolean> {
+  async isTeamMember(userId: string, teamId: string) {
     const teamMember = await this.prisma.teamMember.findUnique({
       where: {
         userId_teamId: {
@@ -180,7 +178,7 @@ export class PermissionCheckerService {
   }
 
   /** 检查用户是否是项目成员 */
-  async isProjectMember(userId: string, projectId: string): Promise<boolean> {
+  async isProjectMember(userId: string, projectId: string) {
     const projectMember = await this.prisma.projectMember.findUnique({
       where: {
         userId_projectId: {

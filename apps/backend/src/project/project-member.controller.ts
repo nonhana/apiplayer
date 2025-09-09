@@ -17,10 +17,7 @@ import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { MemberDto, MembersDto } from '@/common/dto/member.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { GetMembersDto } from './dto/get-members.dto'
-import { InviteMemberDto } from './dto/invite-member.dto'
-import { RemoveMemberResDto } from './dto/remove-member.dto'
-import { UpdateMemberDto } from './dto/update-member.dto'
+import { GetMembersReqDto, InviteMemberReqDto, UpdateMemberReqDto } from './dto'
 import { ProjectMemberService } from './project-member.service'
 
 @Controller('projects')
@@ -32,13 +29,12 @@ export class ProjectMemberController {
 
   /**
    * 邀请项目成员
-   * 需要项目成员邀请权限
    */
   @Post(':projectId/members')
   @ProjectPermissions(['project:member:invite'])
   async inviteProjectMember(
     @Param('projectId') projectId: string,
-    @Body() inviteDto: InviteMemberDto,
+    @Body() inviteDto: InviteMemberReqDto,
     @Req() request: FastifyRequest,
   ): Promise<MemberDto> {
     const user = request.user!
@@ -48,13 +44,12 @@ export class ProjectMemberController {
 
   /**
    * 获取项目成员列表
-   * 需要项目读取权限
    */
   @Get(':projectId/members')
   @ProjectPermissions(['project:read'])
   async getProjectMembers(
     @Param('projectId') projectId: string,
-    @Query() query: GetMembersDto,
+    @Query() query: GetMembersReqDto,
     @Req() request: FastifyRequest,
   ): Promise<MembersDto> {
     const user = request.user!
@@ -64,14 +59,13 @@ export class ProjectMemberController {
 
   /**
    * 更新项目成员角色
-   * 需要项目成员管理权限
    */
   @Patch(':projectId/members/:memberId')
   @ProjectPermissions(['project:member:manage'])
   async updateProjectMemberRole(
     @Param('projectId') projectId: string,
     @Param('memberId') memberId: string,
-    @Body() updateDto: UpdateMemberDto,
+    @Body() updateDto: UpdateMemberReqDto,
     @Req() request: FastifyRequest,
   ): Promise<MemberDto> {
     const user = request.user!
@@ -81,7 +75,6 @@ export class ProjectMemberController {
 
   /**
    * 移除项目成员
-   * 需要项目成员移除权限
    */
   @Delete(':projectId/members/:memberId')
   @ProjectPermissions(['project:member:remove'])
@@ -90,8 +83,8 @@ export class ProjectMemberController {
     @Param('projectId') projectId: string,
     @Param('memberId') memberId: string,
     @Req() request: FastifyRequest,
-  ): Promise<RemoveMemberResDto> {
+  ): Promise<void> {
     const user = request.user!
-    return await this.projectMemberService.removeProjectMember(projectId, memberId, user.id)
+    await this.projectMemberService.removeProjectMember(projectId, memberId, user.id)
   }
 }
