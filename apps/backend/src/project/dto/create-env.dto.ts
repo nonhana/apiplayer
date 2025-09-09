@@ -1,6 +1,6 @@
-import type { ProjectEnvType } from '@/common/types/project-env'
+import type { ProjectEnvType } from '@/constants/project-env'
 import { IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
-import { projectEnvType } from '@/common/types/project-env'
+import { projectEnvType } from '@/constants/project-env'
 
 export class CreateProjectEnvDto {
   /** 环境名称 */

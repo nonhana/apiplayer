@@ -1,6 +1,6 @@
-import type { ParamType } from '@/common/types/global-param'
+import type { ParamType } from '@/constants/global-param'
 import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator'
-import { paramType } from '@/common/types/global-param'
+import { paramType } from '@/constants/global-param'
 
 export class UpdateGlobalParamDto {
   /** 参数类型 */

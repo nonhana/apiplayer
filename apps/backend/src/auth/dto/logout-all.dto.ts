@@ -1,7 +1,8 @@
 import { Exclude, Expose } from 'class-transformer'
+import { MessageResDto } from '@/common/dto/message.dto'
 
 @Exclude()
-export class LogoutAllResDto {
-  @Expose() message: string
-  @Expose() destroyedSessions: number
+export class LogoutAllResDto extends MessageResDto {
+  @Expose()
+  destroyedSessions: number
 }

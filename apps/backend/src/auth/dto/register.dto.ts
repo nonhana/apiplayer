@@ -1,5 +1,6 @@
 import { Exclude, Expose, Type } from 'class-transformer'
 import { IsEmail, IsNotEmpty, IsString, Length, Matches, MinLength } from 'class-validator'
+import { MessageResDto } from '@/common/dto/message.dto'
 import { UserBriefInfoDto } from '@/common/dto/user.dto'
 
 export class RegisterReqDto {
@@ -34,9 +35,7 @@ export class RegisterReqDto {
 }
 
 @Exclude()
-export class RegisterResDto {
-  @Expose() message: string
-
+export class RegisterResDto extends MessageResDto {
   @Expose()
   @Type(() => UserBriefInfoDto)
   user: UserBriefInfoDto

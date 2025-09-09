@@ -4,6 +4,7 @@ import { AppController } from './app.controller'
 import { AuthModule } from './auth/auth.module'
 import { AllExceptionFilter } from './common/filters/all-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
+import { CookieModule } from './cookie/cookie.module'
 import { EnvConfigModule } from './infra/env-config/env-config.module'
 import { PrismaModule } from './infra/prisma/prisma.module'
 import { RedisModule } from './infra/redis/redis.module'
@@ -12,7 +13,6 @@ import { ProjectModule } from './project/project.module'
 import { RoleModule } from './role/role.module'
 import { TeamModule } from './team/team.module'
 import { UserModule } from './user/user.module'
-import { CookieModule } from './cookie/cookie.module';
 
 @Module({
   imports: [

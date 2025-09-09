@@ -1,5 +1,6 @@
 import { Exclude, Expose } from 'class-transformer'
 import { IsEmail, IsOptional, IsString, Length, Matches } from 'class-validator'
+import { MessageResDto } from '@/common/dto/message.dto'
 
 export class CheckAvailabilityReqDto {
   @IsOptional()
@@ -16,7 +17,7 @@ export class CheckAvailabilityReqDto {
 }
 
 @Exclude()
-export class CheckAvailabilityResDto {
-  @Expose() available: boolean
-  @Expose() message: string
+export class CheckAvailabilityResDto extends MessageResDto {
+  @Expose()
+  available: boolean
 }

@@ -1,7 +1,8 @@
 import { Exclude, Expose } from 'class-transformer'
+import { MessageResDto } from '@/common/dto/message.dto'
 
 @Exclude()
-export class CheckAuthStatusResDto {
-  @Expose() isAuthenticated: boolean
-  @Expose() message: string
+export class CheckAuthStatusResDto extends MessageResDto {
+  @Expose()
+  isAuthenticated: boolean
 }

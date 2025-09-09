@@ -1,4 +1,4 @@
-import type { ParamType, RequestParamCategory } from '@/common/types/global-param'
+import type { ParamType, RequestParamCategory } from '@/constants/global-param'
 import { Exclude, Expose, Transform } from 'class-transformer'
 
 @Exclude()

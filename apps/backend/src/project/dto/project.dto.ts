@@ -1,7 +1,7 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
 import { MemberDto } from '@/common/dto/member.dto'
 import { RoleBriefDto } from '@/common/dto/role.dto'
-import { ProjectEnvDto } from './environment.dto'
+import { ProjectEnvDto } from './env.dto'
 import { ProjectTeamDto } from './project-team.dto'
 
 @Exclude()

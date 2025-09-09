@@ -56,8 +56,8 @@ export class TeamController {
     @Req() request: FastifyRequest,
   ): Promise<TeamsDto> {
     const user = request.user!
-    const teams = await this.teamService.getUserTeams(user.id, query)
-    return plainToInstance(TeamsDto, teams)
+    const result = await this.teamService.getUserTeams(user.id, query)
+    return plainToInstance(TeamsDto, result)
   }
 
   /**

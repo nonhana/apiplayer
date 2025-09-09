@@ -1,5 +1,7 @@
 import process from 'node:process'
 import cookie from '@fastify/cookie'
+import FastifySwagger from '@fastify/swagger'
+import FastifySwaggerUI from '@fastify/swagger-ui'
 import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory, Reflector } from '@nestjs/core'
@@ -60,7 +62,43 @@ async function bootstrap() {
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     })
 
-    // Swagger
+    // 注册 Fastify Swagger 插件
+    await app.register(FastifySwagger, {
+      swagger: {
+        info: {
+          title: 'Apiplayer API',
+          description: 'API documentation for Apiplayer backend.',
+          version: '1.0.0',
+        },
+        host: `${host}:${port}`,
+        schemes: ['http'],
+        consumes: ['application/json'],
+        produces: ['application/json'],
+        securityDefinitions: {
+          cookieAuth: {
+            type: 'apiKey',
+            in: 'cookie',
+            name: 'sid',
+            description: 'Session ID cookie set after successful login',
+          },
+        },
+      },
+    })
+
+    // 注册 Swagger UI 插件
+    await app.register(FastifySwaggerUI, {
+      routePrefix: '/documentation',
+      uiConfig: {
+        docExpansion: 'list',
+        deepLinking: false,
+      },
+      staticCSP: true,
+      transformStaticCSP: header => header,
+      transformSpecification: swaggerObject => swaggerObject,
+      transformSpecificationClone: true,
+    })
+
+    // 使用 NestJS Swagger 设置额外的文档
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Apiplayer API')
       .setDescription('API documentation for Apiplayer backend.')
@@ -88,6 +126,10 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap')
 
   logger.log(`🚀 应用程序已启动，访问地址: http://${host}:${port}`)
+  if (nodeEnv !== 'production') {
+    logger.log(`📚 Swagger 文档地址: http://${host}:${port}/docs`)
+    logger.log(`📖 Fastify 文档地址: http://${host}:${port}/documentation`)
+  }
   logger.log(`🌍 环境: ${nodeEnv}`)
 }
 

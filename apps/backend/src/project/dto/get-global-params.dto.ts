@@ -1,7 +1,7 @@
-import type { ParamType, RequestParamCategory } from '@/common/types/global-param'
+import type { ParamType, RequestParamCategory } from '@/constants/global-param'
 import { IsBoolean, IsEnum, IsOptional } from 'class-validator'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
-import { paramType, requestParamCategory } from '@/common/types/global-param'
+import { paramType, requestParamCategory } from '@/constants/global-param'
 
 /** 全局参数查询 DTO */
 export class GetGlobalParamsDto extends BasePaginatedQueryDto {

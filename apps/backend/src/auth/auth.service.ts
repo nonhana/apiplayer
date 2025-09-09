@@ -1,12 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { User } from '@prisma/client'
 import { compare, hash } from 'bcrypt'
-import { UserSessionDto } from '@/common/dto/user.dto'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SessionService } from '@/session/session.service'
-import { CheckAvailabilityReqDto, CheckAvailabilityResDto } from './dto/check-availability.dto'
+import { CheckAvailabilityReqDto } from './dto/check-availability.dto'
 import { LoginReqDto } from './dto/login.dto'
 import { RegisterReqDto } from './dto/register.dto'
 
@@ -21,12 +19,12 @@ export class AuthService {
   ) {}
 
   /** 对密码进行哈希处理 */
-  async hashPassword(password: string): Promise<string> {
+  async hashPassword(password: string) {
     return hash(password, this.saltRounds)
   }
 
   /** 验证密码 */
-  async verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  async verifyPassword(password: string, hashedPassword: string) {
     return compare(password, hashedPassword)
   }
 
@@ -34,7 +32,7 @@ export class AuthService {
   async login(
     loginDto: LoginReqDto,
     metadata?: { userAgent?: string, ipAddress?: string },
-  ): Promise<{ user: User, sessionId: string }> {
+  ) {
     const { email, password, rememberMe } = loginDto
 
     try {
@@ -86,7 +84,7 @@ export class AuthService {
   }
 
   /** 用户登出 */
-  async logout(sessionId: string): Promise<void> {
+  async logout(sessionId: string) {
     try {
       const sessionData = await this.sessionService.getSession(sessionId)
 
@@ -102,7 +100,7 @@ export class AuthService {
   }
 
   /** 登出所有设备 */
-  async logoutAllDevices(userId: string): Promise<number> {
+  async logoutAllDevices(userId: string) {
     try {
       const destroyedCount = await this.sessionService.destroyAllUserSessions(userId)
       this.logger.log(`用户 ${userId} 已登出所有设备，共销毁 ${destroyedCount} 个会话`)
@@ -115,7 +113,7 @@ export class AuthService {
   }
 
   /** 验证会话并获取用户信息 */
-  async validateSession(sessionId: string): Promise<User | null> {
+  async validateSession(sessionId: string) {
     try {
       // 刷新会话（更新最后访问时间）
       const isValid = await this.sessionService.refreshSession(sessionId)
@@ -147,7 +145,7 @@ export class AuthService {
   }
 
   /** 获取用户的活跃会话列表 */
-  async getUserActiveSessions(userId: string, currentSessionId?: string): Promise<UserSessionDto[]> {
+  async getUserActiveSessions(userId: string, currentSessionId?: string) {
     try {
       const sessions = await this.sessionService.getUserActiveSessions(userId)
 
@@ -167,7 +165,7 @@ export class AuthService {
   }
 
   /** 销毁指定会话 */
-  async destroySpecificSession(userId: string, sessionId: string): Promise<void> {
+  async destroySpecificSession(userId: string, sessionId: string) {
     try {
       // 验证会话是否属于当前用户
       const sessionData = await this.sessionService.getSession(sessionId)
@@ -189,7 +187,7 @@ export class AuthService {
   }
 
   /** 重新生成会话 ID（防御会话固定攻击） */
-  async regenerateSessionId(oldSessionId: string): Promise<string | null> {
+  async regenerateSessionId(oldSessionId: string) {
     try {
       const newSessionId = await this.sessionService.regenerateSessionId(oldSessionId)
 
@@ -206,7 +204,7 @@ export class AuthService {
   }
 
   /** 用户注册 */
-  async register(registerDto: RegisterReqDto): Promise<{ user: User, message: string }> {
+  async register(registerDto: RegisterReqDto) {
     const { email, username, name, password, confirmPassword } = registerDto
 
     try {
@@ -260,7 +258,7 @@ export class AuthService {
   }
 
   /** 检查邮箱或用户名可用性 */
-  async checkAvailability(checkDto: CheckAvailabilityReqDto): Promise<CheckAvailabilityResDto> {
+  async checkAvailability(checkDto: CheckAvailabilityReqDto) {
     try {
       const { email, username } = checkDto
 
