@@ -1,9 +1,9 @@
-import { UserDetailInfoDto } from '@/common/dto/user.dto'
+import { User } from '@prisma/client'
 import 'fastify'
 
 declare module 'fastify' {
   interface FastifyRequest {
-    user?: UserDetailInfoDto
+    user?: User
     sessionId?: string
   }
 }

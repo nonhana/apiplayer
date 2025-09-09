@@ -117,7 +117,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @Get('me')
   async getCurrentUser(@Req() request: FastifyRequest): Promise<UserDetailInfoDto> {
-    return request.user!
+    return plainToInstance(UserDetailInfoDto, request.user!)
   }
 
   /** 获取当前用户的活跃会话列表 */
