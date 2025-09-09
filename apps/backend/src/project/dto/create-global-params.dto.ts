@@ -1,6 +1,5 @@
 import { Expose, Type } from 'class-transformer'
 import { IsNotEmpty } from 'class-validator'
-import { MessageResDto } from '@/common/dto/message.dto'
 import { CreateGlobalParamDto } from './create-global-param.dto'
 import { GlobalParamDto } from './global-param.dto'
 
@@ -9,7 +8,7 @@ export class CreateGlobalParamsDto {
   params: CreateGlobalParamDto[]
 }
 
-export class CreateGlobalParamsResDto extends MessageResDto {
+export class CreateGlobalParamsResDto {
   @Expose()
   createdCount: number
 

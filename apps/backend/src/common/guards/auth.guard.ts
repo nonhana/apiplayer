@@ -1,11 +1,14 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
+import { AuthService } from '@/auth/auth.service'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { AuthService } from '../../auth/auth.service'
 
-/** 认证守卫，验证用户是否已登录，并将用户信息附加到请求对象上 */
+/**
+ * 认证守卫
+ * @description 验证用户是否已登录，并将用户信息附加到请求对象上
+ */
 @Injectable()
 export class AuthGuard implements CanActivate {
   private readonly logger = new Logger(AuthGuard.name)

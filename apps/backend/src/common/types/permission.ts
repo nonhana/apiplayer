@@ -12,3 +12,12 @@ export class PermissionContext {
   type: 'team' | 'project' | 'system'
   id?: string // teamId or projectId
 }
+
+export type PermissionContextType = 'team' | 'project' | 'system'
+export type PermissionContextParamName = 'teamId' | 'projectId'
+
+export interface PermissionContextConfig {
+  type: PermissionContextType
+  paramName?: PermissionContextParamName
+  permissions: PermissionType[]
+}

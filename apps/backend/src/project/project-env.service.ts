@@ -226,7 +226,6 @@ export class ProjectEnvService {
       this.logger.log(`用户 ${userId} 删除了项目 ${projectId} 中的环境 ${environment.name}`)
 
       return {
-        message: '环境删除成功',
         deletedEnvId: environmentId,
       }
     }

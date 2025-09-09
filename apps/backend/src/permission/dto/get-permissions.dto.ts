@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator'
 
-export class QueryPermissionsDto {
+export class GetPermissionsReqDto {
   @IsOptional()
   @IsString({ message: '资源类型必须是字符串' })
   resource?: string

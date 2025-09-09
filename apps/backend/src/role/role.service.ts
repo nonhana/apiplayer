@@ -3,10 +3,12 @@ import { Prisma } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { AssignPermissionsDto } from './dto/assign-permissions.dto'
-import { CreateRoleDto } from './dto/create-role.dto'
-import { QueryRolesDto } from './dto/query-roles.dto'
-import { UpdateRoleDto } from './dto/update-role.dto'
+import {
+  AssignPermissionsReqDto,
+  CreateRoleReqDto,
+  GetRolesReqDto,
+  UpdateRoleReqDto,
+} from './dto'
 
 @Injectable()
 export class RoleService {
@@ -15,7 +17,7 @@ export class RoleService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** 创建角色 */
-  async createRole(createDto: CreateRoleDto) {
+  async createRole(createDto: CreateRoleReqDto) {
     try {
       // 检查角色名称是否已存在
       const existingRole = await this.prisma.role.findUnique({
@@ -83,7 +85,7 @@ export class RoleService {
   }
 
   /** 获取角色列表 */
-  async getRoles(queryDto: QueryRolesDto = {}) {
+  async getRoles(queryDto: GetRolesReqDto = {}) {
     try {
       const { keyword, type } = queryDto
 
@@ -159,7 +161,7 @@ export class RoleService {
   }
 
   /** 更新角色 */
-  async updateRole(id: string, updateDto: UpdateRoleDto) {
+  async updateRole(id: string, updateDto: UpdateRoleReqDto) {
     try {
       // 检查角色是否存在
       const existingRole = await this.prisma.role.findUnique({ where: { id } })
@@ -244,7 +246,7 @@ export class RoleService {
 
   /** 为角色分配权限 */
   // TODO: 某些权限不能分配给当前 type 以外的角色
-  async assignPermissions(roleId: string, assignDto: AssignPermissionsDto) {
+  async assignPermissions(roleId: string, assignDto: AssignPermissionsReqDto) {
     try {
       const { permissionIds } = assignDto
 

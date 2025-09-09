@@ -13,6 +13,7 @@ import {
 import { plainToInstance } from 'class-transformer'
 import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import { CreateGlobalParamDto } from './dto/create-global-param.dto'
@@ -53,6 +54,7 @@ export class ProjectGlobalParamController {
    */
   @Post(':projectId/global-params/batch')
   @ProjectPermissions(['project:write'])
+  @ResMsg('批量创建全局参数成功')
   async createGlobalParams(
     @Param('projectId') projectId: string,
     @Body() dto: CreateGlobalParamsDto,
@@ -102,6 +104,7 @@ export class ProjectGlobalParamController {
    */
   @Delete(':projectId/global-params/:paramId')
   @ProjectPermissions(['project:write'])
+  @ResMsg('全局参数删除成功')
   async deleteGlobalParam(
     @Param('projectId') projectId: string,
     @Param('paramId') paramId: string,

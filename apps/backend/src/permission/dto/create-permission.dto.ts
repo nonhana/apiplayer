@@ -1,6 +1,6 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator'
 
-export class CreatePermissionDto {
+export class CreatePermissionReqDto {
   @IsString({ message: '权限名称必须是字符串' })
   @IsNotEmpty({ message: '权限名称不能为空' })
   name: string
@@ -16,4 +16,10 @@ export class CreatePermissionDto {
   @IsString({ message: '操作类型必须是字符串' })
   @IsNotEmpty({ message: '操作类型不能为空' })
   action: string
+}
+
+export class CreatePermissionsReqDto {
+  @IsArray({ message: '权限列表必须是数组' })
+  @IsNotEmpty({ message: '权限列表不能为空' })
+  permissions: CreatePermissionReqDto[]
 }

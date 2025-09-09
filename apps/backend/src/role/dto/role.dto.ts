@@ -11,7 +11,7 @@ export class RoleDto {
   name: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   description?: string
 
   @Expose()
@@ -36,7 +36,17 @@ export class RoleDto {
       resource: rp.permission.resource,
       action: rp.permission.action,
     }))
-  })
+  }, { toClassOnly: true })
   @Type(() => PermissionDto)
   permissions?: PermissionDto[]
+}
+
+@Exclude()
+export class RolesDto {
+  @Expose()
+  @Type(() => RoleDto)
+  roles: RoleDto[]
+
+  @Expose()
+  total: number
 }

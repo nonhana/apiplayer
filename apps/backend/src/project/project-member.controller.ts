@@ -13,6 +13,7 @@ import {
 import { plainToInstance } from 'class-transformer'
 import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { MemberDto, MembersDto } from '@/common/dto/member.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
@@ -84,6 +85,7 @@ export class ProjectMemberController {
    */
   @Delete(':projectId/members/:memberId')
   @ProjectPermissions(['project:member:remove'])
+  @ResMsg('项目成员移除成功')
   async removeProjectMember(
     @Param('projectId') projectId: string,
     @Param('memberId') memberId: string,

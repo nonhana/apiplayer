@@ -1,15 +1,17 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import { RequireSystemAdmin } from '@/common/decorators/permissions.decorator'
-import { MessageResDto } from '@/common/dto/message.dto'
+import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { AssignPermissionsDto } from './dto/assign-permissions.dto'
-import { CreateRoleDto } from './dto/create-role.dto'
-import { QueryRolesDto } from './dto/query-roles.dto'
-import { RoleDto } from './dto/role.dto'
-import { RolesDto } from './dto/roles.dto'
-import { UpdateRoleDto } from './dto/update-role.dto'
+import {
+  AssignPermissionsReqDto,
+  CreateRoleReqDto,
+  GetRolesReqDto,
+  RoleDto,
+  RolesDto,
+  UpdateRoleReqDto,
+} from './dto'
 import { RoleService } from './role.service'
 
 @Controller('roles')
@@ -20,7 +22,7 @@ export class RoleController {
   /** 创建角色 */
   @Post()
   @RequireSystemAdmin()
-  async createRole(@Body() createDto: CreateRoleDto): Promise<RoleDto> {
+  async createRole(@Body() createDto: CreateRoleReqDto): Promise<RoleDto> {
     const newRole = await this.roleService.createRole(createDto)
     return plainToInstance(RoleDto, newRole)
   }
@@ -28,7 +30,7 @@ export class RoleController {
   /** 获取角色列表 */
   @Get()
   @RequireSystemAdmin()
-  async getRoles(@Query() queryDto: QueryRolesDto): Promise<RolesDto> {
+  async getRoles(@Query() queryDto: GetRolesReqDto): Promise<RolesDto> {
     const newRoles = await this.roleService.getRoles(queryDto)
     return plainToInstance(RolesDto, newRoles)
   }
@@ -46,7 +48,7 @@ export class RoleController {
   @RequireSystemAdmin()
   async updateRole(
     @Param('id') id: string,
-    @Body() updateDto: UpdateRoleDto,
+    @Body() updateDto: UpdateRoleReqDto,
   ): Promise<RoleDto> {
     const updatedRole = await this.roleService.updateRole(id, updateDto)
     return plainToInstance(RoleDto, updatedRole)
@@ -57,7 +59,7 @@ export class RoleController {
   @RequireSystemAdmin()
   async assignPermissions(
     @Param('id') id: string,
-    @Body() assignDto: AssignPermissionsDto,
+    @Body() assignDto: AssignPermissionsReqDto,
   ): Promise<RoleDto> {
     const updatedRole = await this.roleService.assignPermissions(id, assignDto)
     return plainToInstance(RoleDto, updatedRole)
@@ -66,8 +68,8 @@ export class RoleController {
   /** 删除角色 */
   @Delete(':id')
   @RequireSystemAdmin()
-  async deleteRole(@Param('id') id: string): Promise<MessageResDto> {
+  @ResMsg('角色删除成功')
+  async deleteRole(@Param('id') id: string): Promise<void> {
     await this.roleService.deleteRole(id)
-    return { message: '角色删除成功' }
   }
 }

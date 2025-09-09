@@ -1,14 +1,17 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import { RequireSystemAdmin } from '@/common/decorators/permissions.decorator'
+import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { CreatePermissionDto } from './dto/create-permission.dto'
-import { CreatePermissionsDto } from './dto/create-permissions.dto'
-import { QueryPermissionsDto } from './dto/get-permissions.dto'
-import { PermissionDto } from './dto/permission.dto'
-import { PermissionsDto } from './dto/permissions.dto'
-import { UpdatePermissionDto } from './dto/update-permission.dto'
+import {
+  CreatePermissionReqDto,
+  CreatePermissionsReqDto,
+  GetPermissionsReqDto,
+  PermissionDto,
+  PermissionsDto,
+  UpdatePermissionReqDto,
+} from './dto'
 import { PermissionService } from './permission.service'
 
 @Controller('permissions')
@@ -19,7 +22,7 @@ export class PermissionController {
   /** 创建权限 */
   @Post()
   @RequireSystemAdmin()
-  async createPermission(@Body() createDto: CreatePermissionDto): Promise<PermissionDto> {
+  async createPermission(@Body() createDto: CreatePermissionReqDto): Promise<PermissionDto> {
     const newPermission = await this.permissionService.createPermission(createDto)
     return plainToInstance(PermissionDto, newPermission)
   }
@@ -27,7 +30,7 @@ export class PermissionController {
   /** 批量创建权限 */
   @Post('batch')
   @RequireSystemAdmin()
-  async batchCreatePermissions(@Body() createDto: CreatePermissionsDto): Promise<PermissionDto[]> {
+  async batchCreatePermissions(@Body() createDto: CreatePermissionsReqDto): Promise<PermissionDto[]> {
     const newPermissions = await this.permissionService.createPermissions(createDto)
     return plainToInstance(PermissionDto, newPermissions)
   }
@@ -35,7 +38,7 @@ export class PermissionController {
   /** 获取权限列表 */
   @Get()
   @RequireSystemAdmin()
-  async getPermissions(@Query() queryDto: QueryPermissionsDto): Promise<PermissionsDto> {
+  async getPermissions(@Query() queryDto: GetPermissionsReqDto): Promise<PermissionsDto> {
     const res = await this.permissionService.getPermissions(queryDto)
     return plainToInstance(PermissionsDto, res)
   }
@@ -69,7 +72,7 @@ export class PermissionController {
   @RequireSystemAdmin()
   async updatePermission(
     @Param('id') id: string,
-    @Body() updateDto: UpdatePermissionDto,
+    @Body() updateDto: UpdatePermissionReqDto,
   ): Promise<PermissionDto> {
     const permission = await this.permissionService.updatePermission(id, updateDto)
     return plainToInstance(PermissionDto, permission)
@@ -78,8 +81,8 @@ export class PermissionController {
   /** 删除权限 */
   @Delete(':id')
   @RequireSystemAdmin()
-  async deletePermission(@Param('id') id: string): Promise<{ message: string }> {
+  @ResMsg('权限删除成功')
+  async deletePermission(@Param('id') id: string): Promise<void> {
     await this.permissionService.deletePermission(id)
-    return { message: '权限删除成功' }
   }
 }

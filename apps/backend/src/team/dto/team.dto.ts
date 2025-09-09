@@ -1,6 +1,7 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
-import { TeamMemberDto } from '@/common/dto/member.dto'
+import { PaginationDto } from '@/common/dto/pagination.dto'
 import { RoleBriefDto } from '@/common/dto/role.dto'
+import { TeamMemberDto } from './member/member.dto'
 import { TeamProjectDto } from './team-project.dto'
 
 @Exclude()
@@ -15,11 +16,11 @@ export class TeamDto {
   slug: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   description?: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   avatar?: string
 
   @Expose()
@@ -35,17 +36,17 @@ export class TeamItemDto extends TeamDto {
   updatedAt: Date
 
   @Expose()
-  @Transform(({ obj }) => obj._count.members)
+  @Transform(({ obj }) => obj?._count?.members ?? 0, { toClassOnly: true })
   memberCount: number
 
   @Expose()
-  @Transform(({ obj }) => obj._count.projects)
+  @Transform(({ obj }) => obj?._count?.projects ?? 0, { toClassOnly: true })
   projectCount: number
 
   @Expose()
   @Type(() => RoleBriefDto)
   @Transform(({ obj }) => {
-    const curUser = obj.members[0]
+    const curUser = obj?.members?.[0]
     if (!curUser || !curUser.role)
       return undefined
 
@@ -54,7 +55,7 @@ export class TeamItemDto extends TeamDto {
       name: curUser.role.id,
       description: curUser.role.description,
     }
-  })
+  }, { toClassOnly: true })
   currentUserRole?: RoleBriefDto
 }
 
@@ -62,11 +63,25 @@ export class TeamItemDto extends TeamDto {
 export class TeamDetailDto extends TeamItemDto {
   @Expose()
   @Type(() => TeamMemberDto)
-  @Transform(({ obj }) => obj.members)
+  @Transform(({ obj }) => obj?.members ?? [], { toClassOnly: true })
   recentMembers: TeamMemberDto[]
 
   @Expose()
   @Type(() => TeamProjectDto)
-  @Transform(({ obj }) => obj.projects)
+  @Transform(({ obj }) => obj?.projects ?? [], { toClassOnly: true })
   recentProjects: TeamProjectDto[]
+}
+
+@Exclude()
+export class TeamsDto {
+  @Expose()
+  @Type(() => TeamItemDto)
+  teams: TeamItemDto[]
+
+  @Expose()
+  total: number
+
+  @Expose()
+  @Type(() => PaginationDto)
+  pagination: PaginationDto
 }

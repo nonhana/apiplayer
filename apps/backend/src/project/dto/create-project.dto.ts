@@ -1,6 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer'
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
-import { MessageResDto } from '@/common/dto/message.dto'
 import { ProjectBriefDto } from './project.dto'
 
 /** 创建项目请求 DTO */
@@ -37,7 +36,7 @@ export class CreateProjectDto {
 }
 
 @Exclude()
-export class CreateProjectResDto extends MessageResDto {
+export class CreateProjectResDto {
   @Expose()
   @Type(() => ProjectBriefDto)
   project: ProjectBriefDto

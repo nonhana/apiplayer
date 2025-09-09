@@ -78,7 +78,6 @@ export class ProjectService {
       this.logger.log(`用户 ${creatorId} 在团队 ${teamId} 中创建了项目 ${project.name} (${project.id})`)
 
       return {
-        message: '项目创建成功',
         project,
       }
     }
@@ -278,7 +277,6 @@ export class ProjectService {
       this.logger.log(`用户 ${userId} 更新了项目 ${updatedProject.name} (${projectId})`)
 
       return {
-        message: '项目信息更新成功',
         project: updatedProject,
       }
     }
@@ -321,7 +319,6 @@ export class ProjectService {
       this.logger.log(`用户 ${userId} 删除了项目 ${project.name} (${projectId})`)
 
       return {
-        message: '项目删除成功',
         deletedProjectId: projectId,
       }
     }

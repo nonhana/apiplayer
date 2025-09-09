@@ -311,7 +311,6 @@ export class ProjectMemberService {
       this.logger.log(`用户 ${operatorId} 从项目 ${projectId} 中移除了成员 ${member.user.username}`)
 
       return {
-        message: '成员移除成功',
         removedMemberId: memberId,
       }
     }

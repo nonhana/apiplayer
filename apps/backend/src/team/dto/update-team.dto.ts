@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
 
-export class UpdateTeamDto {
+export class UpdateTeamReqDto {
   @IsOptional()
   @IsString({ message: '团队名称必须是字符串' })
   @MinLength(2, { message: '团队名称长度不能少于 2 个字符' })

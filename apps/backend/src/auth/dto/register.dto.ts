@@ -1,7 +1,4 @@
-import { Exclude, Expose, Type } from 'class-transformer'
 import { IsEmail, IsNotEmpty, IsString, Length, Matches, MinLength } from 'class-validator'
-import { MessageResDto } from '@/common/dto/message.dto'
-import { UserBriefInfoDto } from '@/common/dto/user.dto'
 
 export class RegisterReqDto {
   @IsEmail({}, { message: '请输入有效的邮箱地址' })
@@ -32,11 +29,4 @@ export class RegisterReqDto {
   @IsString({ message: '确认密码必须是字符串' })
   @IsNotEmpty({ message: '确认密码不能为空' })
   confirmPassword: string
-}
-
-@Exclude()
-export class RegisterResDto extends MessageResDto {
-  @Expose()
-  @Type(() => UserBriefInfoDto)
-  user: UserBriefInfoDto
 }

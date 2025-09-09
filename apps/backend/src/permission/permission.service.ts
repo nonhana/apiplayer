@@ -3,10 +3,7 @@ import { Permission } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { CreatePermissionDto } from './dto/create-permission.dto'
-import { CreatePermissionsDto } from './dto/create-permissions.dto'
-import { QueryPermissionsDto } from './dto/get-permissions.dto'
-import { UpdatePermissionDto } from './dto/update-permission.dto'
+import { CreatePermissionReqDto, CreatePermissionsReqDto, GetPermissionsReqDto, UpdatePermissionReqDto } from './dto'
 
 @Injectable()
 export class PermissionService {
@@ -15,7 +12,7 @@ export class PermissionService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** 创建单个权限 */
-  async createPermission(createDto: CreatePermissionDto): Promise<Permission> {
+  async createPermission(createDto: CreatePermissionReqDto) {
     try {
       // 检查权限名称是否已存在
       const existingPermission = await this.prisma.permission.findUnique({
@@ -46,7 +43,7 @@ export class PermissionService {
   }
 
   /** 批量创建权限 */
-  async createPermissions(createDto: CreatePermissionsDto): Promise<Permission[]> {
+  async createPermissions(createDto: CreatePermissionsReqDto) {
     try {
       const { permissions } = createDto
       const createdPermissions: Permission[] = []
@@ -89,7 +86,7 @@ export class PermissionService {
   }
 
   /** 根据ID获取权限详情 */
-  async getPermissionById(id: string): Promise<Permission> {
+  async getPermissionById(id: string) {
     try {
       const permission = await this.prisma.permission.findUnique({ where: { id } })
 
@@ -109,7 +106,7 @@ export class PermissionService {
   }
 
   /** 查询权限列表 */
-  async getPermissions(queryDto: QueryPermissionsDto = {}): Promise<{ permissions: Permission[], total: number }> {
+  async getPermissions(queryDto: GetPermissionsReqDto = {}) {
     try {
       const { resource, action, keyword } = queryDto
 
@@ -154,7 +151,7 @@ export class PermissionService {
   }
 
   /** 更新权限 */
-  async updatePermission(id: string, updateDto: UpdatePermissionDto): Promise<Permission> {
+  async updatePermission(id: string, updateDto: UpdatePermissionReqDto) {
     try {
       // 检查权限是否存在
       const existingPermission = await this.prisma.permission.findUnique({ where: { id } })
@@ -196,7 +193,7 @@ export class PermissionService {
   }
 
   /** 删除权限 */
-  async deletePermission(id: string): Promise<void> {
+  async deletePermission(id: string) {
     try {
       const permission = await this.prisma.permission.findUnique({ where: { id } })
 
@@ -218,7 +215,7 @@ export class PermissionService {
   }
 
   /** 根据权限名称获取权限 */
-  async getPermissionByName(name: string): Promise<Permission | null> {
+  async getPermissionByName(name: string) {
     try {
       return await this.prisma.permission.findUnique({ where: { name } })
     }
@@ -229,7 +226,7 @@ export class PermissionService {
   }
 
   /** 根据资源类型获取权限列表 */
-  async getPermissionsByResource(resource: string): Promise<Permission[]> {
+  async getPermissionsByResource(resource: string) {
     try {
       return await this.prisma.permission.findMany({
         where: { resource },
@@ -243,7 +240,7 @@ export class PermissionService {
   }
 
   /** 获取所有资源类型 */
-  async getResources(): Promise<string[]> {
+  async getResources() {
     try {
       const result = await this.prisma.permission.findMany({
         select: { resource: true },

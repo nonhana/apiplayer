@@ -13,11 +13,11 @@ export class RecentProjectItemDto {
   slug: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   description?: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   icon?: string
 
   @Expose()

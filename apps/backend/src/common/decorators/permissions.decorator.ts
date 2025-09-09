@@ -1,14 +1,6 @@
 import { SetMetadata } from '@nestjs/common'
+import { PermissionContextConfig, PermissionContextParamName } from '@/common/types/permission'
 import { PermissionType } from '@/constants/permission'
-
-export type PermissionContextType = 'team' | 'project' | 'system'
-export type PermissionContextParamName = 'teamId' | 'projectId'
-
-export interface PermissionContextConfig {
-  type: PermissionContextType
-  paramName?: PermissionContextParamName
-  permissions: PermissionType[]
-}
 
 export const CONTEXT_PERMISSIONS_KEY = 'contextPermissions'
 export const TEAM_CONTEXT_KEY = 'teamContext'

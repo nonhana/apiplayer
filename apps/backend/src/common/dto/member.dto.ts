@@ -16,7 +16,7 @@ export class MemberInfoDto {
   username: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   avatar?: string
 }
 
@@ -36,12 +36,12 @@ export class MemberDto {
 
   @Expose()
   @Type(() => MemberInfoDto)
-  @Transform(({ obj }) => obj.user)
+  @Transform(({ obj }) => obj.user, { toClassOnly: true })
   user: MemberInfoDto
 
   @Expose()
   @Type(() => MemberRoleDto)
-  @Transform(({ obj }) => obj.role)
+  @Transform(({ obj }) => obj.role, { toClassOnly: true })
   role: MemberRoleDto
 
   @Expose()
@@ -49,31 +49,10 @@ export class MemberDto {
 }
 
 @Exclude()
-export class TeamMemberDto extends MemberDto {
-  @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
-  nickname?: string
-}
-
-@Exclude()
 export class MembersDto {
   @Expose()
   @Type(() => MemberDto)
   members: MemberDto[]
-
-  @Expose()
-  total: number
-
-  @Expose()
-  @Type(() => PaginationDto)
-  pagination: PaginationDto
-}
-
-@Exclude()
-export class TeamMembersDto {
-  @Expose()
-  @Type(() => TeamMemberDto)
-  members: TeamMemberDto[]
 
   @Expose()
   total: number

@@ -9,6 +9,6 @@ export class RoleBriefDto {
   name: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   description?: string
 }

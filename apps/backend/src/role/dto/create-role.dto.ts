@@ -2,7 +2,7 @@ import type { RoleCategory } from '@/constants/role'
 import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'
 import { ROLE_CATEGORIES } from '@/constants/role'
 
-export class CreateRoleDto {
+export class CreateRoleReqDto {
   @IsString({ message: '角色名称必须是字符串' })
   @IsNotEmpty({ message: '角色名称不能为空' })
   name: string

@@ -1,30 +1,12 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import { FastifyRequest } from 'fastify'
 import { TeamPermissions } from '@/common/decorators/permissions.decorator'
-import { TeamMemberDto, TeamMembersDto } from '@/common/dto/member.dto'
+import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { CreateTeamDto } from './dto/create-team.dto'
-import { DeleteTeamResDto } from './dto/delete-team.dto'
-import { InviteMemberDto } from './dto/invite-member.dto'
-import { RemoveMemberResDto } from './dto/remove-member.dto'
-import { TeamDetailDto, TeamDto } from './dto/team.dto'
-import { TeamsDto } from './dto/teams.dto'
-import { UpdateMemberDto } from './dto/update-member.dto'
-import { UpdateTeamDto } from './dto/update-team.dto'
+import { CreateTeamReqDto, TeamDetailDto, TeamDto, TeamsDto, UpdateTeamReqDto } from './dto'
 import { TeamService } from './team.service'
 
 @Controller('teams')
@@ -38,7 +20,7 @@ export class TeamController {
    */
   @Post()
   async createTeam(
-    @Body() createTeamDto: CreateTeamDto,
+    @Body() createTeamDto: CreateTeamReqDto,
     @Req() request: FastifyRequest,
   ): Promise<TeamDto> {
     const user = request.user!
@@ -54,7 +36,7 @@ export class TeamController {
   async getUserTeams(
     @Query() query: BasePaginatedQueryDto,
     @Req() request: FastifyRequest,
-  ): Promise<TeamsDto> {
+  ) {
     const user = request.user!
     const result = await this.teamService.getUserTeams(user.id, query)
     return plainToInstance(TeamsDto, result)
@@ -83,7 +65,7 @@ export class TeamController {
   @TeamPermissions(['team:write'])
   async updateTeam(
     @Param('teamId') teamId: string,
-    @Body() updateTeamDto: UpdateTeamDto,
+    @Body() updateTeamDto: UpdateTeamReqDto,
     @Req() request: FastifyRequest,
   ): Promise<TeamDto> {
     const user = request.user!
@@ -97,77 +79,12 @@ export class TeamController {
    */
   @Delete(':teamId')
   @TeamPermissions(['team:admin'])
+  @ResMsg('团队删除成功')
   async deleteTeam(
     @Param('teamId') teamId: string,
     @Req() request: FastifyRequest,
-  ): Promise<DeleteTeamResDto> {
+  ): Promise<void> {
     const user = request.user!
-    return await this.teamService.deleteTeam(teamId, user.id)
-  }
-
-  // ==================== 团队成员管理 ====================
-
-  /**
-   * 邀请团队成员
-   * 需要成员邀请权限
-   */
-  @Post(':teamId/members')
-  @TeamPermissions(['team:member:invite'])
-  async inviteTeamMember(
-    @Param('teamId') teamId: string,
-    @Body() inviteDto: InviteMemberDto,
-    @Req() request: FastifyRequest,
-  ): Promise<TeamMemberDto> {
-    const user = request.user!
-    const newTeamMember = await this.teamService.inviteTeamMember(teamId, inviteDto, user.id)
-    return plainToInstance(TeamMemberDto, newTeamMember)
-  }
-
-  /**
-   * 获取团队成员列表
-   * 需要团队读取权限
-   */
-  @Get(':teamId/members')
-  @TeamPermissions(['team:read'])
-  async getTeamMembers(
-    @Param('teamId') teamId: string,
-    @Query() query: BasePaginatedQueryDto,
-    @Req() request: FastifyRequest,
-  ): Promise<TeamMembersDto> {
-    const user = request.user!
-    const result = await this.teamService.getTeamMembers(teamId, user.id, query)
-    return plainToInstance(TeamMembersDto, result)
-  }
-
-  /**
-   * 更新团队成员角色
-   * 需要成员管理权限
-   */
-  @Patch(':teamId/members/:memberId')
-  @TeamPermissions(['team:member:manage'])
-  async updateTeamMemberRole(
-    @Param('teamId') teamId: string,
-    @Param('memberId') memberId: string,
-    @Body() updateDto: UpdateMemberDto,
-    @Req() request: FastifyRequest,
-  ): Promise<TeamMemberDto> {
-    const user = request.user!
-    const updatedMember = await this.teamService.updateTeamMemberRole(teamId, memberId, updateDto, user.id)
-    return plainToInstance(TeamMemberDto, updatedMember)
-  }
-
-  /**
-   * 移除团队成员
-   * 需要成员移除权限
-   */
-  @Delete(':teamId/members/:memberId')
-  @TeamPermissions(['team:member:remove'])
-  async removeTeamMember(
-    @Param('teamId') teamId: string,
-    @Param('memberId') memberId: string,
-    @Req() request: FastifyRequest,
-  ): Promise<RemoveMemberResDto> {
-    const user = request.user!
-    return await this.teamService.removeTeamMember(teamId, memberId, user.id)
+    await this.teamService.deleteTeam(teamId, user.id)
   }
 }

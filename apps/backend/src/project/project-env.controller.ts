@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common'
 import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import { CreateProjectEnvDto } from './dto/create-env.dto'
@@ -78,6 +79,7 @@ export class ProjectEnvController {
    */
   @Delete(':projectId/environments/:environmentId')
   @ProjectPermissions(['project:write'])
+  @ResMsg('项目环境删除成功')
   async deleteProjectEnvironment(
     @Param('projectId') projectId: string,
     @Param('environmentId') environmentId: string,

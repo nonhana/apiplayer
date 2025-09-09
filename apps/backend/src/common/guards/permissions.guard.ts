@@ -3,16 +3,19 @@ import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { PermissionContext } from '@/common/types/permission'
+import { PermissionContext, PermissionContextConfig } from '@/common/types/permission'
 import { PermissionCheckerService } from '@/permission/permission-checker.service'
 import {
   CONTEXT_PERMISSIONS_KEY,
-  PermissionContextConfig,
   PROJECT_CONTEXT_KEY,
   SYSTEM_CONTEXT_KEY,
   TEAM_CONTEXT_KEY,
 } from '../decorators/permissions.decorator'
 
+/**
+ * 权限守卫
+ * @description 验证用户是否具有相应的权限
+ */
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   private readonly logger = new Logger(PermissionsGuard.name)

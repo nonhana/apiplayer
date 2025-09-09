@@ -13,6 +13,7 @@ import {
 import { plainToInstance } from 'class-transformer'
 import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import { CreateProjectDto, CreateProjectResDto } from './dto/create-project.dto'
@@ -36,6 +37,7 @@ export class ProjectController {
    */
   @Post(':teamId')
   @ProjectPermissions(['project:create'])
+  @ResMsg('项目创建成功')
   async createProject(
     @Param('teamId') teamId: string,
     @Body() createProjectDto: CreateProjectDto,
@@ -81,6 +83,7 @@ export class ProjectController {
    */
   @Patch(':projectId')
   @ProjectPermissions(['project:write'])
+  @ResMsg('项目更新成功')
   async updateProject(
     @Param('projectId') projectId: string,
     @Body() updateProjectDto: UpdateProjectDto,
@@ -97,6 +100,7 @@ export class ProjectController {
    */
   @Delete(':projectId')
   @ProjectPermissions(['project:admin'])
+  @ResMsg('项目删除成功')
   async deleteProject(
     @Param('projectId') projectId: string,
     @Req() request: FastifyRequest,

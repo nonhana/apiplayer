@@ -19,7 +19,7 @@ export class GlobalParamDto {
   value: any
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   description?: string
 
   @Expose()

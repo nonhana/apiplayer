@@ -187,7 +187,6 @@ export class ProjectGlobalParamService {
       this.logger.log(`用户 ${userId} 删除了项目 ${projectId} 中的全局参数 ${existingParam.name}`)
 
       return {
-        message: '全局参数删除成功',
         deletedParamId: paramId,
       }
     }
@@ -252,7 +251,6 @@ export class ProjectGlobalParamService {
       this.logger.log(`用户 ${userId} 在项目 ${projectId} 中批量创建了 ${createdParams.length} 个全局参数`)
 
       return {
-        message: '批量创建全局参数成功',
         createdCount: createdParams.length,
         params: createdParams,
       }

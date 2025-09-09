@@ -2,18 +2,21 @@ import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from 
 import { plainToInstance } from 'class-transformer'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { Public } from '@/common/decorators/public.decorator'
-import { MessageResDto } from '@/common/dto/message.dto'
-import { UserBriefInfoDto, UserDetailInfoDto } from '@/common/dto/user.dto'
+import { ResMsg } from '@/common/decorators/res-msg.decorator'
+import { UserBriefInfoDto, UserDetailInfoDto, UserSessionDto } from '@/common/dto/user.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PasswordConfirmationPipe } from '@/common/pipes/password-confirmation.pipe'
 import { CookieService } from '@/cookie/cookie.service'
 import { AuthService } from './auth.service'
-import { ActiveSessionsResDto } from './dto/active-sessions.dto'
-import { CheckAuthStatusResDto } from './dto/check-auth.dto'
-import { CheckAvailabilityReqDto, CheckAvailabilityResDto } from './dto/check-availability.dto'
-import { LoginReqDto, LoginResDto } from './dto/login.dto'
-import { LogoutAllResDto } from './dto/logout-all.dto'
-import { RegisterReqDto, RegisterResDto } from './dto/register.dto'
+import {
+  CheckAuthStatusResDto,
+  CheckAvailabilityReqDto,
+  CheckAvailabilityResDto,
+  LoginReqDto,
+  LoginResDto,
+  LogoutAllResDto,
+  RegisterReqDto,
+} from './dto'
 
 @Controller('auth')
 export class AuthController {
@@ -25,6 +28,7 @@ export class AuthController {
   /** 用户登录 */
   @Public()
   @Post('login')
+  @ResMsg('登录成功')
   async login(
     @Body() loginDto: LoginReqDto,
     @Req() request: FastifyRequest,
@@ -49,7 +53,6 @@ export class AuthController {
     this.cookieService.setSecureSessionCookie(response, finalSessionId)
 
     return {
-      message: '登录成功',
       user: plainToInstance(UserBriefInfoDto, user),
       token: finalSessionId,
     }
@@ -58,17 +61,16 @@ export class AuthController {
   /** 用户注册 */
   @Public()
   @Post('register')
-  async register(@Body(PasswordConfirmationPipe) registerDto: RegisterReqDto): Promise<RegisterResDto> {
-    const { user, message } = await this.authService.register(registerDto)
-    return {
-      message,
-      user: plainToInstance(UserBriefInfoDto, user),
-    }
+  @ResMsg('注册成功')
+  async register(@Body(PasswordConfirmationPipe) registerDto: RegisterReqDto): Promise<UserBriefInfoDto> {
+    const newUser = await this.authService.register(registerDto)
+    return plainToInstance(UserBriefInfoDto, newUser)
   }
 
   /** 检查邮箱或用户名可用性 */
   @Public()
   @Post('check-availability')
+  @ResMsg('检查成功')
   async checkAvailability(
     @Body() checkDto: CheckAvailabilityReqDto,
   ): Promise<CheckAvailabilityResDto> {
@@ -78,10 +80,11 @@ export class AuthController {
   /** 用户登出 */
   @UseGuards(AuthGuard)
   @Post('logout')
+  @ResMsg('登出成功')
   async logout(
     @Req() request: FastifyRequest,
     @Res({ passthrough: true }) response: FastifyReply,
-  ): Promise<MessageResDto> {
+  ): Promise<void> {
     const sessionId = request.sessionId
 
     if (sessionId)
@@ -89,13 +92,12 @@ export class AuthController {
 
     // 清除 Cookie
     this.cookieService.clearSessionCookie(response)
-
-    return { message: '登出成功' }
   }
 
   /** 登出所有设备 */
   @UseGuards(AuthGuard)
   @Post('logout-all')
+  @ResMsg('已登出所有设备')
   async logoutAllDevices(
     @Req() request: FastifyRequest,
     @Res({ passthrough: true }) response: FastifyReply,
@@ -108,41 +110,35 @@ export class AuthController {
     this.cookieService.clearSessionCookie(response)
 
     return {
-      message: `已登出所有设备`,
       destroyedSessions: destroyedCount,
     }
   }
 
-  /** 获取当前用户信息 */
+  /** 获取登录用户信息 */
   @UseGuards(AuthGuard)
   @Get('me')
   async getCurrentUser(@Req() request: FastifyRequest): Promise<UserDetailInfoDto> {
     return plainToInstance(UserDetailInfoDto, request.user!)
   }
 
-  /** 获取当前用户的活跃会话列表 */
+  /** 获取登录用户的 Session 列表 */
   @UseGuards(AuthGuard)
   @Get('sessions')
-  async getActiveSessions(@Req() request: FastifyRequest): Promise<ActiveSessionsResDto> {
+  async getActiveSessions(@Req() request: FastifyRequest): Promise<UserSessionDto[]> {
     const user = request.user!
     const currentSessionId = request.sessionId
-
-    const sessions = await this.authService.getUserActiveSessions(user.id, currentSessionId)
-
-    return {
-      sessions,
-      total: sessions.length,
-    }
+    return await this.authService.getUserActiveSessions(user.id, currentSessionId)
   }
 
-  /** 销毁指定会话 */
+  /** 销毁指定 Session */
   @UseGuards(AuthGuard)
   @Delete('sessions/:sessionId')
+  @ResMsg('会话已销毁')
   async destroySession(
     @Param('sessionId') sessionId: string,
     @Req() request: FastifyRequest,
     @Res({ passthrough: true }) response: FastifyReply,
-  ): Promise<MessageResDto> {
+  ): Promise<void> {
     const user = request.user!
     const currentSessionId = request.sessionId
 
@@ -152,17 +148,15 @@ export class AuthController {
     if (sessionId === currentSessionId) {
       this.cookieService.clearSessionCookie(response)
     }
-
-    return { message: '会话已销毁' }
   }
 
-  /** 检查登录状态（用于前端轮询检查） */
+  /** 检查登录状态 */
   @UseGuards(AuthGuard)
   @Get('check')
+  @ResMsg('用户已登录')
   async checkAuthStatus(): Promise<CheckAuthStatusResDto> {
     return {
       isAuthenticated: true,
-      message: '用户已登录',
     }
   }
 }

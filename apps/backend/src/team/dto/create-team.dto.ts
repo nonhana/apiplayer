@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
 
-export class CreateTeamDto {
+export class CreateTeamReqDto {
   @IsNotEmpty({ message: '团队名称不能为空' })
   @IsString({ message: '团队名称必须是字符串' })
   @MinLength(2, { message: '团队名称长度不能少于 2 个字符' })

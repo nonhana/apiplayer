@@ -15,7 +15,7 @@ export class UserBriefInfoDto {
   name: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   avatar?: string
 }
 
@@ -25,7 +25,7 @@ export class UserDetailInfoDto extends UserBriefInfoDto {
   isActive: boolean
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   lastLoginAt?: Date
 
   @Expose()
@@ -35,7 +35,7 @@ export class UserDetailInfoDto extends UserBriefInfoDto {
 @Exclude()
 export class UserFullInfoDto extends UserDetailInfoDto {
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   bio?: string
 
   @Expose()

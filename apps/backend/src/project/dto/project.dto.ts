@@ -16,11 +16,11 @@ export class ProjectBriefDto {
   slug: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   description?: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined))
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
   icon?: string
 
   @Expose()
@@ -36,11 +36,11 @@ export class ProjectItemDto extends ProjectBriefDto {
   updatedAt: Date
 
   @Expose()
-  @Transform(({ obj }) => obj._count.members)
+  @Transform(({ obj }) => obj._count.members, { toClassOnly: true })
   memberCount: number
 
   @Expose()
-  @Transform(({ obj }) => obj._count.apis)
+  @Transform(({ obj }) => obj._count.apis, { toClassOnly: true })
   apiCount: number
 
   @Expose()
@@ -59,7 +59,7 @@ export class ProjectItemDto extends ProjectBriefDto {
       name: curUser.role.name,
       description: curUser.role.description,
     }
-  })
+  }, { toClassOnly: true })
   currentUserRole?: RoleBriefDto
 }
 
@@ -67,15 +67,15 @@ export class ProjectItemDto extends ProjectBriefDto {
 export class ProjectDetailDto extends ProjectItemDto {
   @Expose()
   @Type(() => MemberDto)
-  @Transform(({ obj }) => obj.members)
+  @Transform(({ obj }) => obj.members, { toClassOnly: true })
   recentMembers: MemberDto[]
 
   @Expose()
-  @Transform(({ obj }) => obj._count.environments)
+  @Transform(({ obj }) => obj._count.environments, { toClassOnly: true })
   environmentCount: number
 
   @Expose()
   @Type(() => ProjectEnvDto)
-  @Transform(({ obj }) => obj.members)
+  @Transform(({ obj }) => obj.members, { toClassOnly: true })
   environments: ProjectEnvDto[]
 }

@@ -4,9 +4,7 @@ import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SessionService } from '@/session/session.service'
-import { CheckAvailabilityReqDto } from './dto/check-availability.dto'
-import { LoginReqDto } from './dto/login.dto'
-import { RegisterReqDto } from './dto/register.dto'
+import { CheckAvailabilityReqDto, LoginReqDto, RegisterReqDto } from './dto'
 
 @Injectable()
 export class AuthService {
@@ -30,10 +28,10 @@ export class AuthService {
 
   /** 用户登录 */
   async login(
-    loginDto: LoginReqDto,
+    dto: LoginReqDto,
     metadata?: { userAgent?: string, ipAddress?: string },
   ) {
-    const { email, password, rememberMe } = loginDto
+    const { email, password, rememberMe } = dto
 
     try {
       // 查找用户
@@ -204,8 +202,8 @@ export class AuthService {
   }
 
   /** 用户注册 */
-  async register(registerDto: RegisterReqDto) {
-    const { email, username, name, password, confirmPassword } = registerDto
+  async register(dto: RegisterReqDto) {
+    const { email, username, name, password, confirmPassword } = dto
 
     try {
       // 验证密码确认
@@ -243,10 +241,7 @@ export class AuthService {
 
       this.logger.log(`新用户注册成功: ${newUser.email} (${newUser.username})`)
 
-      return {
-        message: '注册成功！',
-        user: newUser,
-      }
+      return newUser
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -258,9 +253,9 @@ export class AuthService {
   }
 
   /** 检查邮箱或用户名可用性 */
-  async checkAvailability(checkDto: CheckAvailabilityReqDto) {
+  async checkAvailability(dto: CheckAvailabilityReqDto) {
     try {
-      const { email, username } = checkDto
+      const { email, username } = dto
 
       if (email) {
         const existingUser = await this.prisma.user.findUnique({ where: { email } })

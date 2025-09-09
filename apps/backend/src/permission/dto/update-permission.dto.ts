@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator'
 
-export class UpdatePermissionDto {
+export class UpdatePermissionReqDto {
   @IsOptional()
   @IsString({ message: '权限名称必须是字符串' })
   name?: string

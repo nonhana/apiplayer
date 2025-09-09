@@ -1,6 +1,5 @@
 import { Expose, Type } from 'class-transformer'
 import { IsBoolean, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
-import { MessageResDto } from '@/common/dto/message.dto'
 import { ProjectBriefDto } from './project.dto'
 
 /** 更新项目请求 DTO */
@@ -30,7 +29,7 @@ export class UpdateProjectDto {
 }
 
 /** 更新项目响应 DTO */
-export class UpdateProjectResDto extends MessageResDto {
+export class UpdateProjectResDto {
   @Expose()
   @Type(() => ProjectBriefDto)
   project: ProjectBriefDto
