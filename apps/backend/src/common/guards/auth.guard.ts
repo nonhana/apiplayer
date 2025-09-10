@@ -36,19 +36,19 @@ export class AuthGuard implements CanActivate {
       const sessionId = this.extractSessionId(request)
 
       if (!sessionId) {
-        throw new UnauthorizedException('未提供有效的会话标识')
+        throw new UnauthorizedException('未提供有效的Session标识')
       }
 
       this.logger.log(`Session ID: ${sessionId}`)
 
-      // 验证会话并获取用户信息
+      // 验证Session并获取用户信息
       const user = await this.authService.validateSession(sessionId)
 
       if (!user) {
-        throw new UnauthorizedException('会话已过期或无效，请重新登录')
+        throw new UnauthorizedException('Session已过期或无效，请重新登录')
       }
 
-      // 将用户信息和会话 ID 附加到请求对象上
+      // 将用户信息和Session ID 附加到请求对象上
       request.user = user
       request.sessionId = sessionId
 

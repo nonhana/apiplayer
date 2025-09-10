@@ -1,4 +1,4 @@
-import type { ParamType, RequestParamCategory } from '@/constants/global-param'
+import type { ParamCategory, ParamType } from '@/constants/global-param'
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
 import { PaginationDto } from '@/common/dto/pagination.dto'
 
@@ -8,7 +8,7 @@ export class GlobalParamDto {
   id: string
 
   @Expose()
-  category: RequestParamCategory
+  category: ParamCategory
 
   @Expose()
   name: string

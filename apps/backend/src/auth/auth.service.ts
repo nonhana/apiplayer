@@ -51,7 +51,7 @@ export class AuthService {
         throw new HanaException('密码错误', ErrorCode.INVALID_PASSWORD, 401)
       }
 
-      // 创建会话
+      // 创建Session
       const sessionOptions = rememberMe
         ? { idleTimeout: 30 * 24 * 60 * 60 } // 记住我：30天
         : undefined // 使用默认配置
@@ -101,7 +101,7 @@ export class AuthService {
   async logoutAllDevices(userId: string) {
     try {
       const destroyedCount = await this.sessionService.destroyAllUserSessions(userId)
-      this.logger.log(`用户 ${userId} 已登出所有设备，共销毁 ${destroyedCount} 个会话`)
+      this.logger.log(`用户 ${userId} 已登出所有设备，共销毁 ${destroyedCount} 个Session`)
       return destroyedCount
     }
     catch (error) {
@@ -110,16 +110,16 @@ export class AuthService {
     }
   }
 
-  /** 验证会话并获取用户信息 */
+  /** 验证Session并获取用户信息 */
   async validateSession(sessionId: string) {
     try {
-      // 刷新会话（更新最后访问时间）
+      // 刷新Session（更新最后访问时间）
       const isValid = await this.sessionService.refreshSession(sessionId)
 
       if (!isValid)
         return null
 
-      // 获取会话数据
+      // 获取Session数据
       const sessionData = await this.sessionService.getSession(sessionId)
 
       if (!sessionData)
@@ -129,7 +129,7 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({ where: { id: sessionData.userId } })
 
       if (!user || !user.isActive) {
-        // 用户不存在或已被禁用，销毁会话
+        // 用户不存在或已被禁用，销毁Session
         await this.sessionService.destroySession(sessionId)
         return null
       }
@@ -137,12 +137,12 @@ export class AuthService {
       return user
     }
     catch (error) {
-      this.logger.error('验证会话失败:', error)
+      this.logger.error('验证Session失败:', error)
       return null
     }
   }
 
-  /** 获取用户的活跃会话列表 */
+  /** 获取用户的活跃Session列表 */
   async getUserActiveSessions(userId: string, currentSessionId?: string) {
     try {
       const sessions = await this.sessionService.getUserActiveSessions(userId)
@@ -157,46 +157,46 @@ export class AuthService {
       }))
     }
     catch (error) {
-      this.logger.error('获取用户活跃会话失败:', error)
-      throw new HanaException('获取会话列表失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      this.logger.error('获取用户活跃Session失败:', error)
+      throw new HanaException('获取Session列表失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
-  /** 销毁指定会话 */
+  /** 销毁指定Session */
   async destroySpecificSession(userId: string, sessionId: string) {
     try {
-      // 验证会话是否属于当前用户
+      // 验证Session是否属于当前用户
       const sessionData = await this.sessionService.getSession(sessionId)
 
       if (!sessionData || sessionData.userId !== userId) {
-        throw new HanaException('无权限操作此会话', ErrorCode.SESSION_FORBIDDEN, 403)
+        throw new HanaException('无权限操作此Session', ErrorCode.SESSION_FORBIDDEN, 403)
       }
 
       await this.sessionService.destroySession(sessionId)
-      this.logger.log(`用户 ${userId} 销毁了会话 ${sessionId}`)
+      this.logger.log(`用户 ${userId} 销毁了Session ${sessionId}`)
     }
     catch (error) {
       if (error instanceof HanaException) {
         throw error
       }
-      this.logger.error('销毁指定会话失败:', error)
-      throw new HanaException('销毁会话失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      this.logger.error('销毁指定Session失败:', error)
+      throw new HanaException('销毁Session失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
-  /** 重新生成会话 ID（防御会话固定攻击） */
+  /** 重新生成Session ID（防御Session固定攻击） */
   async regenerateSessionId(oldSessionId: string) {
     try {
       const newSessionId = await this.sessionService.regenerateSessionId(oldSessionId)
 
       if (newSessionId) {
-        this.logger.log(`会话 ID 重新生成: ${oldSessionId} -> ${newSessionId}`)
+        this.logger.log(`Session ID 重新生成: ${oldSessionId} -> ${newSessionId}`)
       }
 
       return newSessionId
     }
     catch (error) {
-      this.logger.error('重新生成会话 ID 失败:', error)
+      this.logger.error('重新生成Session ID 失败:', error)
       return null
     }
   }

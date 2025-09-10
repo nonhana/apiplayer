@@ -1,11 +1,10 @@
-import type { ParamType } from '@/constants/global-param'
 import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator'
-import { paramType } from '@/constants/global-param'
+import { PARAM_TYPE, type ParamType } from '@/constants/global-param'
 
 export class UpdateGlobalParamReqDto {
   /** 参数类型 */
   @IsOptional()
-  @IsEnum(paramType, { message: '参数类型必须是有效的枚举值' })
+  @IsEnum(PARAM_TYPE, { message: '参数类型必须是有效的枚举值' })
   type?: ParamType
 
   /** 参数值 */

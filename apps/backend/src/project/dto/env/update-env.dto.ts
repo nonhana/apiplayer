@@ -1,6 +1,5 @@
-import type { ProjectEnvType } from '@/constants/project-env'
 import { IsBoolean, IsEnum, IsObject, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
-import { projectEnvType } from '@/constants/project-env'
+import { PROJECT_ENV, type ProjectEnvType } from '@/constants/project-env'
 
 export class UpdateProjectEnvReqDto {
   /** 环境名称 */
@@ -12,7 +11,7 @@ export class UpdateProjectEnvReqDto {
 
   /** 环境类型 */
   @IsOptional()
-  @IsEnum(projectEnvType, { message: '环境类型必须是有效的枚举值' })
+  @IsEnum(PROJECT_ENV, { message: '环境类型必须是有效的枚举值' })
   type?: ProjectEnvType
 
   /** 基础 URL */

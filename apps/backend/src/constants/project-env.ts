@@ -1,3 +1,3 @@
-export const projectEnvType = ['DEV', 'TEST', 'STAGING', 'PROD', 'MOCK'] as const
+export const PROJECT_ENV = ['DEV', 'TEST', 'STAGING', 'PROD', 'MOCK'] as const
 
-export type ProjectEnvType = (typeof projectEnvType)[number]
+export type ProjectEnvType = (typeof PROJECT_ENV)[number]

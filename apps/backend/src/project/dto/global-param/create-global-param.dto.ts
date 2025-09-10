@@ -1,13 +1,12 @@
-import type { ParamType, RequestParamCategory } from '@/constants/global-param'
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
-import { paramType, requestParamCategory } from '@/constants/global-param'
+import { PARAM_CATEGORY, PARAM_TYPE, type ParamCategory, type ParamType } from '@/constants/global-param'
 
 /** 创建全局参数请求 DTO */
 export class CreateGlobalParamReqDto {
   /** 参数类别 */
   @IsNotEmpty({ message: '参数类别不能为空' })
-  @IsEnum(requestParamCategory, { message: '参数类别必须是有效的枚举值' })
-  category: RequestParamCategory
+  @IsEnum(PARAM_CATEGORY, { message: '参数类别必须是有效的枚举值' })
+  category: ParamCategory
 
   /** 参数名称 */
   @IsNotEmpty({ message: '参数名称不能为空' })
@@ -18,7 +17,7 @@ export class CreateGlobalParamReqDto {
 
   /** 参数类型 */
   @IsNotEmpty({ message: '参数类型不能为空' })
-  @IsEnum(paramType, { message: '参数类型必须是有效的枚举值' })
+  @IsEnum(PARAM_TYPE, { message: '参数类型必须是有效的枚举值' })
   type: ParamType
 
   /** 参数值 */

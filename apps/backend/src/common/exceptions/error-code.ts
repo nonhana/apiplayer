@@ -21,9 +21,9 @@ export enum ErrorCode {
   INVALID_VERIFICATION_CODE = 10010,
   /** 两次密码输入不一致 */
   PASSWORD_MISMATCH = 10011,
-  /** 会话已过期或无效 */
+  /** Session已过期或无效 */
   SESSION_EXPIRED = 10012,
-  /** 无权限操作此会话 */
+  /** 无权限操作此Session */
   SESSION_FORBIDDEN = 10013,
 
   /** 权限不足 */

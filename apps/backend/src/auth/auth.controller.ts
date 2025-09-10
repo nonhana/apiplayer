@@ -46,7 +46,7 @@ export class AuthController {
       ipAddress,
     })
 
-    // 成功登录后立即重新生成 Session ID（防御会话固定攻击）
+    // 成功登录后立即重新生成 Session ID（防御Session固定攻击）
     const newSessionId = await this.authService.regenerateSessionId(sessionId)
     const finalSessionId = newSessionId || sessionId
 
@@ -134,7 +134,7 @@ export class AuthController {
   /** 销毁指定 Session */
   @UseGuards(AuthGuard)
   @Delete('sessions/:sessionId')
-  @ResMsg('会话已销毁')
+  @ResMsg('Session已销毁')
   async destroySession(
     @Param('sessionId') sessionId: string,
     @ReqUser('id') userId: string,
@@ -145,7 +145,7 @@ export class AuthController {
 
     await this.authService.destroySpecificSession(userId, sessionId)
 
-    // 如果销毁的是当前会话，需要清除 Cookie
+    // 如果销毁的是当前Session，需要清除 Cookie
     if (sessionId === currentSessionId) {
       this.cookieService.clearSessionCookie(response)
     }

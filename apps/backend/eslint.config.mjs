@@ -10,5 +10,6 @@ export default antfu({
     'no-console': 'off',
     'ts/consistent-type-imports': 'off',
     'no-case-declarations': 'off',
+    'import/consistent-type-specifier-style': 'off',
   },
 })

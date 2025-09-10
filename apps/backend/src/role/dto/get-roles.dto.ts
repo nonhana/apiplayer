@@ -1,6 +1,5 @@
-import type { RoleCategory } from '@/constants/role'
 import { IsEnum, IsOptional, IsString } from 'class-validator'
-import { ROLE_CATEGORIES } from '@/constants/role'
+import { ROLE_CATEGORIES, type RoleCategory } from '@/constants/role'
 
 export class GetRolesReqDto {
   @IsOptional()

@@ -89,16 +89,16 @@ export class SessionService {
 
       await multi.exec()
 
-      this.logger.log(`为用户 ${userId} 创建了新的会话: ${sessionId}`)
+      this.logger.log(`为用户 ${userId} 创建了新的Session: ${sessionId}`)
       return sessionId
     }
     catch (error) {
-      this.logger.error('创建会话失败:', error)
-      throw new Error('会话创建失败')
+      this.logger.error('创建Session失败:', error)
+      throw new Error('Session创建失败')
     }
   }
 
-  /** 获取会话数据 */
+  /** 获取Session数据 */
   async getSession(sessionId: string): Promise<SessionData | null> {
     try {
       const sessionKey = this.getSessionKey(sessionId)
@@ -117,12 +117,12 @@ export class SessionService {
       }
     }
     catch (error) {
-      this.logger.error('获取会话失败:', error)
+      this.logger.error('获取Session失败:', error)
       return null
     }
   }
 
-  /** 刷新会话（更新最后访问时间并重置过期时间） */
+  /** 刷新Session（更新最后访问时间并重置过期时间） */
   async refreshSession(
     sessionId: string,
     options: SessionOptions = {},
@@ -131,7 +131,7 @@ export class SessionService {
       const sessionKey = this.getSessionKey(sessionId)
       const mergedOptions = { ...this.defaultOptions, ...options }
 
-      // 检查会话是否存在
+      // 检查Session是否存在
       const exists = await this.redisClient.exists(sessionKey)
       if (!exists) {
         return false
@@ -145,7 +145,7 @@ export class SessionService {
 
         if (sessionAge > mergedOptions.absoluteTimeout) {
           await this.destroySession(sessionId)
-          this.logger.log(`会话 ${sessionId} 已达到绝对超时时间，已删除`)
+          this.logger.log(`Session ${sessionId} 已达到绝对超时时间，已删除`)
           return false
         }
       }
@@ -159,12 +159,12 @@ export class SessionService {
       return true
     }
     catch (error) {
-      this.logger.error('刷新会话失败:', error)
+      this.logger.error('刷新Session失败:', error)
       return false
     }
   }
 
-  /** 销毁单个会话 */
+  /** 销毁单个Session */
   async destroySession(sessionId: string): Promise<boolean> {
     try {
       const sessionKey = this.getSessionKey(sessionId)
@@ -172,25 +172,25 @@ export class SessionService {
       // 先获取用户 ID
       const userId = await this.redisClient.hget(sessionKey, 'userId')
 
-      // 删除会话
+      // 删除Session
       const deleted = await this.redisClient.del(sessionKey)
 
-      // 从用户的会话列表中移除
+      // 从用户的Session列表中移除
       if (userId) {
         const userSessionsKey = this.getUserSessionsKey(userId)
         await this.redisClient.srem(userSessionsKey, sessionId)
       }
 
-      this.logger.log(`会话 ${sessionId} 已销毁`)
+      this.logger.log(`Session ${sessionId} 已销毁`)
       return deleted > 0
     }
     catch (error) {
-      this.logger.error('销毁会话失败:', error)
+      this.logger.error('销毁Session失败:', error)
       return false
     }
   }
 
-  /** 销毁用户的所有会话（登出所有设备） */
+  /** 销毁用户的所有Session（登出所有设备） */
   async destroyAllUserSessions(userId: string): Promise<number> {
     try {
       const userSessionsKey = this.getUserSessionsKey(userId)
@@ -200,20 +200,20 @@ export class SessionService {
         return 0
       }
 
-      // 批量删除所有会话
+      // 批量删除所有Session
       const sessionKeys = sessionIds.map(id => this.getSessionKey(id))
       await this.redisClient.del(...sessionKeys, userSessionsKey)
 
-      this.logger.log(`用户 ${userId} 的 ${sessionIds.length} 个会话已全部销毁`)
+      this.logger.log(`用户 ${userId} 的 ${sessionIds.length} 个Session已全部销毁`)
       return sessionIds.length
     }
     catch (error) {
-      this.logger.error('销毁用户所有会话失败:', error)
+      this.logger.error('销毁用户所有Session失败:', error)
       return 0
     }
   }
 
-  /** 获取用户的所有活跃会话 */
+  /** 获取用户的所有活跃Session */
   async getUserActiveSessions(userId: string): Promise<{ sessionId: string, data: SessionData }[]> {
     try {
       const userSessionsKey = this.getUserSessionsKey(userId)
@@ -227,7 +227,7 @@ export class SessionService {
           sessions.push({ sessionId, data })
         }
         else {
-          // 清理无效的会话 ID
+          // 清理无效的Session ID
           await this.redisClient.srem(userSessionsKey, sessionId)
         }
       }
@@ -235,12 +235,12 @@ export class SessionService {
       return sessions
     }
     catch (error) {
-      this.logger.error('获取用户活跃会话失败:', error)
+      this.logger.error('获取用户活跃Session失败:', error)
       return []
     }
   }
 
-  /** 更换会话 ID（防御会话固定攻击） */
+  /** 更换Session ID（防御Session固定攻击） */
   async regenerateSessionId(oldSessionId: string): Promise<string | null> {
     try {
       const oldSessionData = await this.getSession(oldSessionId)
@@ -252,7 +252,7 @@ export class SessionService {
       // 生成新的 Session ID
       const newSessionId = this.generateSessionId()
 
-      // 复制会话数据到新 Session
+      // 复制Session数据到新 Session
       const newSessionKey = this.getSessionKey(newSessionId)
       const oldSessionKey = this.getSessionKey(oldSessionId)
 
@@ -268,21 +268,21 @@ export class SessionService {
         multi.expire(newSessionKey, ttl)
       }
 
-      // 更新用户会话列表
+      // 更新用户Session列表
       const userSessionsKey = this.getUserSessionsKey(oldSessionData.userId)
       multi.srem(userSessionsKey, oldSessionId)
       multi.sadd(userSessionsKey, newSessionId)
 
-      // 删除旧会话
+      // 删除旧Session
       multi.del(oldSessionKey)
 
       await multi.exec()
 
-      this.logger.log(`会话 ID 已更换: ${oldSessionId} -> ${newSessionId}`)
+      this.logger.log(`Session ID 已更换: ${oldSessionId} -> ${newSessionId}`)
       return newSessionId
     }
     catch (error) {
-      this.logger.error('更换会话 ID 失败:', error)
+      this.logger.error('更换Session ID 失败:', error)
       return null
     }
   }

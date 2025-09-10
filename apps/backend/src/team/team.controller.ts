@@ -16,7 +16,6 @@ export class TeamController {
 
   /**
    * 创建团队
-   * 任何登录用户都可以创建团队
    */
   @Post()
   async createTeam(
@@ -29,7 +28,6 @@ export class TeamController {
 
   /**
    * 获取用户的团队列表
-   * 只需要登录即可查看自己的团队
    */
   @Get()
   async getUserTeams(
@@ -42,7 +40,6 @@ export class TeamController {
 
   /**
    * 获取团队详情
-   * 需要是团队成员才能查看详情
    */
   @Get(':teamId')
   @TeamPermissions(['team:read'])
@@ -56,7 +53,6 @@ export class TeamController {
 
   /**
    * 更新团队信息
-   * 需要团队写入权限
    */
   @Patch(':teamId')
   @TeamPermissions(['team:write'])
@@ -71,7 +67,6 @@ export class TeamController {
 
   /**
    * 删除团队
-   * 需要团队管理权限
    */
   @Delete(':teamId')
   @TeamPermissions(['team:admin'])
