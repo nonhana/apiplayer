@@ -1,6 +1,6 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common'
+import { Controller, Get, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { FastifyRequest } from 'fastify'
+import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { UserFullInfoDto } from '@/common/dto/user.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { UserService } from './user.service'
@@ -12,9 +12,8 @@ export class UserController {
 
   /** 获取用户个人资料 */
   @Get('profile')
-  async getProfile(@Req() request: FastifyRequest): Promise<UserFullInfoDto> {
-    const user = request.user!
-    const result = await this.userService.getUserProfile(user.id)
+  async getProfile(@ReqUser('id') userId: string): Promise<UserFullInfoDto> {
+    const result = await this.userService.getUserProfile(userId)
     return plainToInstance(UserFullInfoDto, result)
   }
 }

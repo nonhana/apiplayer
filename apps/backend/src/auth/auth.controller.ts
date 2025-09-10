@@ -2,6 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from 
 import { plainToInstance } from 'class-transformer'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { Public } from '@/common/decorators/public.decorator'
+import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { UserBriefInfoDto, UserDetailInfoDto, UserSessionDto } from '@/common/dto/user.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
@@ -99,12 +100,10 @@ export class AuthController {
   @Post('logout-all')
   @ResMsg('已登出所有设备')
   async logoutAllDevices(
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
     @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<LogoutAllResDto> {
-    const user = request.user!
-
-    const destroyedCount = await this.authService.logoutAllDevices(user.id)
+    const destroyedCount = await this.authService.logoutAllDevices(userId)
 
     // 清除当前 Cookie
     this.cookieService.clearSessionCookie(response)
@@ -117,17 +116,19 @@ export class AuthController {
   /** 获取登录用户信息 */
   @UseGuards(AuthGuard)
   @Get('me')
-  async getCurrentUser(@Req() request: FastifyRequest): Promise<UserDetailInfoDto> {
-    return plainToInstance(UserDetailInfoDto, request.user!)
+  async getCurrentUser(@ReqUser() user: any): Promise<UserDetailInfoDto> {
+    return plainToInstance(UserDetailInfoDto, user)
   }
 
   /** 获取登录用户的 Session 列表 */
   @UseGuards(AuthGuard)
   @Get('sessions')
-  async getActiveSessions(@Req() request: FastifyRequest): Promise<UserSessionDto[]> {
-    const user = request.user!
+  async getActiveSessions(
+    @ReqUser('id') userId: string,
+    @Req() request: FastifyRequest,
+  ): Promise<UserSessionDto[]> {
     const currentSessionId = request.sessionId
-    return await this.authService.getUserActiveSessions(user.id, currentSessionId)
+    return await this.authService.getUserActiveSessions(userId, currentSessionId)
   }
 
   /** 销毁指定 Session */
@@ -136,13 +137,13 @@ export class AuthController {
   @ResMsg('会话已销毁')
   async destroySession(
     @Param('sessionId') sessionId: string,
+    @ReqUser('id') userId: string,
     @Req() request: FastifyRequest,
     @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<void> {
-    const user = request.user!
     const currentSessionId = request.sessionId
 
-    await this.authService.destroySpecificSession(user.id, sessionId)
+    await this.authService.destroySpecificSession(userId, sessionId)
 
     // 如果销毁的是当前会话，需要清除 Cookie
     if (sessionId === currentSessionId) {

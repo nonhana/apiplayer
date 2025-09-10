@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
@@ -30,10 +30,9 @@ export class ProjectGlobalParamController {
   async createGlobalParam(
     @Param('projectId') projectId: string,
     @Body() createParamDto: CreateGlobalParamReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<GlobalParamDto> {
-    const user = request.user!
-    const newGlobalParam = await this.projectGlobalParamService.createGlobalParam(projectId, createParamDto, user.id)
+    const newGlobalParam = await this.projectGlobalParamService.createGlobalParam(projectId, createParamDto, userId)
     return plainToInstance(GlobalParamDto, newGlobalParam)
   }
 
@@ -46,10 +45,9 @@ export class ProjectGlobalParamController {
   async createGlobalParams(
     @Param('projectId') projectId: string,
     @Body() dto: CreateGlobalParamsReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<GlobalParamDto[]> {
-    const user = request.user!
-    const params = await this.projectGlobalParamService.createGlobalParams(projectId, dto, user.id)
+    const params = await this.projectGlobalParamService.createGlobalParams(projectId, dto, userId)
     return plainToInstance(GlobalParamDto, params)
   }
 
@@ -61,10 +59,9 @@ export class ProjectGlobalParamController {
   async getGlobalParams(
     @Param('projectId') projectId: string,
     @Query() dto: GetGlobalParamsReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<GlobalParamsDto> {
-    const user = request.user!
-    const result = await this.projectGlobalParamService.getGlobalParams(projectId, user.id, dto)
+    const result = await this.projectGlobalParamService.getGlobalParams(projectId, userId, dto)
     return plainToInstance(GlobalParamsDto, result)
   }
 
@@ -77,10 +74,9 @@ export class ProjectGlobalParamController {
     @Param('projectId') projectId: string,
     @Param('paramId') paramId: string,
     @Body() updateParamDto: UpdateGlobalParamReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<GlobalParamDto> {
-    const user = request.user!
-    const result = await this.projectGlobalParamService.updateGlobalParam(projectId, paramId, updateParamDto, user.id)
+    const result = await this.projectGlobalParamService.updateGlobalParam(projectId, paramId, updateParamDto, userId)
     return plainToInstance(GlobalParamDto, result)
   }
 
@@ -93,9 +89,8 @@ export class ProjectGlobalParamController {
   async deleteGlobalParam(
     @Param('projectId') projectId: string,
     @Param('paramId') paramId: string,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<void> {
-    const user = request.user!
-    await this.projectGlobalParamService.deleteGlobalParam(projectId, paramId, user.id)
+    await this.projectGlobalParamService.deleteGlobalParam(projectId, paramId, userId)
   }
 }

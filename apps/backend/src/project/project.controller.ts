@@ -1,18 +1,7 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
@@ -42,10 +31,9 @@ export class ProjectController {
   async createProject(
     @Param('teamId') teamId: string,
     @Body() createProjectDto: CreateProjectReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<ProjectBriefDto> {
-    const user = request.user!
-    const result = await this.projectService.createProject(teamId, createProjectDto, user.id)
+    const result = await this.projectService.createProject(teamId, createProjectDto, userId)
     return plainToInstance(ProjectBriefDto, result)
   }
 
@@ -55,10 +43,9 @@ export class ProjectController {
   @Get()
   async getUserProjects(
     @Query() query: GetProjectsReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<ProjectsDto> {
-    const user = request.user!
-    const result = await this.projectService.getUserProjects(user.id, query)
+    const result = await this.projectService.getUserProjects(userId, query)
     return plainToInstance(ProjectsDto, result)
   }
 
@@ -69,10 +56,9 @@ export class ProjectController {
   @ProjectPermissions(['project:read'])
   async getProjectDetail(
     @Param('projectId') projectId: string,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<ProjectDetailDto> {
-    const user = request.user!
-    const projectDetail = await this.projectService.getProjectDetail(projectId, user.id)
+    const projectDetail = await this.projectService.getProjectDetail(projectId, userId)
     return plainToInstance(ProjectDetailDto, projectDetail)
   }
 
@@ -85,10 +71,9 @@ export class ProjectController {
   async updateProject(
     @Param('projectId') projectId: string,
     @Body() updateProjectDto: UpdateProjectReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<ProjectBriefDto> {
-    const user = request.user!
-    const result = await this.projectService.updateProject(projectId, updateProjectDto, user.id)
+    const result = await this.projectService.updateProject(projectId, updateProjectDto, userId)
     return plainToInstance(ProjectBriefDto, result)
   }
 
@@ -100,10 +85,9 @@ export class ProjectController {
   @ResMsg('项目删除成功')
   async deleteProject(
     @Param('projectId') projectId: string,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<void> {
-    const user = request.user!
-    await this.projectService.deleteProject(projectId, user.id)
+    await this.projectService.deleteProject(projectId, userId)
   }
 
   /**
@@ -111,10 +95,9 @@ export class ProjectController {
    */
   @Get('recently/visited')
   async getRecentlyProjects(
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<RecentProjectItemDto[]> {
-    const user = request.user!
-    const result = await this.projectService.getRecentlyProjects(user.id)
+    const result = await this.projectService.getRecentlyProjects(userId)
     return plainToInstance(RecentProjectItemDto, result)
   }
 
@@ -125,10 +108,9 @@ export class ProjectController {
   @ProjectPermissions(['project:read'])
   async getMyProjectRole(
     @Param('projectId') projectId: string,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<GetPermissionsResDto> {
-    const user = request.user!
-    const result = await this.projectService.getUserProjectRole(projectId, user.id)
+    const result = await this.projectService.getUserProjectRole(projectId, userId)
     return plainToInstance(GetPermissionsResDto, result)
   }
 }

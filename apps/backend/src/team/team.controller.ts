@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { FastifyRequest } from 'fastify'
 import { TeamPermissions } from '@/common/decorators/permissions.decorator'
+import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
@@ -21,10 +21,9 @@ export class TeamController {
   @Post()
   async createTeam(
     @Body() createTeamDto: CreateTeamReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<TeamDto> {
-    const user = request.user!
-    const newTeam = await this.teamService.createTeam(createTeamDto, user.id)
+    const newTeam = await this.teamService.createTeam(createTeamDto, userId)
     return plainToInstance(TeamDto, newTeam)
   }
 
@@ -35,10 +34,9 @@ export class TeamController {
   @Get()
   async getUserTeams(
     @Query() query: BasePaginatedQueryDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ) {
-    const user = request.user!
-    const result = await this.teamService.getUserTeams(user.id, query)
+    const result = await this.teamService.getUserTeams(userId, query)
     return plainToInstance(TeamsDto, result)
   }
 
@@ -50,10 +48,9 @@ export class TeamController {
   @TeamPermissions(['team:read'])
   async getTeamDetail(
     @Param('teamId') teamId: string,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<TeamDetailDto> {
-    const user = request.user!
-    const teamDetail = await this.teamService.getTeamDetail(teamId, user.id)
+    const teamDetail = await this.teamService.getTeamDetail(teamId, userId)
     return plainToInstance(TeamDetailDto, teamDetail)
   }
 
@@ -66,10 +63,9 @@ export class TeamController {
   async updateTeam(
     @Param('teamId') teamId: string,
     @Body() updateTeamDto: UpdateTeamReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<TeamDto> {
-    const user = request.user!
-    const updatedTeam = await this.teamService.updateTeam(teamId, updateTeamDto, user.id)
+    const updatedTeam = await this.teamService.updateTeam(teamId, updateTeamDto, userId)
     return plainToInstance(TeamDto, updatedTeam)
   }
 
@@ -82,9 +78,8 @@ export class TeamController {
   @ResMsg('团队删除成功')
   async deleteTeam(
     @Param('teamId') teamId: string,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<void> {
-    const user = request.user!
-    await this.teamService.deleteTeam(teamId, user.id)
+    await this.teamService.deleteTeam(teamId, userId)
   }
 }

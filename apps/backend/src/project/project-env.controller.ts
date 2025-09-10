@@ -6,12 +6,11 @@ import {
   Param,
   Patch,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { FastifyRequest } from 'fastify'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
@@ -37,10 +36,9 @@ export class ProjectEnvController {
   async createProjectEnvironment(
     @Param('projectId') projectId: string,
     @Body() createEnvDto: CreateProjectEnvReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<ProjectEnvDto> {
-    const user = request.user!
-    const newEnv = await this.projectEnvService.createProjectEnv(projectId, createEnvDto, user.id)
+    const newEnv = await this.projectEnvService.createProjectEnv(projectId, createEnvDto, userId)
     return plainToInstance(ProjectEnvDto, newEnv)
   }
 
@@ -51,10 +49,9 @@ export class ProjectEnvController {
   @ProjectPermissions(['project:read'])
   async getProjectEnvironments(
     @Param('projectId') projectId: string,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<ProjectEnvDto[]> {
-    const user = request.user!
-    const envs = await this.projectEnvService.getProjectEnvs(projectId, user.id)
+    const envs = await this.projectEnvService.getProjectEnvs(projectId, userId)
     return plainToInstance(ProjectEnvDto, envs)
   }
 
@@ -67,10 +64,9 @@ export class ProjectEnvController {
     @Param('projectId') projectId: string,
     @Param('environmentId') environmentId: string,
     @Body() updateEnvDto: UpdateProjectEnvReqDto,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<ProjectEnvDto> {
-    const user = request.user!
-    const updatedEnv = await this.projectEnvService.updateProjectEnv(projectId, environmentId, updateEnvDto, user.id)
+    const updatedEnv = await this.projectEnvService.updateProjectEnv(projectId, environmentId, updateEnvDto, userId)
     return plainToInstance(ProjectEnvDto, updatedEnv)
   }
 
@@ -83,9 +79,8 @@ export class ProjectEnvController {
   async deleteProjectEnvironment(
     @Param('projectId') projectId: string,
     @Param('environmentId') environmentId: string,
-    @Req() request: FastifyRequest,
+    @ReqUser('id') userId: string,
   ): Promise<void> {
-    const user = request.user!
-    await this.projectEnvService.deleteProjectEnv(projectId, environmentId, user.id)
+    await this.projectEnvService.deleteProjectEnv(projectId, environmentId, userId)
   }
 }
