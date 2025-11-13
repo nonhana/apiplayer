@@ -32,6 +32,7 @@ import { ProjectUtilsService } from './utils.service'
     ProjectMemberService,
     ProjectEnvService,
     ProjectGlobalParamService,
+    ProjectUtilsService,
   ],
 })
 export class ProjectModule {}

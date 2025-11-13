@@ -304,7 +304,7 @@ model APIGroup {
   parentId    String?
   name        String
   description String?
-  sortOrder   Int          @default(0)
+  sortOrder   Int          @default(0) // 当前 API 分组在其层级的排序
   status      RecordStatus @default(ACTIVE)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -322,13 +322,17 @@ model APIGroup {
 // API 主表 - 只保存基本信息和当前版本引用
 model API {
   id        String    @id @default(cuid())
-  projectId String
-  groupId   String
   name      String
   method    APIMethod @default(GET)
   path      String
   tags      String[]  @default([])
-  sortOrder Int       @default(0)
+  sortOrder Int       @default(0) // 当前 API 在其分组中的排序
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectId String
+  groupId   String
 
   // 负责人信息
   ownerId   String?
@@ -341,9 +345,6 @@ model API {
   // 状态控制
   recordStatus RecordStatus @default(ACTIVE)
   isPublic     Boolean      @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   group   APIGroup @relation(fields: [groupId], references: [id])
@@ -383,7 +384,7 @@ model APIVersion {
   // 反向关系 - 当前版本
   currentOfAPI API? @relation("APICurrentVersion")
 
-  // 快照数据
+  // 当前版本的快照数据
   snapshot APISnapshot?
 
   @@unique([apiId, version])
@@ -399,22 +400,22 @@ model APISnapshot {
   id        String @id @default(cuid())
   versionId String @unique
 
-  // API 基本信息快照
+  // API 基本信息
   name        String
-  method      APIMethod
-  path        String
-  summary     String?
   description String?
-  tags        String[]  @default([])
-  status      APIStatus @default(DRAFT)
+  method      APIMethod
+  status      APIStatus
+  path        String
+  tags        String[]
+  sortOrder   Int
 
-  // 请求信息快照 (JSON 格式存储)
+  // 请求信息 (JSON 格式存储)
   requestHeaders Json  @default("[]") // 请求头参数
-  pathParams     Json  @default("[]") // 路径参数  
-  queryParams    Json  @default("[]") // 查询参数
+  pathParams     Json  @default("[]") // 路径参数，/api/{id} 中的 {id}
+  queryParams    Json  @default("[]") // 查询参数，?id=1&name=test
   requestBody    Json? // 请求体
 
-  // 响应信息快照 (JSON 格式存储)
+  // 响应信息 (JSON 格式存储)
   responses Json @default("[]") // 响应列表
 
   // 示例数据

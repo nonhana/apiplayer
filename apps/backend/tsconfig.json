@@ -6,9 +6,11 @@
     "experimentalDecorators": true,
     "baseUrl": "./",
     "module": "commonjs",
+    "moduleResolution": "node",
     "paths": {
       "@/*": ["./src/*"]
     },
+    "types": ["node"],
     "strictBindCallApply": false,
     "strictNullChecks": true,
     "noFallthroughCasesInSwitch": false,

@@ -89,6 +89,9 @@ export enum ErrorCode {
   /** 用户不是团队成员 */
   USER_NOT_TEAM_MEMBER = 40013,
 
+  /** API 分组不存在 */
+  API_GROUP_NOT_FOUND = 50001,
+
   /** 参数错误 */
   INVALID_PARAMS = 90001,
   /** 系统内部错误 */

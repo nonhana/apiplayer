@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
+import { ApiModule } from './api/api.module'
 import { AppController } from './app.controller'
 import { AuthModule } from './auth/auth.module'
 import { AllExceptionFilter } from './common/filters/all-exception.filter'
@@ -29,6 +30,7 @@ import { UserModule } from './user/user.module'
     PermissionModule,
     ProjectModule,
     CookieModule,
+    ApiModule,
   ],
   controllers: [AppController],
   providers: [
