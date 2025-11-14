@@ -366,16 +366,17 @@ model API {
 // API 版本表 - 每个版本的元信息和变更记录
 model APIVersion {
   id          String              @id @default(cuid())
-  apiId       String
-  projectId   String
   version     String // 版本号，如：v1.0.0, v1.1.0
   status      VersionStatus       @default(DRAFT)
   summary     String? // 版本摘要
   changelog   String? // 变更日志
   changes     VersionChangeType[] // 变更类型数组
   editorId    String
-  publishedAt DateTime? // 发布时间
+  publishedAt DateTime?
   createdAt   DateTime            @default(now())
+
+  apiId     String
+  projectId String
 
   api     API     @relation(fields: [apiId], references: [id], onDelete: Cascade)
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

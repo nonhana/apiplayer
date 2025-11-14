@@ -16,4 +16,18 @@ export class ApiUtilsService {
       throw new HanaException('API 分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
     }
   }
+
+  /** 生成下一个版本号 */
+  genNextVersion(current?: string | null) {
+    const fallback = 'v1.0.1'
+    if (!current)
+      return fallback
+    const match = /^v(\d+)\.(\d+)\.(\d+)$/.exec(current)
+    if (!match)
+      return fallback
+    const major = Number(match[1])
+    const minor = Number(match[2])
+    const patch = Number(match[3]) + 1
+    return `v${major}.${minor}.${patch}`
+  }
 }

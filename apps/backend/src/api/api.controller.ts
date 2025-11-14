@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
@@ -7,8 +7,10 @@ import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import { ApiService } from './api.service'
 import { ApiBriefDto, ApiDetailDto, ApisDto } from './dto/api.dto'
+import { CloneApiReqDto } from './dto/clone-api.dto'
 import { CreateApiReqDto } from './dto/create-api.dto'
 import { GetApisReqDto } from './dto/get-apis.dto'
+import { UpdateApiReqDto } from './dto/update-api.dto'
 
 @Controller('api')
 @UseGuards(AuthGuard, PermissionsGuard)
@@ -49,5 +51,42 @@ export class ApiController {
   ): Promise<ApiDetailDto> {
     const result = await this.apiService.getAPIDetail(apiId, projectId, userId)
     return plainToInstance(ApiDetailDto, result)
+  }
+
+  @Patch(':projectId/apis/:apiId')
+  @ProjectPermissions(['api:write'])
+  @ResMsg('API 更新成功')
+  async updateAPI(
+    @Param('projectId') projectId: string,
+    @Param('apiId') apiId: string,
+    @Body() dto: UpdateApiReqDto,
+    @ReqUser('id') userId: string,
+  ): Promise<ApiBriefDto> {
+    const result = await this.apiService.updateAPI(dto, apiId, projectId, userId)
+    return plainToInstance(ApiBriefDto, result)
+  }
+
+  @Delete(':projectId/apis/:apiId')
+  @ProjectPermissions(['api:delete'])
+  @ResMsg('API 删除成功')
+  async deleteAPI(
+    @Param('projectId') projectId: string,
+    @Param('apiId') apiId: string,
+    @ReqUser('id') userId: string,
+  ): Promise<void> {
+    await this.apiService.deleteAPI(apiId, projectId, userId)
+  }
+
+  @Post(':projectId/apis/:apiId/clone')
+  @ProjectPermissions(['api:create'])
+  @ResMsg('API 复制成功')
+  async cloneAPI(
+    @Param('projectId') projectId: string,
+    @Param('apiId') apiId: string,
+    @Body() dto: CloneApiReqDto,
+    @ReqUser('id') userId: string,
+  ): Promise<ApiBriefDto> {
+    const result = await this.apiService.cloneAPI(dto, apiId, projectId, userId)
+    return plainToInstance(ApiBriefDto, result)
   }
 }
