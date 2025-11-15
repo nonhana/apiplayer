@@ -4,6 +4,7 @@
     "target": "ES2023",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "ignoreDeprecations": "6.0",
     "baseUrl": "./",
     "module": "commonjs",
     "moduleResolution": "node",
