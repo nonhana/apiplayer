@@ -36,7 +36,7 @@ export class ApiService {
             method: dto.method,
             path: dto.path,
             tags: dto.tags ?? [],
-            sortOrder: dto.sortOrder ?? 0,
+            sortOrder: dto.sortOrder ?? 0, // 一般来说，创建新的 API 会放在最后，由前端处理排序
             ownerId: dto.ownerId ?? null,
             editorId: userId,
             creatorId: userId,
@@ -58,13 +58,15 @@ export class ApiService {
         await tx.aPISnapshot.create({
           data: {
             versionId: version.id,
+            // base info
             name: api.name,
-            method: api.method,
-            path: api.path,
-            summary: dto.summary,
             description: dto.description,
-            tags: api.tags,
+            method: api.method,
             status: dto.status ?? 'DRAFT',
+            path: api.path,
+            tags: api.tags,
+            sortOrder: api.sortOrder,
+            // core info
             requestHeaders: dto.requestHeaders ?? [],
             pathParams: dto.pathParams ?? [],
             queryParams: dto.queryParams ?? [],
@@ -86,7 +88,6 @@ export class ApiService {
       this.logger.log(
         `用户 ${userId} 在项目 ${projectId} 中创建了 API ${created.name}`,
       )
-      return created
     }
     catch (error) {
       if (error instanceof HanaException)
@@ -263,13 +264,15 @@ export class ApiService {
         await tx.aPISnapshot.create({
           data: {
             versionId: version.id,
+            // base info
             name: dto.baseInfo?.name ?? api.name,
             method: dto.baseInfo?.method ?? api.method,
             path: dto.baseInfo?.path ?? api.path,
-            summary: dto.versionInfo?.summary ?? prevSnap?.summary ?? undefined,
             description: dto.baseInfo?.description ?? prevSnap?.description ?? undefined,
             tags: dto.baseInfo?.tags ?? api.tags,
             status: dto.baseInfo?.status ?? prevSnap?.status ?? 'PUBLISHED',
+            sortOrder: dto.baseInfo?.sortOrder ?? api.sortOrder,
+            // core info
             requestHeaders: dto.coreInfo?.requestHeaders ?? prevSnap?.requestHeaders ?? [],
             pathParams: dto.coreInfo?.pathParams ?? prevSnap?.pathParams ?? [],
             queryParams: dto.coreInfo?.queryParams ?? prevSnap?.queryParams ?? [],
@@ -414,10 +417,10 @@ export class ApiService {
             method: targetMethod,
             path: targetPath,
             // 以下字段以源快照为模板，若不存在则回退到合理的默认值
-            summary: snap?.summary ?? undefined,
             description: snap?.description ?? undefined,
             tags: clonedApi.tags,
             status: 'DRAFT',
+            sortOrder: clonedApi.sortOrder,
             requestHeaders: snap?.requestHeaders ?? [],
             pathParams: snap?.pathParams ?? [],
             queryParams: snap?.queryParams ?? [],
