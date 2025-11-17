@@ -16,8 +16,8 @@ export class ProjectService {
     private readonly projectUtilsService: ProjectUtilsService,
   ) {}
 
-  async createProject(teamId: string, createProjectDto: CreateProjectReqDto, creatorId: string) {
-    const { name, slug, description, icon, isPublic = false } = createProjectDto
+  async createProject(teamId: string, dto: CreateProjectReqDto, creatorId: string) {
+    const { name, slug, description, icon, isPublic = false } = dto
 
     try {
       // 检查用户是否是团队成员

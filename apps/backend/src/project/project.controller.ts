@@ -26,7 +26,7 @@ export class ProjectController {
    * 创建项目
    */
   @Post(':teamId')
-  @ProjectPermissions(['project:create'])
+  @ProjectPermissions(['project:create'], 'teamId')
   @ResMsg('项目创建成功')
   async createProject(
     @Param('teamId') teamId: string,

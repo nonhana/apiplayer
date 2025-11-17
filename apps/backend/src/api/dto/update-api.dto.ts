@@ -14,27 +14,6 @@ import {
   ValidateNested,
 } from 'class-validator'
 
-/** 更新 API 信息请求体 DTO */
-export class UpdateApiReqDto {
-  /** 基本信息 */
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateApiBaseInfoDto)
-  baseInfo?: UpdateApiBaseInfoDto
-
-  /** 核心信息 */
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateApiCoreInfoDto)
-  coreInfo?: UpdateApiCoreInfoDto
-
-  /** 版本信息 */
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateApiVersionInfoDto)
-  versionInfo?: UpdateApiVersionInfoDto
-}
-
 /** 更新 API 基本信息 DTO */
 export class UpdateApiBaseInfoDto {
   /** API 分组 ID */
@@ -163,4 +142,25 @@ export class UpdateApiVersionInfoDto {
   @IsArray({ message: '变更类型必须是数组' })
   @IsEnum(VersionChangeType, { each: true, message: '变更类型必须是有效的枚举值' })
   changes?: VersionChangeType[]
+}
+
+/** 更新 API 信息请求体 DTO */
+export class UpdateApiReqDto {
+  /** 基本信息 */
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateApiBaseInfoDto)
+  baseInfo?: UpdateApiBaseInfoDto
+
+  /** 核心信息 */
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateApiCoreInfoDto)
+  coreInfo?: UpdateApiCoreInfoDto
+
+  /** 版本信息 */
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateApiVersionInfoDto)
+  versionInfo?: UpdateApiVersionInfoDto
 }
