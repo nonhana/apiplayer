@@ -5,12 +5,12 @@ import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
+import { CreateGroupReqDto } from './dto/create-group.dto'
+import { GetGroupWithAPIReqDto } from './dto/get-groups.dto'
 import {
-  CreateApiGroupReqDto,
-  GetGroupTreeWithApisReqDto,
   GroupBriefDto,
-  GroupTreeNodeDto,
-  GroupTreeWithApisNodeDto,
+  GroupNodeDto,
+  GroupNodeWithAPIDto,
 } from './dto/group.dto'
 import { GroupService } from './group.service'
 
@@ -19,41 +19,38 @@ import { GroupService } from './group.service'
 export class GroupController {
   constructor(private readonly groupService: GroupService) {}
 
-  // 7) 创建分组
   @Post(':projectId/api-groups')
   @ProjectPermissions(['api_group:create'])
   @ResMsg('分组创建成功')
   async createGroup(
     @Param('projectId') projectId: string,
-    @Body() dto: CreateApiGroupReqDto,
+    @Body() dto: CreateGroupReqDto,
     @ReqUser('id') userId: string,
   ): Promise<GroupBriefDto> {
     const created = await this.groupService.createGroup(dto, projectId, userId)
     return plainToInstance(GroupBriefDto, created)
   }
 
-  // 8) 获取分组树（含子分组与每组 API 统计）
   @Get(':projectId/api-groups/tree')
   @ProjectPermissions(['api_group:read'])
   @ResMsg('分组树获取成功')
   async getGroupTree(
     @Param('projectId') projectId: string,
     @ReqUser('id') userId: string,
-  ): Promise<GroupTreeNodeDto[]> {
+  ): Promise<GroupNodeDto[]> {
     const tree = await this.groupService.getGroupTree(projectId, userId)
-    return plainToInstance(GroupTreeNodeDto, tree)
+    return plainToInstance(GroupNodeDto, tree)
   }
 
-  // 9) 获取分组树（含 API 聚合）
   @Get(':projectId/api-groups/tree-with-apis')
   @ProjectPermissions(['api_group:read'])
   @ResMsg('分组树（含 API）获取成功')
   async getGroupTreeWithApis(
     @Param('projectId') projectId: string,
-    @Query() query: GetGroupTreeWithApisReqDto,
+    @Query() query: GetGroupWithAPIReqDto,
     @ReqUser('id') userId: string,
-  ): Promise<GroupTreeWithApisNodeDto[]> {
+  ): Promise<GroupNodeWithAPIDto[]> {
     const tree = await this.groupService.getGroupTreeWithApis(query, projectId, userId)
-    return plainToInstance(GroupTreeWithApisNodeDto, tree)
+    return plainToInstance(GroupNodeWithAPIDto, tree)
   }
 }

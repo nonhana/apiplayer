@@ -4,7 +4,29 @@ import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ProjectUtilsService } from '@/project/utils.service'
-import { CreateApiGroupReqDto, GetGroupTreeWithApisReqDto } from './dto/group.dto'
+import { CreateGroupReqDto } from './dto/create-group.dto'
+import { GetGroupWithAPIReqDto } from './dto/get-groups.dto'
+
+interface TempGroupNode {
+  id: string
+  name: string
+  sortOrder: number
+  parentId?: string | null
+  updatedAt: Date
+  children: TempGroupNode[]
+  apiCount: number
+}
+
+interface TempGroupNodeWithAPI {
+  id: string
+  name: string
+  sortOrder: number
+  parentId?: string | null
+  updatedAt: Date
+  children: TempGroupNodeWithAPI[]
+  apiCount: number
+  apis: any[]
+}
 
 @Injectable()
 export class GroupService {
@@ -16,12 +38,11 @@ export class GroupService {
   ) {}
 
   /** 创建 API 分组 */
-  async createGroup(dto: CreateApiGroupReqDto, projectId: string, userId: string) {
+  async createGroup(dto: CreateGroupReqDto, projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
-      // 校验父分组（如提供）
       if (dto.parentId) {
         const parent = await this.prisma.aPIGroup.findUnique({ where: { id: dto.parentId } })
         if (!parent || parent.projectId !== projectId || parent.status !== 'ACTIVE') {
@@ -51,7 +72,7 @@ export class GroupService {
   }
 
   /** 获取分组树（含每组 API 数量统计） */
-  async getGroupTree(projectId: string, userId: string): Promise<any[]> {
+  async getGroupTree(projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
@@ -72,17 +93,7 @@ export class GroupService {
       for (const row of apiCounts)
         countMap.set(row.groupId as string, (row as any)._count?._all ?? row._count?._all ?? 0)
 
-      interface Node {
-        id: string
-        name: string
-        sortOrder: number
-        parentId?: string | null
-        updatedAt: Date
-        children: Node[]
-        apiCount: number
-      }
-
-      const nodeMap = new Map<string, Node>()
+      const nodeMap = new Map<string, TempGroupNode>()
       for (const g of groups) {
         nodeMap.set(g.id, {
           id: g.id,
@@ -95,7 +106,7 @@ export class GroupService {
         })
       }
 
-      const roots: Node[] = []
+      const roots: TempGroupNode[] = []
       for (const node of nodeMap.values()) {
         if (node.parentId && nodeMap.has(node.parentId))
           nodeMap.get(node.parentId)!.children.push(node)
@@ -103,7 +114,7 @@ export class GroupService {
           roots.push(node)
       }
 
-      const sortNodes = (arr: Node[]) => {
+      const sortNodes = (arr: TempGroupNode[]) => {
         arr.sort((a, b) => (a.sortOrder - b.sortOrder) || (b.updatedAt.getTime() - a.updatedAt.getTime()))
         for (const n of arr)
           sortNodes(n.children)
@@ -121,8 +132,16 @@ export class GroupService {
   }
 
   /** 获取分组树（含 API 聚合） */
-  async getGroupTreeWithApis(query: GetGroupTreeWithApisReqDto, projectId: string, userId: string): Promise<any[]> {
-    const { subtreeRootId, maxDepth, includeCurrentVersion = false, apiMethod, apiStatus, search, apiLimitPerGroup } = query
+  async getGroupTreeWithApis(dto: GetGroupWithAPIReqDto, projectId: string, userId: string) {
+    const {
+      subtreeRootId,
+      maxDepth,
+      includeCurrentVersion = false,
+      apiMethod,
+      apiStatus,
+      search,
+      apiLimitPerGroup,
+    } = dto
 
     try {
       await this.projectUtilsService.getProjectById(projectId)
@@ -134,7 +153,6 @@ export class GroupService {
         orderBy: [{ sortOrder: 'asc' }, { updatedAt: 'desc' }],
       })
 
-      // 计算需要包含的 groupId 集合（如指定了子树根）
       const childrenMap = new Map<string, string[]>()
       for (const g of groups) {
         if (g.parentId) {
@@ -144,7 +162,7 @@ export class GroupService {
         }
       }
 
-      const collectSubtree = (rootId: string): Set<string> => {
+      const collectSubtree = (rootId: string) => {
         const set = new Set<string>([rootId])
         const stack = [rootId]
         while (stack.length) {
@@ -166,7 +184,7 @@ export class GroupService {
 
       const filteredGroups = groups.filter(g => allowedGroupIds.has(g.id))
 
-      // 一次性读取 APIs
+      // 查询条件
       const whereApi: Prisma.APIWhereInput = {
         projectId,
         recordStatus: 'ACTIVE',
@@ -195,18 +213,7 @@ export class GroupService {
         bucket.get(api.groupId)!.push(api)
       }
 
-      interface Node {
-        id: string
-        name: string
-        sortOrder: number
-        parentId?: string | null
-        updatedAt: Date
-        children: Node[]
-        apiCount: number
-        apis: any[]
-      }
-
-      const nodeMap = new Map<string, Node>()
+      const nodeMap = new Map<string, TempGroupNodeWithAPI>()
       for (const g of filteredGroups) {
         const groupApis = bucket.get(g.id) ?? []
         nodeMap.set(g.id, {
@@ -221,7 +228,7 @@ export class GroupService {
         })
       }
 
-      const roots: Node[] = []
+      const roots: TempGroupNodeWithAPI[] = []
       for (const node of nodeMap.values()) {
         if (node.parentId && nodeMap.has(node.parentId))
           nodeMap.get(node.parentId)!.children.push(node)
@@ -229,18 +236,17 @@ export class GroupService {
           roots.push(node)
       }
 
-      const sortNodes = (arr: Node[], depth = 1) => {
+      const sortNodes = (arr: TempGroupNodeWithAPI[], depth = 1) => {
         arr.sort((a, b) => (a.sortOrder - b.sortOrder) || (b.updatedAt.getTime() - a.updatedAt.getTime()))
         for (const n of arr) {
           if (!maxDepth || depth < maxDepth)
             sortNodes(n.children, depth + 1)
           else
-            n.children = [] // 超出深度限制则裁剪
+            n.children = []
         }
       }
       sortNodes(roots)
 
-      // 如指定 subtreeRootId，则仅返回该根节点
       if (subtreeRootId && nodeMap.has(subtreeRootId))
         return [nodeMap.get(subtreeRootId)!]
 
