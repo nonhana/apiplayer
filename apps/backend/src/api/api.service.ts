@@ -7,6 +7,7 @@ import { ProjectUtilsService } from '@/project/utils.service'
 import { CloneApiReqDto } from './dto/clone-api.dto'
 import { CreateApiReqDto } from './dto/create-api.dto'
 import { GetApisReqDto } from './dto/get-apis.dto'
+import { SortItemsReqDto } from './dto/sort-items.dto'
 import { UpdateApiReqDto } from './dto/update-api.dto'
 import { ApiUtilsService } from './utils.service'
 
@@ -454,6 +455,55 @@ export class ApiService {
       }
       throw new HanaException(
         '复制 API 失败',
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        500,
+      )
+    }
+  }
+
+  /** 批量更新 API 排序 */
+  async sortAPIs(dto: SortItemsReqDto, projectId: string, userId: string) {
+    try {
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
+
+      const ids = dto.items.map(item => item.id)
+
+      const apis = await this.prisma.aPI.findMany({
+        where: {
+          id: { in: ids },
+          projectId,
+          recordStatus: 'ACTIVE',
+        },
+        select: { id: true },
+      })
+
+      const validIds = new Set(apis.map(api => api.id))
+      for (const id of ids) {
+        if (!validIds.has(id)) {
+          throw new HanaException('包含无效的 API ID', ErrorCode.INVALID_PARAMS, 404)
+        }
+      }
+
+      await this.prisma.$transaction(async (tx) => {
+        for (const item of dto.items) {
+          await tx.aPI.update({
+            where: { id: item.id },
+            data: { sortOrder: item.sortOrder },
+          })
+        }
+      })
+
+      this.logger.log(
+        `用户 ${userId} 在项目 ${projectId} 中更新了 ${dto.items.length} 个 API 的排序`,
+      )
+    }
+    catch (error) {
+      if (error instanceof HanaException)
+        throw error
+      this.logger.error(`更新 API 排序失败: ${error.message}`, error.stack)
+      throw new HanaException(
+        '更新 API 排序失败',
         ErrorCode.INTERNAL_SERVER_ERROR,
         500,
       )

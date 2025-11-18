@@ -5,7 +5,11 @@ import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ProjectUtilsService } from '@/project/utils.service'
 import { CreateGroupReqDto } from './dto/create-group.dto'
+import { DeleteGroupReqDto } from './dto/delete-group.dto'
 import { GetGroupWithAPIReqDto } from './dto/get-groups.dto'
+import { MoveGroupReqDto } from './dto/move-group.dto'
+import { SortItemsReqDto } from './dto/sort-items.dto'
+import { UpdateGroupReqDto } from './dto/update-group.dto'
 
 interface TempGroupNode {
   id: string
@@ -257,6 +261,261 @@ export class GroupService {
         throw error
       this.logger.error(`获取分组树（含 API）失败: ${error.message}`, error.stack)
       throw new HanaException('获取分组树失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /** 更新分组 */
+  async updateGroup(dto: UpdateGroupReqDto, groupId: string, projectId: string, userId: string) {
+    try {
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
+
+      const existing = await this.prisma.aPIGroup.findUnique({
+        where: { id: groupId },
+      })
+
+      if (!existing || existing.projectId !== projectId || existing.status !== 'ACTIVE') {
+        throw new HanaException('分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+      }
+
+      const updated = await this.prisma.aPIGroup.update({
+        where: { id: groupId },
+        data: {
+          ...(dto.name && { name: dto.name }),
+          ...(dto.description !== undefined && { description: dto.description }),
+          ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+        },
+      })
+
+      this.logger.log(`用户 ${userId} 更新了项目 ${projectId} 的分组 ${groupId}`)
+      return updated
+    }
+    catch (error) {
+      if (error instanceof HanaException)
+        throw error
+      this.logger.error(`更新分组失败: ${error.message}`, error.stack)
+      throw new HanaException('更新分组失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /** 移动分组 */
+  async moveGroup(dto: MoveGroupReqDto, groupId: string, projectId: string, userId: string) {
+    const { newParentId, sortOrder } = dto
+
+    try {
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
+
+      const group = await this.prisma.aPIGroup.findUnique({
+        where: { id: groupId },
+      })
+
+      if (!group || group.projectId !== projectId || group.status !== 'ACTIVE') {
+        throw new HanaException('分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+      }
+
+      let parentIdToUpdate: string | undefined | null
+
+      if (newParentId !== undefined) {
+        if (newParentId === groupId) {
+          throw new HanaException('分组不能移动到自身', ErrorCode.INVALID_PARAMS, 400)
+        }
+
+        if (newParentId) {
+          const parent = await this.prisma.aPIGroup.findUnique({
+            where: { id: newParentId },
+          })
+
+          if (!parent || parent.projectId !== projectId || parent.status !== 'ACTIVE') {
+            throw new HanaException('目标父分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+          }
+
+          // 校验不会形成环：向上查找父链，若遇到自身则为非法
+          let currentParentId: string | null | undefined = parent.parentId
+          while (currentParentId) {
+            if (currentParentId === groupId) {
+              throw new HanaException('不能将分组移动到其子分组下', ErrorCode.INVALID_PARAMS, 400)
+            }
+            const currentParent = await this.prisma.aPIGroup.findUnique({
+              where: { id: currentParentId },
+              select: { parentId: true },
+            })
+            currentParentId = currentParent?.parentId
+          }
+        }
+
+        parentIdToUpdate = newParentId ?? null
+      }
+
+      const updated = await this.prisma.aPIGroup.update({
+        where: { id: groupId },
+        data: {
+          ...(parentIdToUpdate !== undefined && { parentId: parentIdToUpdate }),
+          ...(sortOrder !== undefined && { sortOrder }),
+        },
+      })
+
+      this.logger.log(`用户 ${userId} 移动了项目 ${projectId} 的分组 ${groupId}`)
+      return updated
+    }
+    catch (error) {
+      if (error instanceof HanaException)
+        throw error
+      this.logger.error(`移动分组失败: ${error.message}`, error.stack)
+      throw new HanaException('移动分组失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /** 删除分组 */
+  async deleteGroup(dto: DeleteGroupReqDto, groupId: string, projectId: string, userId: string) {
+    const { cascade = false } = dto
+
+    try {
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
+
+      const group = await this.prisma.aPIGroup.findUnique({
+        where: { id: groupId },
+      })
+
+      if (!group || group.projectId !== projectId || group.status !== 'ACTIVE') {
+        throw new HanaException('分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+      }
+
+      if (cascade) {
+        // 级联删除：当前分组 + 所有子分组 + 这些分组下的 API
+        const groups = await this.prisma.aPIGroup.findMany({
+          where: { projectId, status: 'ACTIVE' },
+        })
+
+        const childrenMap = new Map<string, string[]>()
+        for (const g of groups) {
+          if (g.parentId) {
+            if (!childrenMap.has(g.parentId))
+              childrenMap.set(g.parentId, [])
+            childrenMap.get(g.parentId)!.push(g.id)
+          }
+        }
+
+        const idsToDelete = new Set<string>([groupId])
+        const stack = [groupId]
+        while (stack.length) {
+          const cur = stack.pop()!
+          const children = childrenMap.get(cur) || []
+          for (const childId of children) {
+            if (!idsToDelete.has(childId)) {
+              idsToDelete.add(childId)
+              stack.push(childId)
+            }
+          }
+        }
+
+        const targetIds = Array.from(idsToDelete)
+
+        await this.prisma.$transaction([
+          this.prisma.aPIGroup.updateMany({
+            where: { id: { in: targetIds } },
+            data: { status: 'DELETED' },
+          }),
+          this.prisma.aPI.updateMany({
+            where: {
+              projectId,
+              groupId: { in: targetIds },
+              recordStatus: 'ACTIVE',
+            },
+            data: { recordStatus: 'DELETED' },
+          }),
+        ])
+
+        this.logger.log(
+          `用户 ${userId} 在项目 ${projectId} 中级联删除了分组 ${groupId} 及其子分组`,
+        )
+        return
+      }
+
+      // 非级联删除：要求分组无子分组且无 API
+      const [childCount, apiCount] = await Promise.all([
+        this.prisma.aPIGroup.count({
+          where: {
+            projectId,
+            parentId: groupId,
+            status: 'ACTIVE',
+          },
+        }),
+        this.prisma.aPI.count({
+          where: {
+            projectId,
+            groupId,
+            recordStatus: 'ACTIVE',
+          },
+        }),
+      ])
+
+      if (childCount > 0 || apiCount > 0) {
+        throw new HanaException(
+          '分组包含子分组或 API，无法删除，请先移动或清空',
+          ErrorCode.INVALID_PARAMS,
+          400,
+        )
+      }
+
+      await this.prisma.aPIGroup.update({
+        where: { id: groupId },
+        data: { status: 'DELETED' },
+      })
+
+      this.logger.log(`用户 ${userId} 删除了项目 ${projectId} 的分组 ${groupId}`)
+    }
+    catch (error) {
+      if (error instanceof HanaException)
+        throw error
+      this.logger.error(`删除分组失败: ${error.message}`, error.stack)
+      throw new HanaException('删除分组失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /** 批量更新分组排序 */
+  async sortGroups(dto: SortItemsReqDto, projectId: string, userId: string) {
+    try {
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
+
+      const ids = dto.items.map(item => item.id)
+
+      const groups = await this.prisma.aPIGroup.findMany({
+        where: {
+          id: { in: ids },
+          projectId,
+          status: 'ACTIVE',
+        },
+        select: { id: true },
+      })
+
+      const validIds = new Set(groups.map(g => g.id))
+      for (const id of ids) {
+        if (!validIds.has(id)) {
+          throw new HanaException('包含无效的分组 ID', ErrorCode.API_GROUP_NOT_FOUND, 404)
+        }
+      }
+
+      await this.prisma.$transaction(async (tx) => {
+        for (const item of dto.items) {
+          await tx.aPIGroup.update({
+            where: { id: item.id },
+            data: { sortOrder: item.sortOrder },
+          })
+        }
+      })
+
+      this.logger.log(
+        `用户 ${userId} 在项目 ${projectId} 中更新了 ${dto.items.length} 个分组的排序`,
+      )
+    }
+    catch (error) {
+      if (error instanceof HanaException)
+        throw error
+      this.logger.error(`更新分组排序失败: ${error.message}`, error.stack)
+      throw new HanaException('更新分组排序失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 }

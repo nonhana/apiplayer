@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
@@ -10,6 +20,7 @@ import { ApiBriefDto, ApiDetailDto, ApisDto } from './dto/api.dto'
 import { CloneApiReqDto } from './dto/clone-api.dto'
 import { CreateApiReqDto } from './dto/create-api.dto'
 import { GetApisReqDto } from './dto/get-apis.dto'
+import { SortItemsReqDto } from './dto/sort-items.dto'
 import { UpdateApiReqDto } from './dto/update-api.dto'
 
 @Controller('api')
@@ -94,5 +105,17 @@ export class ApiController {
   ): Promise<ApiBriefDto> {
     const result = await this.apiService.cloneAPI(dto, apiId, projectId, userId)
     return plainToInstance(ApiBriefDto, result)
+  }
+
+  /** 批量更新 API 排序 */
+  @Post(':projectId/apis/sort')
+  @ProjectPermissions(['api:write'])
+  @ResMsg('API 排序更新成功')
+  async sortAPIs(
+    @Param('projectId') projectId: string,
+    @Body() dto: SortItemsReqDto,
+    @ReqUser('id') userId: string,
+  ): Promise<void> {
+    await this.apiService.sortAPIs(dto, projectId, userId)
   }
 }
