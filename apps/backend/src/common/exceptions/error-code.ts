@@ -91,6 +91,10 @@ export enum ErrorCode {
 
   /** API 分组不存在 */
   API_GROUP_NOT_FOUND = 50001,
+  /** API 不存在 */
+  API_NOT_FOUND = 50002,
+  /** API 版本不存在 */
+  API_VERSION_NOT_FOUND = 50003,
 
   /** 参数错误 */
   INVALID_PARAMS = 90001,
