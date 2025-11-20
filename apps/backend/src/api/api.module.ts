@@ -11,6 +11,6 @@ import { ApiUtilsService } from './utils.service'
   imports: [PrismaModule, AuthModule, PermissionModule, ProjectModule],
   controllers: [ApiController],
   providers: [ApiService, ApiUtilsService],
-  exports: [ApiService],
+  exports: [ApiService, ApiUtilsService],
 })
 export class ApiModule {}

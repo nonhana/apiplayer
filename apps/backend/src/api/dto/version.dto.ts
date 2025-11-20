@@ -1,5 +1,5 @@
 import { APIMethod, APIStatus, VersionChangeType, VersionStatus } from '@prisma/client'
-import { Exclude, Expose, Transform } from 'class-transformer'
+import { Exclude, Expose, Transform, Type } from 'class-transformer'
 
 @Exclude()
 export class ApiVersionBriefDto {
@@ -50,6 +50,7 @@ export class ApiVersionBriefDto {
 @Exclude()
 export class ApiVersionsDto {
   @Expose()
+  @Type(() => ApiVersionBriefDto)
   versions: ApiVersionBriefDto[]
 }
 
@@ -114,4 +115,19 @@ export class ApiVersionDetailDto extends ApiVersionBriefDto {
   @Expose()
   @Transform(({ obj }) => obj.snapshot?.mockConfig, { toClassOnly: true })
   mockConfig?: Record<string, any>
+}
+
+@Exclude()
+export class ApiVersionComparisonDto {
+  @Expose()
+  @Type(() => ApiVersionDetailDto)
+  from: ApiVersionDetailDto
+
+  @Expose()
+  @Type(() => ApiVersionDetailDto)
+  to: ApiVersionDetailDto
+
+  /** 两个版本的字段差异 */
+  @Expose()
+  diff: Record<string, any>
 }

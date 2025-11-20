@@ -1,3 +1,4 @@
+/** 错误码枚举 */
 export enum ErrorCode {
   /** 用户不存在 */
   USER_NOT_FOUND = 10001,
@@ -95,6 +96,10 @@ export enum ErrorCode {
   API_NOT_FOUND = 50002,
   /** API 版本不存在 */
   API_VERSION_NOT_FOUND = 50003,
+  /** 同一路径与方法的 API 已存在 */
+  API_PATH_METHOD_CONFLICT = 50004,
+  /** 版本号已存在 */
+  API_VERSION_EXISTS = 50005,
 
   /** 参数错误 */
   INVALID_PARAMS = 90001,

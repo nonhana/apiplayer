@@ -18,16 +18,75 @@ export class ApiUtilsService {
   }
 
   /** 生成下一个版本号 */
-  genNextVersion(current?: string | null) {
+  genNextVersion(current?: string | null, type: 'major' | 'minor' | 'patch' = 'patch') {
     const fallback = 'v1.0.1'
     if (!current)
       return fallback
     const match = /^v(\d+)\.(\d+)\.(\d+)$/.exec(current)
     if (!match)
       return fallback
-    const major = Number(match[1])
-    const minor = Number(match[2])
-    const patch = Number(match[3]) + 1
-    return `v${major}.${minor}.${patch}`
+
+    const [major, minor, patch] = match.slice(1).map(Number)
+    switch (type) {
+      case 'major': return `v${major + 1}.0.0`
+      case 'minor': return `v${major}.${minor + 1}.0`
+      case 'patch': return `v${major}.${minor}.${patch + 1}`
+    }
+  }
+
+  /** 比较两个版本，保留变化的数据 */
+  buildVersionDiff<T>(
+    fromSnap: T | null,
+    toSnap: T | null,
+  ): Record<string, Partial<T>> {
+    type InfoType = 'baseInfo' | 'coreInfo'
+
+    const result: Record<InfoType, Partial<T>> = {
+      baseInfo: {},
+      coreInfo: {},
+    }
+
+    const pick = (snap: T | null, key: string) =>
+      snap && typeof snap === 'object' ? snap[key] ?? null : null
+
+    const compareField = (
+      section: InfoType,
+      key: string,
+    ) => {
+      const fromValue = pick(fromSnap, key)
+      const toValue = pick(toSnap, key)
+
+      const changed = JSON.stringify(fromValue) !== JSON.stringify(toValue)
+      if (changed) {
+        result[section][key] = {
+          from: fromValue,
+          to: toValue,
+        }
+      }
+    }
+
+    // 基本信息字段
+    ;[
+      'name',
+      'description',
+      'method',
+      'status',
+      'path',
+      'tags',
+      'sortOrder',
+    ].forEach(field => compareField('baseInfo', field))
+
+    // 核心信息字段
+    ;[
+      'requestHeaders',
+      'pathParams',
+      'queryParams',
+      'requestBody',
+      'responses',
+      'examples',
+      'mockConfig',
+    ].forEach(field => compareField('coreInfo', field))
+
+    return result
   }
 }

@@ -97,7 +97,7 @@ export class ApiService {
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
         throw new HanaException(
           '同一路径与方法的 API 已存在',
-          ErrorCode.INVALID_PARAMS,
+          ErrorCode.API_PATH_METHOD_CONFLICT,
         )
       }
       throw new HanaException(
@@ -315,7 +315,7 @@ export class ApiService {
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
         throw new HanaException(
           '同一路径与方法的 API 已存在',
-          ErrorCode.INVALID_PARAMS,
+          ErrorCode.API_PATH_METHOD_CONFLICT,
         )
       }
       throw new HanaException(
@@ -450,7 +450,7 @@ export class ApiService {
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
         throw new HanaException(
           '同一路径与方法的 API 已存在',
-          ErrorCode.INVALID_PARAMS,
+          ErrorCode.API_PATH_METHOD_CONFLICT,
         )
       }
       throw new HanaException(
