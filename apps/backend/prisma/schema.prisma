@@ -110,7 +110,7 @@ enum APIOperationType {
 
 model Permission {
   id          String   @id @default(cuid())
-  name        String   @unique // 如：api:read, api:write, project:admin
+  name        String   @unique // 权限名，如：api:read, api:write, project:admin
   description String?
   resource    String // 资源类型：project, api, team 等
   action      String // 操作类型：read, write, delete, admin 等
@@ -136,6 +136,7 @@ model Role {
   @@map("roles")
 }
 
+// 角色权限多对多关系表
 model RolePermission {
   roleId       String
   permissionId String
@@ -279,8 +280,8 @@ model ProjectEnvironment {
   name      String
   type      ProjectEnvType
   baseUrl   String
-  variables Json           @default("{}") // 环境变量
-  headers   Json           @default("{}")
+  variables Json           @default("[]") // 环境变量
+  headers   Json           @default("[]") // 默认的全局请求头
   isDefault Boolean        @default(false)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt

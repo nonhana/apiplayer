@@ -1,4 +1,4 @@
-// It is best to run this file in place using bun
+// It is best to run this file in place using bun runtime
 
 import process from 'node:process'
 import { PrismaClient } from '@prisma/client'
