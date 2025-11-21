@@ -29,7 +29,7 @@ export class AuthService {
   /** 用户登录 */
   async login(
     dto: LoginReqDto,
-    metadata?: { userAgent?: string, ipAddress?: string },
+    metadata?: { userAgent?: string, ip?: string },
   ) {
     const { email, password, rememberMe } = dto
 

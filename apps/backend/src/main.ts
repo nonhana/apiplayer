@@ -11,7 +11,10 @@ import { WinstonLogger } from './common/logger/winston-logger.service'
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: false }),
+    new FastifyAdapter({
+      logger: false,
+      trustProxy: '127.0.0.1',
+    }),
   )
 
   const configService = app.get(ConfigService)

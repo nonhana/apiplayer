@@ -19,4 +19,7 @@ export class CheckAvailabilityReqDto {
 export class CheckAvailabilityResDto {
   @Expose()
   available: boolean
+
+  @Expose()
+  message: string
 }

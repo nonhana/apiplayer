@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
+import { User } from '@prisma/client'
 import { plainToInstance } from 'class-transformer'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { Public } from '@/common/decorators/public.decorator'
@@ -37,26 +38,17 @@ export class AuthController {
   ): Promise<LoginResDto> {
     // 提取客户端信息
     const userAgent = request.headers['user-agent']
-    const ipAddress = request.headers['x-forwarded-for'] as string
-      || request.headers['x-real-ip'] as string
-      || request.ip
+    const ip = request.ip
 
-    const { user, sessionId } = await this.authService.login(loginDto, {
-      userAgent,
-      ipAddress,
-    })
+    const { user, sessionId } = await this.authService.login(loginDto, { userAgent, ip })
 
-    // 成功登录后立即重新生成 Session ID（防御Session固定攻击）
+    // 成功登录后立即重新生成 Session ID
     const newSessionId = await this.authService.regenerateSessionId(sessionId)
     const finalSessionId = newSessionId || sessionId
 
-    // 设置安全的 Cookie
     this.cookieService.setSecureSessionCookie(response, finalSessionId)
 
-    return {
-      user: plainToInstance(UserBriefInfoDto, user),
-      token: finalSessionId,
-    }
+    return plainToInstance(LoginResDto, { user, token: finalSessionId })
   }
 
   /** 用户注册 */
@@ -116,7 +108,7 @@ export class AuthController {
   /** 获取登录用户信息 */
   @UseGuards(AuthGuard)
   @Get('me')
-  async getCurrentUser(@ReqUser() user: any): Promise<UserDetailInfoDto> {
+  async getCurrentUser(@ReqUser() user: User): Promise<UserDetailInfoDto> {
     return plainToInstance(UserDetailInfoDto, user)
   }
 
