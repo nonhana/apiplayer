@@ -94,6 +94,16 @@ enum VersionStatus {
   ARCHIVED // 已归档版本
 }
 
+// API 操作类型（用于日志记录）
+enum APIOperationType {
+  CREATE
+  UPDATE
+  DELETE
+  PUBLISH
+  ARCHIVE
+  RESTORE
+}
+
 // ============================================================================
 // RBAC 权限模型
 // ============================================================================
@@ -457,7 +467,7 @@ model APIOperationLog {
   apiId       String
   versionId   String?
   userId      String
-  operation   String // 操作类型：create, update, publish, archive, restore
+  operation   APIOperationType
   changes     VersionChangeType[] // 具体变更类型
   description String? // 操作描述
   metadata    Json? // 额外的元数据

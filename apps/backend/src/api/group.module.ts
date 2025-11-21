@@ -3,11 +3,12 @@ import { AuthModule } from '@/auth/auth.module'
 import { PrismaModule } from '@/infra/prisma/prisma.module'
 import { PermissionModule } from '@/permission/permission.module'
 import { ProjectModule } from '@/project/project.module'
+import { ApiModule } from './api.module'
 import { GroupController } from './group.controller'
 import { GroupService } from './group.service'
 
 @Module({
-  imports: [PrismaModule, AuthModule, PermissionModule, ProjectModule],
+  imports: [PrismaModule, AuthModule, PermissionModule, ProjectModule, ApiModule],
   controllers: [GroupController],
   providers: [GroupService],
 })

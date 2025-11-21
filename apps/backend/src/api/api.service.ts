@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { APIOperationType, Prisma, VersionChangeType } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -7,6 +7,7 @@ import { ProjectUtilsService } from '@/project/utils.service'
 import { CloneApiReqDto } from './dto/clone-api.dto'
 import { CreateApiReqDto } from './dto/create-api.dto'
 import { GetApisReqDto } from './dto/get-apis.dto'
+import { GetApiOperationLogsReqDto } from './dto/operation-log.dto'
 import { SortItemsReqDto } from './dto/sort-items.dto'
 import { UpdateApiReqDto } from './dto/update-api.dto'
 import { ApiUtilsService } from './utils.service'
@@ -52,7 +53,7 @@ export class ApiService {
             status: 'DRAFT',
             summary: dto.summary,
             editorId: userId,
-            changes: ['CREATE'],
+            changes: [VersionChangeType.CREATE],
           },
         })
 
@@ -82,6 +83,18 @@ export class ApiService {
           where: { id: api.id },
           data: { currentVersionId: version.id },
         })
+
+        await this.apiUtilsService.createOperationLog(
+          {
+            apiId: api.id,
+            userId,
+            operation: APIOperationType.CREATE,
+            versionId: version.id,
+            changes: [VersionChangeType.CREATE],
+            description: dto.summary ?? '创建 API',
+          },
+          tx,
+        )
 
         return api
       })
@@ -243,6 +256,10 @@ export class ApiService {
         const curVersion
           = dto.versionInfo?.version ?? this.apiUtilsService.genNextVersion(prevVersion)
 
+        const changes: VersionChangeType[] = dto.versionInfo?.changes?.length
+          ? dto.versionInfo.changes
+          : [VersionChangeType.BASIC_INFO]
+
         // 新建版本（CURRENT）
         const version = await tx.aPIVersion.create({
           data: {
@@ -251,9 +268,7 @@ export class ApiService {
             version: curVersion,
             status: 'CURRENT',
             editorId: userId,
-            changes: dto.versionInfo?.changes?.length
-              ? dto.versionInfo.changes
-              : ['BASIC_INFO'],
+            changes,
             summary: dto.versionInfo?.summary,
             changelog: dto.versionInfo?.changelog,
             publishedAt: new Date(),
@@ -297,6 +312,18 @@ export class ApiService {
             data: { status: 'ARCHIVED' },
           })
         }
+
+        await this.apiUtilsService.createOperationLog(
+          {
+            apiId: api.id,
+            userId,
+            operation: APIOperationType.UPDATE,
+            versionId: version.id,
+            changes,
+            description: dto.versionInfo?.summary ?? '更新 API',
+          },
+          tx,
+        )
 
         // 返回更新后的 API
         return tx.aPI.findUnique({
@@ -343,6 +370,14 @@ export class ApiService {
       await this.prisma.aPI.update({
         where: { id: apiId },
         data: { recordStatus: 'DELETED' },
+      })
+
+      await this.apiUtilsService.createOperationLog({
+        apiId,
+        userId,
+        operation: APIOperationType.DELETE,
+        changes: [VersionChangeType.DELETE],
+        description: '删除 API',
       })
 
       this.logger.log(`用户 ${userId} 删除了项目 ${projectId} 的 API ${apiId}`)
@@ -406,7 +441,7 @@ export class ApiService {
             status: 'DRAFT',
             summary: source.currentVersion?.summary,
             editorId: userId,
-            changes: ['CREATE'],
+            changes: [VersionChangeType.CREATE],
           },
         })
 
@@ -436,6 +471,21 @@ export class ApiService {
           where: { id: clonedApi.id },
           data: { currentVersionId: version.id },
         })
+
+        await this.apiUtilsService.createOperationLog(
+          {
+            apiId: clonedApi.id,
+            userId,
+            operation: APIOperationType.CREATE,
+            versionId: version.id,
+            changes: [VersionChangeType.CREATE],
+            description: '克隆 API',
+            metadata: {
+              sourceApiId: apiId,
+            },
+          },
+          tx,
+        )
 
         return clonedApi
       })
@@ -504,6 +554,103 @@ export class ApiService {
       this.logger.error(`更新 API 排序失败: ${error.message}`, error.stack)
       throw new HanaException(
         '更新 API 排序失败',
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        500,
+      )
+    }
+  }
+
+  /** 获取 API 操作日志 */
+  async getAPIOperationLogs(
+    dto: GetApiOperationLogsReqDto,
+    apiId: string,
+    projectId: string,
+    userId: string,
+  ) {
+    const {
+      page = 1,
+      limit = 10,
+      operation,
+      changes,
+      targetUserId,
+      startTime,
+      endTime,
+      search,
+    } = dto
+
+    try {
+      const skip = (page - 1) * limit
+
+      // 前置校验
+      await this.projectUtilsService.getProjectById(projectId)
+      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
+
+      const api = await this.prisma.aPI.findUnique({
+        where: { id: apiId, projectId, recordStatus: 'ACTIVE' },
+      })
+
+      if (!api) {
+        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+      }
+
+      const whereCondition: Prisma.APIOperationLogWhereInput = {
+        apiId,
+        ...(operation && { operation }),
+        ...(targetUserId && { userId: targetUserId }),
+        ...(changes && changes.length && { changes: { hasSome: changes } }),
+        ...((startTime || endTime) && {
+          createdAt: {
+            ...(startTime && { gte: startTime }),
+            ...(endTime && { lte: endTime }),
+          },
+        }),
+        ...(search && {
+          OR: [
+            {
+              description: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        }),
+      }
+
+      const [logs, total] = await Promise.all([
+        this.prisma.aPIOperationLog.findMany({
+          where: whereCondition,
+          include: { user: true },
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.aPIOperationLog.count({ where: whereCondition }),
+      ])
+
+      const totalPages = Math.ceil(total / limit)
+
+      this.logger.log(
+        `用户 ${userId} 获取了项目 ${projectId} 中 API ${apiId} 的操作日志，数量 ${logs.length}`,
+      )
+
+      return {
+        logs,
+        total,
+        pagination: {
+          page,
+          limit,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      }
+    }
+    catch (error) {
+      if (error instanceof HanaException)
+        throw error
+      this.logger.error(`获取 API 操作日志失败: ${error.message}`, error.stack)
+      throw new HanaException(
+        '获取 API 操作日志失败',
         ErrorCode.INTERNAL_SERVER_ERROR,
         500,
       )

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { APIOperationType, Prisma, VersionChangeType } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -32,6 +33,46 @@ export class ApiUtilsService {
       case 'minor': return `v${major}.${minor + 1}.0`
       case 'patch': return `v${major}.${minor}.${patch + 1}`
     }
+  }
+
+  /**
+   * 记录 API 操作日志的工具方法
+   *
+   * @param params - 日志参数
+   * @param params.apiId - API 主键 ID
+   * @param params.userId - 执行操作的用户 ID
+   * @param params.operation - 操作类型（创建、更新、删除、发布、归档、回滚等）
+   * @param params.versionId - 关联的版本 ID（若存在）
+   * @param params.changes - 版本变更类型列表
+   * @param params.description - 操作描述
+   * @param params.metadata - 额外元数据（如 Diff 摘要、来源等）
+   * @param tx - 可选的事务客户端，若提供则在同一事务内写入日志
+   */
+  async createOperationLog(
+    params: {
+      apiId: string
+      userId: string
+      operation: APIOperationType
+      versionId?: string | null
+      changes?: VersionChangeType[]
+      description?: string
+      metadata?: Prisma.JsonValue
+    },
+    tx?: Prisma.TransactionClient,
+  ): Promise<void> {
+    const client = tx ?? this.prisma
+
+    await client.aPIOperationLog.create({
+      data: {
+        apiId: params.apiId,
+        userId: params.userId,
+        operation: params.operation,
+        versionId: params.versionId ?? null,
+        changes: params.changes ?? [],
+        description: params.description,
+        metadata: params.metadata ?? undefined,
+      },
+    })
   }
 
   /** 比较两个版本，保留变化的数据 */

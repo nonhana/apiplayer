@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { APIOperationType, Prisma, VersionChangeType } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -146,6 +146,8 @@ export class VersionService {
           versionStr = this.apiUtilsService.genNextVersion(api.currentVersion?.version)
         }
 
+        const changes: VersionChangeType[] = dto.versionInfo?.changes ?? []
+
         const version = await tx.aPIVersion.create({
           data: {
             apiId,
@@ -154,7 +156,7 @@ export class VersionService {
             status: 'DRAFT',
             summary: dto.versionInfo?.summary,
             changelog: dto.versionInfo?.changelog,
-            changes: dto.versionInfo?.changes ?? [],
+            changes,
             editorId: userId,
           },
         })
@@ -187,6 +189,18 @@ export class VersionService {
             mockConfig: dto.coreInfo?.mockConfig ?? prevSnap?.mockConfig ?? undefined,
           },
         })
+
+        await this.apiUtilsService.createOperationLog(
+          {
+            apiId,
+            userId,
+            operation: APIOperationType.UPDATE,
+            versionId: version.id,
+            changes,
+            description: dto.versionInfo?.summary ?? '创建草稿版本',
+          },
+          tx,
+        )
 
         // 3. 不更新 API.currentVersionId
         return tx.aPIVersion.findUnique({
@@ -286,6 +300,18 @@ export class VersionService {
             }),
           },
         })
+
+        await this.apiUtilsService.createOperationLog(
+          {
+            apiId,
+            userId,
+            operation: APIOperationType.PUBLISH,
+            versionId,
+            changes: targetVersion.changes,
+            description: targetVersion.summary ?? '发布版本',
+          },
+          tx,
+        )
       })
 
       this.logger.log(
@@ -347,6 +373,15 @@ export class VersionService {
       this.logger.log(
         `用户 ${userId} 归档了项目 ${projectId} 中 API ${apiId} 的版本 ${version.version}`,
       )
+
+      await this.apiUtilsService.createOperationLog({
+        apiId,
+        userId,
+        operation: APIOperationType.ARCHIVE,
+        versionId,
+        changes: version.changes,
+        description: version.summary ?? '归档版本',
+      })
     }
     catch (error) {
       if (error instanceof HanaException)
@@ -425,7 +460,7 @@ export class VersionService {
             status: 'CURRENT',
             summary: targetVersion.summary ?? `Rollback to ${targetVersion.version}`,
             changelog: targetVersion.changelog ?? `Rollback to version ${targetVersion.version}`,
-            changes: ['RESTORE'],
+            changes: [VersionChangeType.RESTORE],
             editorId: userId,
             publishedAt: new Date(),
           },
@@ -476,6 +511,22 @@ export class VersionService {
             data: { status: 'ARCHIVED' },
           })
         }
+
+        await this.apiUtilsService.createOperationLog(
+          {
+            apiId,
+            userId,
+            operation: APIOperationType.RESTORE,
+            versionId: newVersion.id,
+            changes: [VersionChangeType.RESTORE],
+            description: `回滚到版本 ${targetVersion.version}`,
+            metadata: {
+              fromVersionId: versionId,
+              previousVersionId: api.currentVersion?.id ?? null,
+            },
+          },
+          tx,
+        )
       })
 
       this.logger.log(

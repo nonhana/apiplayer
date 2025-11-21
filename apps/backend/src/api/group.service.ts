@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { APIOperationType, Prisma, VersionChangeType } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -10,6 +10,7 @@ import { GetGroupWithAPIReqDto } from './dto/get-groups.dto'
 import { MoveGroupReqDto } from './dto/move-group.dto'
 import { SortItemsReqDto } from './dto/sort-items.dto'
 import { UpdateGroupReqDto } from './dto/update-group.dto'
+import { ApiUtilsService } from './utils.service'
 
 interface TempGroupNode {
   id: string
@@ -39,6 +40,7 @@ export class GroupService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly projectUtilsService: ProjectUtilsService,
+    private readonly apiUtilsService: ApiUtilsService,
   ) {}
 
   /** 创建 API 分组 */
@@ -412,20 +414,45 @@ export class GroupService {
 
         const targetIds = Array.from(idsToDelete)
 
-        await this.prisma.$transaction([
-          this.prisma.aPIGroup.updateMany({
+        await this.prisma.$transaction(async (tx) => {
+          await tx.aPIGroup.updateMany({
             where: { id: { in: targetIds } },
             data: { status: 'DELETED' },
-          }),
-          this.prisma.aPI.updateMany({
+          })
+
+          const affectedApis = await tx.aPI.findMany({
             where: {
               projectId,
               groupId: { in: targetIds },
               recordStatus: 'ACTIVE',
             },
-            data: { recordStatus: 'DELETED' },
-          }),
-        ])
+            select: { id: true },
+          })
+
+          if (affectedApis.length > 0) {
+            for (const apiItem of affectedApis) {
+              await this.apiUtilsService.createOperationLog(
+                {
+                  apiId: apiItem.id,
+                  userId,
+                  operation: APIOperationType.DELETE,
+                  changes: [VersionChangeType.DELETE],
+                  description: '级联删除分组时删除 API',
+                },
+                tx,
+              )
+            }
+
+            await tx.aPI.updateMany({
+              where: {
+                projectId,
+                groupId: { in: targetIds },
+                recordStatus: 'ACTIVE',
+              },
+              data: { recordStatus: 'DELETED' },
+            })
+          }
+        })
 
         this.logger.log(
           `用户 ${userId} 在项目 ${projectId} 中级联删除了分组 ${groupId} 及其子分组`,

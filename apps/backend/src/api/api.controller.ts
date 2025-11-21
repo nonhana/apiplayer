@@ -20,6 +20,10 @@ import { ApiBriefDto, ApiDetailDto, ApisDto } from './dto/api.dto'
 import { CloneApiReqDto } from './dto/clone-api.dto'
 import { CreateApiReqDto } from './dto/create-api.dto'
 import { GetApisReqDto } from './dto/get-apis.dto'
+import {
+  ApiOperationLogsDto,
+  GetApiOperationLogsReqDto,
+} from './dto/operation-log.dto'
 import { SortItemsReqDto } from './dto/sort-items.dto'
 import { UpdateApiReqDto } from './dto/update-api.dto'
 
@@ -65,6 +69,20 @@ export class ApiController {
   ): Promise<ApiDetailDto> {
     const result = await this.apiService.getAPIDetail(apiId, projectId, userId)
     return plainToInstance(ApiDetailDto, result)
+  }
+
+  /** 获取某 API 的操作日志 */
+  @Get(':projectId/apis/:apiId/logs')
+  @ProjectPermissions(['api:read'])
+  @ResMsg('API 操作日志获取成功')
+  async getAPIOperationLogs(
+    @Param('projectId') projectId: string,
+    @Param('apiId') apiId: string,
+    @Query() dto: GetApiOperationLogsReqDto,
+    @ReqUser('id') userId: string,
+  ): Promise<ApiOperationLogsDto> {
+    const result = await this.apiService.getAPIOperationLogs(dto, apiId, projectId, userId)
+    return plainToInstance(ApiOperationLogsDto, result)
   }
 
   /** 更新 API 信息 */
