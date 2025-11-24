@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common'
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core'
+import { ClassSerializerInterceptor, Module, ValidationPipe } from '@nestjs/common'
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { ApiModule } from './api/api.module'
 import { GroupModule } from './api/group.module'
 import { VersionModule } from './api/version.module'
@@ -45,6 +45,22 @@ import { UserModule } from './user/user.module'
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ClassSerializerInterceptor,
+    },
+    {
+      provide: APP_PIPE,
+      useFactory: () =>
+        new ValidationPipe({
+          whitelist: true,
+          forbidNonWhitelisted: true,
+          transform: true,
+          transformOptions: {
+            enableImplicitConversion: true,
+          },
+        }),
     },
   ],
 })

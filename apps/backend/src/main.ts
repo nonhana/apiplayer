@@ -1,8 +1,8 @@
 import process from 'node:process'
 import cookie from '@fastify/cookie'
-import { ClassSerializerInterceptor, Logger, ValidationPipe } from '@nestjs/common'
+import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { NestFactory, Reflector } from '@nestjs/core'
+import { NestFactory } from '@nestjs/core'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { AppModule } from './app.module'
@@ -39,21 +39,6 @@ async function bootstrap() {
       sameSite: 'lax',
     },
   })
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  )
-
-  app.useGlobalInterceptors(
-    new ClassSerializerInterceptor(app.get(Reflector)),
-  )
 
   if (nodeEnv !== 'production') {
     app.enableCors({
