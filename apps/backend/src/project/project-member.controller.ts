@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ProjectPermissions, RequireProjectMember } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { MemberDto, MembersDto } from '@/common/dto/member.dto'
@@ -16,53 +16,48 @@ export class ProjectMemberController {
     private readonly projectMemberService: ProjectMemberService,
   ) {}
 
-  /**
-   * 邀请项目成员
-   */
+  /** 邀请项目成员 */
   @Post(':projectId/members')
+  @RequireProjectMember()
   @ProjectPermissions(['project:member:invite'])
   async inviteProjectMember(
     @Param('projectId') projectId: string,
-    @Body() inviteDto: InviteMemberReqDto,
+    @Body() dto: InviteMemberReqDto,
     @ReqUser('id') userId: string,
   ): Promise<MemberDto> {
-    const newMember = await this.projectMemberService.inviteProjectMember(projectId, inviteDto, userId)
-    return plainToInstance(MemberDto, newMember)
+    const result = await this.projectMemberService.inviteProjectMember(dto, projectId, userId)
+    return plainToInstance(MemberDto, result)
   }
 
-  /**
-   * 获取项目成员列表
-   */
+  /** 获取项目成员列表 */
   @Get(':projectId/members')
+  @RequireProjectMember()
   @ProjectPermissions(['project:read'])
   async getProjectMembers(
     @Param('projectId') projectId: string,
-    @Query() query: GetMembersReqDto,
-    @ReqUser('id') userId: string,
+    @Query() dto: GetMembersReqDto,
   ): Promise<MembersDto> {
-    const result = await this.projectMemberService.getProjectMembers(projectId, userId, query)
+    const result = await this.projectMemberService.getProjectMembers(dto, projectId)
     return plainToInstance(MembersDto, result)
   }
 
-  /**
-   * 更新项目成员角色
-   */
+  /** 更新项目成员角色 */
   @Patch(':projectId/members/:memberId')
+  @RequireProjectMember()
   @ProjectPermissions(['project:member:manage'])
   async updateProjectMemberRole(
     @Param('projectId') projectId: string,
     @Param('memberId') memberId: string,
-    @Body() updateDto: UpdateMemberReqDto,
+    @Body() dto: UpdateMemberReqDto,
     @ReqUser('id') userId: string,
   ): Promise<MemberDto> {
-    const updatedMember = await this.projectMemberService.updateProjectMember(projectId, memberId, updateDto, userId)
-    return plainToInstance(MemberDto, updatedMember)
+    const result = await this.projectMemberService.updateProjectMember(dto, projectId, memberId, userId)
+    return plainToInstance(MemberDto, result)
   }
 
-  /**
-   * 移除项目成员
-   */
+  /** 移除项目成员 */
   @Delete(':projectId/members/:memberId')
+  @RequireProjectMember()
   @ProjectPermissions(['project:member:remove'])
   @ResMsg('项目成员移除成功')
   async removeProjectMember(
