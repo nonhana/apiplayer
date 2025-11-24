@@ -1,8 +1,6 @@
 import { ClassSerializerInterceptor, Module, ValidationPipe } from '@nestjs/common'
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { ApiModule } from './api/api.module'
-import { GroupModule } from './api/group.module'
-import { VersionModule } from './api/version.module'
 import { AppController } from './app.controller'
 import { AuthModule } from './auth/auth.module'
 import { AllExceptionFilter } from './common/filters/all-exception.filter'
@@ -33,8 +31,6 @@ import { UserModule } from './user/user.module'
     ProjectModule,
     CookieModule,
     ApiModule,
-    GroupModule,
-    VersionModule,
   ],
   controllers: [AppController],
   providers: [

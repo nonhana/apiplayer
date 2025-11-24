@@ -5,12 +5,16 @@ import { PermissionModule } from '@/permission/permission.module'
 import { ProjectModule } from '@/project/project.module'
 import { ApiController } from './api.controller'
 import { ApiService } from './api.service'
+import { GroupController } from './group.controller'
+import { GroupService } from './group.service'
 import { ApiUtilsService } from './utils.service'
+import { VersionController } from './version.controller'
+import { VersionService } from './version.service'
 
 @Module({
   imports: [PrismaModule, AuthModule, PermissionModule, ProjectModule],
-  controllers: [ApiController],
-  providers: [ApiService, ApiUtilsService],
-  exports: [ApiService, ApiUtilsService],
+  controllers: [ApiController, GroupController, VersionController],
+  providers: [ApiService, ApiUtilsService, GroupService, VersionService],
+  exports: [ApiService, ApiUtilsService, GroupService, VersionService],
 })
 export class ApiModule {}
