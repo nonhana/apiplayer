@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ProjectPermissions, RequireProjectMember, RequireTeamMember } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
@@ -22,65 +22,59 @@ import { ProjectService } from './project.service'
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
-  /**
-   * 创建项目
-   */
+  /** 创建项目 */
   @Post(':teamId')
+  @RequireTeamMember()
   @ProjectPermissions(['project:create'], 'teamId')
   @ResMsg('项目创建成功')
   async createProject(
     @Param('teamId') teamId: string,
-    @Body() createProjectDto: CreateProjectReqDto,
+    @Body() dto: CreateProjectReqDto,
     @ReqUser('id') userId: string,
   ): Promise<ProjectBriefDto> {
-    const result = await this.projectService.createProject(teamId, createProjectDto, userId)
+    const result = await this.projectService.createProject(dto, teamId, userId)
     return plainToInstance(ProjectBriefDto, result)
   }
 
-  /**
-   * 获取用户的项目列表
-   */
+  /** 获取用户的项目列表 */
   @Get()
   async getUserProjects(
-    @Query() query: GetProjectsReqDto,
+    @Query() dto: GetProjectsReqDto,
     @ReqUser('id') userId: string,
   ): Promise<ProjectsDto> {
-    const result = await this.projectService.getUserProjects(userId, query)
+    const result = await this.projectService.getUserProjects(dto, userId)
     return plainToInstance(ProjectsDto, result)
   }
 
-  /**
-   * 获取项目详情
-   */
+  /** 获取项目详情 */
   @Get(':projectId')
+  @RequireProjectMember()
   @ProjectPermissions(['project:read'])
   async getProjectDetail(
     @Param('projectId') projectId: string,
     @ReqUser('id') userId: string,
   ): Promise<ProjectDetailDto> {
-    const projectDetail = await this.projectService.getProjectDetail(projectId, userId)
-    return plainToInstance(ProjectDetailDto, projectDetail)
+    const result = await this.projectService.getProjectDetail(projectId, userId)
+    return plainToInstance(ProjectDetailDto, result)
   }
 
-  /**
-   * 更新项目信息
-   */
+  /** 更新项目 */
   @Patch(':projectId')
+  @RequireProjectMember()
   @ProjectPermissions(['project:write'])
   @ResMsg('项目更新成功')
   async updateProject(
     @Param('projectId') projectId: string,
-    @Body() updateProjectDto: UpdateProjectReqDto,
+    @Body() dto: UpdateProjectReqDto,
     @ReqUser('id') userId: string,
   ): Promise<ProjectBriefDto> {
-    const result = await this.projectService.updateProject(projectId, updateProjectDto, userId)
+    const result = await this.projectService.updateProject(dto, projectId, userId)
     return plainToInstance(ProjectBriefDto, result)
   }
 
-  /**
-   * 删除项目
-   */
+  /** 删除项目 */
   @Delete(':projectId')
+  @RequireProjectMember()
   @ProjectPermissions(['project:admin'])
   @ResMsg('项目删除成功')
   async deleteProject(
@@ -90,9 +84,7 @@ export class ProjectController {
     await this.projectService.deleteProject(projectId, userId)
   }
 
-  /**
-   * 获取用户最近访问的项目
-   */
+  /** 获取最近访问项目 */
   @Get('recently/visited')
   async getRecentlyProjects(
     @ReqUser('id') userId: string,
@@ -101,10 +93,9 @@ export class ProjectController {
     return plainToInstance(RecentProjectItemDto, result)
   }
 
-  /**
-   * 获取当前用户在项目中的角色和权限
-   */
+  /** 获取我的项目角色 */
   @Get(':projectId/my-role')
+  @RequireProjectMember()
   @ProjectPermissions(['project:read'])
   async getMyProjectRole(
     @Param('projectId') projectId: string,

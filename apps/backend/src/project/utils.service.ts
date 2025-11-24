@@ -9,6 +9,7 @@ export class ProjectUtilsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  /** 检查在 team 中是否存在同名的项目 */
   async checkProjectNameExists(teamId: string, name: string) {
     const existingProject = await this.prisma.project.findFirst({
       where: {
@@ -23,6 +24,7 @@ export class ProjectUtilsService {
     }
   }
 
+  /** 检查在 team 中是否存在同名的项目 */
   async checkProjectSlugExists(teamId: string, slug: string) {
     const existingProject = await this.prisma.project.findUnique({
       where: {
@@ -38,6 +40,7 @@ export class ProjectUtilsService {
     }
   }
 
+  /** 检查当前 ID 的项目是否有效 */
   async getProjectById(projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -52,21 +55,6 @@ export class ProjectUtilsService {
     }
 
     return project
-  }
-
-  async checkUserTeamMembership(teamId: string, userId: string) {
-    const membership = await this.prisma.teamMember.findUnique({
-      where: {
-        userId_teamId: {
-          userId,
-          teamId,
-        },
-      },
-    })
-
-    if (!membership) {
-      throw new HanaException('您不是该团队的成员', ErrorCode.NOT_TEAM_MEMBER, 403)
-    }
   }
 
   async checkUserProjectMembership(projectId: string, userId: string) {
@@ -84,6 +72,7 @@ export class ProjectUtilsService {
     }
   }
 
+  /** 添加用户访问项目记录 */
   async recordUserVisit(userId: string, projectId: string) {
     try {
       await this.prisma.recentlyProject.upsert({

@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { APIOperationType, Prisma, VersionChangeType } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { RoleService } from '@/role/role.service'
 import { CreateProjectReqDto, GetProjectsReqDto, UpdateProjectReqDto } from './dto'
 import { ProjectUtilsService } from './utils.service'
 
@@ -14,31 +15,18 @@ export class ProjectService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly projectUtilsService: ProjectUtilsService,
+    private readonly roleService: RoleService,
   ) {}
 
-  async createProject(teamId: string, dto: CreateProjectReqDto, creatorId: string) {
+  async createProject(dto: CreateProjectReqDto, teamId: string, creatorId: string) {
     const { name, slug, description, icon, isPublic = false } = dto
 
     try {
-      // 检查用户是否是团队成员
-      await this.projectUtilsService.checkUserTeamMembership(teamId, creatorId)
-
-      // 检查项目名称在团队内是否已存在
       await this.projectUtilsService.checkProjectNameExists(teamId, name)
-
-      // 检查项目标识符在团队内是否已存在
       await this.projectUtilsService.checkProjectSlugExists(teamId, slug)
 
-      // 获取项目管理员角色
-      const adminRole = await this.prisma.role.findUnique({
-        where: { name: RoleName.PROJECT_ADMIN },
-      })
+      const adminRole = await this.roleService.getRole('name', RoleName.PROJECT_ADMIN)
 
-      if (!adminRole) {
-        throw new HanaException('系统角色配置错误', ErrorCode.ROLE_NOT_FOUND)
-      }
-
-      // 使用事务创建项目和成员关系
       const project = await this.prisma.$transaction(async (tx) => {
         // 创建项目
         const project = await tx.project.create({
@@ -65,9 +53,9 @@ export class ProjectService {
         await tx.projectEnvironment.create({
           data: {
             projectId: project.id,
-            name: '生产环境',
-            type: 'PROD',
-            baseUrl: 'https://api.example.com',
+            name: '开发环境',
+            type: 'DEV',
+            baseUrl: 'http://your-project-url.com',
             isDefault: true,
           },
         })
@@ -77,9 +65,7 @@ export class ProjectService {
 
       this.logger.log(`用户 ${creatorId} 在团队 ${teamId} 中创建了项目 ${project.name} (${project.id})`)
 
-      return {
-        project,
-      }
+      return project
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -91,13 +77,12 @@ export class ProjectService {
     }
   }
 
-  async getUserProjects(userId: string, query: GetProjectsReqDto) {
-    const { page = 1, limit = 10, search, isPublic, teamId } = query
+  async getUserProjects(dto: GetProjectsReqDto, userId: string) {
+    const { page = 1, limit = 10, search, isPublic, teamId } = dto
 
     try {
       const skip = (page - 1) * limit
 
-      // 构建查询条件
       const whereCondition: Prisma.ProjectWhereInput = {
         status: 'ACTIVE',
         members: {
@@ -115,18 +100,11 @@ export class ProjectService {
         }),
       }
 
-      // 查询项目列表和总数
       const [projects, total] = await Promise.all([
         this.prisma.project.findMany({
           where: whereCondition,
           include: {
-            team: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
+            team: true,
             members: {
               where: { userId },
               include: {
@@ -174,31 +152,11 @@ export class ProjectService {
       const project = await this.prisma.project.findUnique({
         where: { id: projectId },
         include: {
-          team: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
+          team: true,
           members: {
             include: {
-              user: {
-                select: {
-                  id: true,
-                  username: true,
-                  name: true,
-                  email: true,
-                  avatar: true,
-                },
-              },
-              role: {
-                select: {
-                  id: true,
-                  name: true,
-                  description: true,
-                },
-              },
+              user: true,
+              role: true,
             },
             orderBy: { joinedAt: 'asc' },
             take: 10,
@@ -229,12 +187,6 @@ export class ProjectService {
         throw new HanaException('项目已被删除', ErrorCode.PROJECT_DELETED)
       }
 
-      // 检查用户是否是项目成员
-      const currentUserMember = project.members.find(member => member.userId === userId)
-      if (!currentUserMember) {
-        throw new HanaException('您不是该项目的成员', ErrorCode.NOT_PROJECT_MEMBER, 403)
-      }
-
       // 记录用户访问
       await this.projectUtilsService.recordUserVisit(userId, projectId)
 
@@ -244,33 +196,27 @@ export class ProjectService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`获取项目详情失败: ${error.message}`, error.stack)
       throw new HanaException('获取项目详情失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
-  async updateProject(projectId: string, updateProjectDto: UpdateProjectReqDto, userId: string) {
+  async updateProject(dto: UpdateProjectReqDto, projectId: string, userId: string) {
     try {
-      // 检查项目是否存在
       const existingProject = await this.projectUtilsService.getProjectById(projectId)
 
-      // 验证用户权限
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
-
-      // 如果要更新名称，检查是否重复
-      if (updateProjectDto.name && updateProjectDto.name !== existingProject.name) {
-        await this.projectUtilsService.checkProjectNameExists(existingProject.teamId, updateProjectDto.name)
+      if (dto.name && dto.name !== existingProject.name) {
+        await this.projectUtilsService.checkProjectNameExists(existingProject.teamId, dto.name)
       }
 
       // 更新项目信息
       const updatedProject = await this.prisma.project.update({
         where: { id: projectId },
         data: {
-          ...(updateProjectDto.name && { name: updateProjectDto.name }),
-          ...(updateProjectDto.description !== undefined && { description: updateProjectDto.description }),
-          ...(updateProjectDto.icon !== undefined && { icon: updateProjectDto.icon }),
-          ...(updateProjectDto.isPublic !== undefined && { isPublic: updateProjectDto.isPublic }),
+          ...(dto.name && { name: dto.name }),
+          ...(dto.description !== undefined && { description: dto.description }),
+          ...(dto.icon !== undefined && { icon: dto.icon }),
+          ...(dto.isPublic !== undefined && { isPublic: dto.isPublic }),
         },
       })
 
@@ -282,7 +228,6 @@ export class ProjectService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`更新项目信息失败: ${error.message}`, error.stack)
       throw new HanaException('更新项目信息失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
@@ -290,31 +235,71 @@ export class ProjectService {
 
   async deleteProject(projectId: string, userId: string) {
     try {
-      // 检查项目是否存在
       const project = await this.projectUtilsService.getProjectById(projectId)
 
-      // 验证用户权限
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
+      await this.prisma.$transaction(async (tx) => {
+        // 1. 删除 API 分组
+        await tx.aPIGroup.updateMany({
+          where: {
+            projectId,
+            status: 'ACTIVE',
+          },
+          data: {
+            status: 'DELETED',
+          },
+        })
 
-      // 检查项目是否有 API
-      const apiCount = await this.prisma.aPI.count({
-        where: {
-          projectId,
-          recordStatus: 'ACTIVE',
-        },
+        // 2. 删除 API，并记录操作日志
+        const activeApis = await tx.aPI.findMany({
+          where: {
+            projectId,
+            recordStatus: 'ACTIVE',
+          },
+          select: {
+            id: true,
+          },
+        })
+
+        if (activeApis.length > 0) {
+          for (const api of activeApis) {
+            await tx.aPIOperationLog.create({
+              data: {
+                apiId: api.id,
+                userId,
+                operation: APIOperationType.DELETE,
+                versionId: null,
+                changes: [VersionChangeType.DELETE],
+                description: '项目被删除时软删除 API',
+              },
+            })
+          }
+
+          await tx.aPI.updateMany({
+            where: {
+              projectId,
+              recordStatus: 'ACTIVE',
+            },
+            data: {
+              recordStatus: 'DELETED',
+            },
+          })
+        }
+
+        await tx.recentlyProject.deleteMany({
+          where: {
+            projectId,
+          },
+        })
+
+        await tx.project.update({
+          where: { id: projectId },
+          data: { status: 'DELETED' },
+        })
       })
 
-      if (apiCount > 0) {
-        throw new HanaException('无法删除包含 API 的项目', ErrorCode.CANNOT_DELETE_PROJECT_WITH_APIS)
-      }
-
-      // 软删除项目
-      await this.prisma.project.update({
-        where: { id: projectId },
-        data: { status: 'DELETED' },
-      })
-
-      this.logger.log(`用户 ${userId} 删除了项目 ${project.name} (${projectId})`)
+      this.logger.log(
+        `用户 ${userId} 删除了项目 ${project.name} (${projectId})，其下 API 分组与 API 已一并软删除`,
+      )
 
       return {
         deletedProjectId: projectId,
@@ -324,31 +309,23 @@ export class ProjectService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`删除项目失败: ${error.message}`, error.stack)
       throw new HanaException('删除项目失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
-  async getRecentlyProjects(userId: string, limit: number = 10) {
+  async getRecentlyProjects(userId: string) {
     try {
       const recentlyProjects = await this.prisma.recentlyProject.findMany({
         where: { userId },
         include: {
           project: {
             include: {
-              team: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
+              team: true,
             },
           },
         },
         orderBy: { lastVisitedAt: 'desc' },
-        take: limit,
       })
 
       return recentlyProjects
