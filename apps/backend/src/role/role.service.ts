@@ -375,10 +375,10 @@ export class RoleService {
   }
 
   /** 获取某个特定角色 */
-  async getRoleByName(name: RoleName) {
+  async getRole(by: 'id' | 'name', value: string) {
     try {
       const role = await this.prisma.role.findUnique({
-        where: { name },
+        where: by === 'id' ? { id: value } : { name: value },
         include: {
           rolePermissions: {
             include: {

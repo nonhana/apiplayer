@@ -26,7 +26,7 @@ export class TeamService {
       await this.teamUtilsService.checkTeamNameExists(name)
       await this.teamUtilsService.checkTeamSlugExists(slug)
 
-      const ownerRole = await this.roleService.getRoleByName(RoleName.TEAM_OWNER)
+      const ownerRole = await this.roleService.getRole('name', RoleName.TEAM_OWNER)
 
       const result = await this.prisma.$transaction(async (tx) => {
         const team = await tx.team.create({

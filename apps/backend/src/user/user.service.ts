@@ -39,4 +39,23 @@ export class UserService {
       throw new HanaException('获取用户资料失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
+
+  async getUserByEmail(email: string) {
+    try {
+      const user = await this.prisma.user.findUnique({ where: { email } })
+      if (!user) {
+        throw new HanaException('被邀请的用户不存在', ErrorCode.USER_NOT_FOUND, 404)
+      }
+      if (!user.isActive) {
+        throw new HanaException('被邀请的用户账号已被禁用', ErrorCode.ACCOUNT_DISABLED)
+      }
+      return user
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      throw new HanaException('获取用户失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
 }

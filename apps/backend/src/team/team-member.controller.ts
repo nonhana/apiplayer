@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { TeamPermissions } from '@/common/decorators/permissions.decorator'
+import { RequireTeamMember, TeamPermissions } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
@@ -14,53 +14,48 @@ import { TeamMemberService } from './team-member.service'
 export class TeamMemberController {
   constructor(private readonly teamMemberService: TeamMemberService) {}
 
-  /**
-   * 邀请团队成员
-   */
+  /** 邀请别人加入团队 */
   @Post(':teamId/members')
+  @RequireTeamMember()
   @TeamPermissions(['team:member:invite'])
   async inviteTeamMember(
     @Param('teamId') teamId: string,
-    @Body() inviteDto: InviteMemberReqDto,
+    @Body() dto: InviteMemberReqDto,
     @ReqUser('id') userId: string,
   ): Promise<TeamMemberDto> {
-    const newTeamMember = await this.teamMemberService.inviteTeamMember(teamId, inviteDto, userId)
+    const newTeamMember = await this.teamMemberService.inviteTeamMember(dto, teamId, userId)
     return plainToInstance(TeamMemberDto, newTeamMember)
   }
 
-  /**
-   * 获取团队成员列表
-   */
+  /** 获取团队成员列表 */
   @Get(':teamId/members')
+  @RequireTeamMember()
   @TeamPermissions(['team:read'])
   async getTeamMembers(
     @Param('teamId') teamId: string,
-    @Query() query: BasePaginatedQueryDto,
-    @ReqUser('id') userId: string,
+    @Query() dto: BasePaginatedQueryDto,
   ): Promise<TeamMembersDto> {
-    const result = await this.teamMemberService.getTeamMembers(teamId, userId, query)
+    const result = await this.teamMemberService.getTeamMembers(dto, teamId)
     return plainToInstance(TeamMembersDto, result)
   }
 
-  /**
-   * 更新团队成员角色
-   */
+  /** 更新团队成员角色 */
   @Patch(':teamId/members/:memberId')
+  @RequireTeamMember()
   @TeamPermissions(['team:member:manage'])
   async updateTeamMemberRole(
     @Param('teamId') teamId: string,
     @Param('memberId') memberId: string,
-    @Body() updateDto: UpdateMemberReqDto,
+    @Body() dto: UpdateMemberReqDto,
     @ReqUser('id') userId: string,
   ): Promise<TeamMemberDto> {
-    const updatedMember = await this.teamMemberService.updateTeamMemberRole(teamId, memberId, updateDto, userId)
+    const updatedMember = await this.teamMemberService.updateTeamMemberRole(dto, teamId, memberId, userId)
     return plainToInstance(TeamMemberDto, updatedMember)
   }
 
-  /**
-   * 移除团队成员
-   */
+  /** 移除团队成员 */
   @Delete(':teamId/members/:memberId')
+  @RequireTeamMember()
   @TeamPermissions(['team:member:remove'])
   @ResMsg('团队成员移除成功')
   async removeTeamMember(
