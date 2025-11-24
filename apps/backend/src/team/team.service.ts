@@ -5,6 +5,7 @@ import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { RoleService } from '@/role/role.service'
 import { CreateTeamReqDto, UpdateTeamReqDto } from './dto'
 import { TeamUtilsService } from './utils.service'
 
@@ -15,23 +16,17 @@ export class TeamService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly teamUtilsService: TeamUtilsService,
+    private readonly roleService: RoleService,
   ) {}
 
-  async createTeam(createTeamDto: CreateTeamReqDto, creatorId: string) {
-    const { name, slug, description, avatar } = createTeamDto
+  async createTeam(dto: CreateTeamReqDto, creatorId: string) {
+    const { name, slug, description, avatar } = dto
 
     try {
       await this.teamUtilsService.checkTeamNameExists(name)
-
       await this.teamUtilsService.checkTeamSlugExists(slug)
 
-      const ownerRole = await this.prisma.role.findUnique({
-        where: { name: RoleName.TEAM_OWNER },
-      })
-
-      if (!ownerRole) {
-        throw new HanaException('系统角色配置错误', ErrorCode.ROLE_NOT_FOUND)
-      }
+      const ownerRole = await this.roleService.getRoleByName(RoleName.TEAM_OWNER)
 
       const result = await this.prisma.$transaction(async (tx) => {
         const team = await tx.team.create({
@@ -68,8 +63,8 @@ export class TeamService {
     }
   }
 
-  async getUserTeams(userId: string, query: BasePaginatedQueryDto) {
-    const { page = 1, limit = 10, search } = query
+  async getUserTeams(dto: BasePaginatedQueryDto, userId: string) {
+    const { page = 1, limit = 10, search } = dto
 
     try {
       const skip = (page - 1) * limit
@@ -135,43 +130,21 @@ export class TeamService {
     }
   }
 
-  async getTeamDetail(teamId: string, userId: string) {
+  async getTeamDetail(teamId: string) {
     try {
       const team = await this.prisma.team.findUnique({
         where: { id: teamId },
         include: {
           members: {
             include: {
-              user: {
-                select: {
-                  id: true,
-                  username: true,
-                  name: true,
-                  email: true,
-                  avatar: true,
-                },
-              },
-              role: {
-                select: {
-                  id: true,
-                  name: true,
-                  description: true,
-                },
-              },
+              user: true,
+              role: true,
             },
             orderBy: { joinedAt: 'asc' },
             take: 10, // 限制显示的成员数量
           },
           projects: {
             where: { status: 'ACTIVE' },
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              description: true,
-              icon: true,
-              createdAt: true,
-            },
             orderBy: { createdAt: 'desc' },
             take: 5, // 限制显示的项目数量
           },
@@ -192,44 +165,33 @@ export class TeamService {
         throw new HanaException('团队已被禁用', ErrorCode.TEAM_DISABLED)
       }
 
-      // 检查用户是否是团队成员
-      const currentUserMember = team.members.find(member => member.userId === userId)
-      if (!currentUserMember) {
-        throw new HanaException('您不是该团队的成员', ErrorCode.NOT_TEAM_MEMBER, 403)
-      }
-
       return team
     }
     catch (error) {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`获取团队详情失败: ${error.message}`, error.stack)
       throw new HanaException('获取团队详情失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
-  async updateTeam(teamId: string, updateTeamDto: UpdateTeamReqDto, userId: string) {
+  async updateTeam(dto: UpdateTeamReqDto, teamId: string, userId: string) {
     try {
-      // 检查团队是否存在
       const existingTeam = await this.teamUtilsService.getTeamById(teamId)
 
-      // 验证用户权限（需要在控制器层通过权限守卫验证）
-      await this.teamUtilsService.checkUserTeamMembership(teamId, userId)
-
       // 如果要更新名称，检查是否重复
-      if (updateTeamDto.name && updateTeamDto.name !== existingTeam.name) {
-        await this.teamUtilsService.checkTeamNameExists(updateTeamDto.name)
+      if (dto.name && dto.name !== existingTeam.name) {
+        await this.teamUtilsService.checkTeamNameExists(dto.name)
       }
 
       // 更新团队信息
       const updatedTeam = await this.prisma.team.update({
         where: { id: teamId },
         data: {
-          ...(updateTeamDto.name && { name: updateTeamDto.name }),
-          ...(updateTeamDto.description !== undefined && { description: updateTeamDto.description }),
-          ...(updateTeamDto.avatar !== undefined && { avatar: updateTeamDto.avatar }),
+          ...(dto.name && { name: dto.name }),
+          ...(dto.description !== undefined && { description: dto.description }),
+          ...(dto.avatar !== undefined && { avatar: dto.avatar }),
         },
       })
 
@@ -249,13 +211,8 @@ export class TeamService {
 
   async deleteTeam(teamId: string, userId: string) {
     try {
-      // 检查团队是否存在
       const team = await this.teamUtilsService.getTeamById(teamId)
 
-      // 验证用户权限（需要在控制器层通过权限守卫验证）
-      await this.teamUtilsService.checkUserTeamMembership(teamId, userId)
-
-      // 检查团队是否有项目
       const projectCount = await this.prisma.project.count({
         where: {
           teamId,
@@ -267,7 +224,7 @@ export class TeamService {
         throw new HanaException('无法删除包含项目的团队', ErrorCode.CANNOT_DELETE_TEAM_WITH_PROJECTS)
       }
 
-      // 软删除团队（设置为非激活状态）
+      // 软删除
       await this.prisma.team.update({
         where: { id: teamId },
         data: { isActive: false },
@@ -283,7 +240,6 @@ export class TeamService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`删除团队失败: ${error.message}`, error.stack)
       throw new HanaException('删除团队失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }

@@ -15,13 +15,13 @@ import {
 import { PermissionService } from './permission.service'
 
 @Controller('permissions')
+@RequireSystemAdmin()
 @UseGuards(AuthGuard, PermissionsGuard)
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
   /** 创建权限 */
   @Post()
-  @RequireSystemAdmin()
   async createPermission(@Body() createDto: CreatePermissionReqDto): Promise<PermissionDto> {
     const newPermission = await this.permissionService.createPermission(createDto)
     return plainToInstance(PermissionDto, newPermission)
@@ -29,7 +29,6 @@ export class PermissionController {
 
   /** 批量创建权限 */
   @Post('batch')
-  @RequireSystemAdmin()
   async batchCreatePermissions(@Body() createDto: CreatePermissionsReqDto): Promise<PermissionDto[]> {
     const newPermissions = await this.permissionService.createPermissions(createDto)
     return plainToInstance(PermissionDto, newPermissions)
@@ -37,7 +36,6 @@ export class PermissionController {
 
   /** 获取权限列表 */
   @Get()
-  @RequireSystemAdmin()
   async getPermissions(@Query() queryDto: GetPermissionsReqDto): Promise<PermissionsDto> {
     const res = await this.permissionService.getPermissions(queryDto)
     return plainToInstance(PermissionsDto, res)
@@ -45,7 +43,6 @@ export class PermissionController {
 
   /** 获取所有资源类型 */
   @Get('resources')
-  @RequireSystemAdmin()
   async getResources(): Promise<{ resources: string[] }> {
     const resources = await this.permissionService.getResources()
     return { resources }
@@ -53,7 +50,6 @@ export class PermissionController {
 
   /** 根据资源类型获取权限列表 */
   @Get('by-resource/:resource')
-  @RequireSystemAdmin()
   async getPermissionsByResource(@Param('resource') resource: string): Promise<PermissionDto[]> {
     const permissions = await this.permissionService.getPermissionsByResource(resource)
     return plainToInstance(PermissionDto, permissions)
@@ -61,7 +57,6 @@ export class PermissionController {
 
   /** 获取权限详情 */
   @Get(':id')
-  @RequireSystemAdmin()
   async getPermissionById(@Param('id') id: string): Promise<PermissionDto> {
     const permission = await this.permissionService.getPermissionById(id)
     return plainToInstance(PermissionDto, permission)
@@ -69,7 +64,6 @@ export class PermissionController {
 
   /** 更新权限 */
   @Patch(':id')
-  @RequireSystemAdmin()
   async updatePermission(
     @Param('id') id: string,
     @Body() updateDto: UpdatePermissionReqDto,
@@ -80,7 +74,6 @@ export class PermissionController {
 
   /** 删除权限 */
   @Delete(':id')
-  @RequireSystemAdmin()
   @ResMsg('权限删除成功')
   async deletePermission(@Param('id') id: string): Promise<void> {
     await this.permissionService.deletePermission(id)

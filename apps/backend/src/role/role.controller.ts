@@ -15,13 +15,13 @@ import {
 import { RoleService } from './role.service'
 
 @Controller('roles')
+@RequireSystemAdmin()
 @UseGuards(AuthGuard, PermissionsGuard)
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   /** 创建角色 */
   @Post()
-  @RequireSystemAdmin()
   async createRole(@Body() createDto: CreateRoleReqDto): Promise<RoleDto> {
     const newRole = await this.roleService.createRole(createDto)
     return plainToInstance(RoleDto, newRole)
@@ -29,7 +29,6 @@ export class RoleController {
 
   /** 获取角色列表 */
   @Get()
-  @RequireSystemAdmin()
   async getRoles(@Query() queryDto: GetRolesReqDto): Promise<RolesDto> {
     const newRoles = await this.roleService.getRoles(queryDto)
     return plainToInstance(RolesDto, newRoles)
@@ -37,7 +36,6 @@ export class RoleController {
 
   /** 获取角色详情 */
   @Get(':id')
-  @RequireSystemAdmin()
   async getRoleById(@Param('id') id: string): Promise<RoleDto> {
     const result = await this.roleService.getRoleById(id)
     return plainToInstance(RoleDto, result)
@@ -45,7 +43,6 @@ export class RoleController {
 
   /** 更新角色基本信息 */
   @Patch(':id')
-  @RequireSystemAdmin()
   async updateRole(
     @Param('id') id: string,
     @Body() updateDto: UpdateRoleReqDto,
@@ -56,7 +53,6 @@ export class RoleController {
 
   /** 为角色分配权限 */
   @Put(':id/permissions')
-  @RequireSystemAdmin()
   async assignPermissions(
     @Param('id') id: string,
     @Body() assignDto: AssignPermissionsReqDto,
@@ -67,7 +63,6 @@ export class RoleController {
 
   /** 删除角色 */
   @Delete(':id')
-  @RequireSystemAdmin()
   @ResMsg('角色删除成功')
   async deleteRole(@Param('id') id: string): Promise<void> {
     await this.roleService.deleteRole(id)

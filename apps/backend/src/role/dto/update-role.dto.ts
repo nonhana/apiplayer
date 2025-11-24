@@ -1,5 +1,5 @@
+import { RoleType } from '@prisma/client'
 import { IsEnum, IsOptional, IsString } from 'class-validator'
-import { ROLE_CATEGORIES, type RoleCategory } from '@/constants/role'
 
 export class UpdateRoleReqDto {
   @IsOptional()
@@ -11,6 +11,6 @@ export class UpdateRoleReqDto {
   description?: string
 
   @IsOptional()
-  @IsEnum(ROLE_CATEGORIES, { message: '角色类型必须是有效的枚举值' })
-  type?: RoleCategory
+  @IsEnum(RoleType, { message: '角色类型必须是有效的枚举值' })
+  type?: RoleType
 }

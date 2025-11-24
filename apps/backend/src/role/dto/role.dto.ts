@@ -1,4 +1,4 @@
-import type { RoleCategory } from '@/constants/role'
+import { RoleType } from '@prisma/client'
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
 import { PermissionDto } from '@/permission/dto/permission.dto'
 
@@ -15,7 +15,7 @@ export class RoleDto {
   description?: string
 
   @Expose()
-  type: RoleCategory
+  type: RoleType
 
   @Expose()
   createdAt: Date

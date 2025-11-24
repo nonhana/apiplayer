@@ -44,7 +44,7 @@ export class PermissionCheckerService {
     context: PermissionContext,
   ) {
     try {
-      let roles: RoleType[] = []
+      let role: RoleType | null
       let permissions: PermissionType[] = []
 
       switch (context.type) {
@@ -53,7 +53,7 @@ export class PermissionCheckerService {
             throw new HanaException('团队上下文需要提供团队ID', ErrorCode.INVALID_PARAMS)
           }
           const teamPermissions = await this.getTeamPermissions(userId, context.id)
-          roles = teamPermissions.roles
+          role = teamPermissions.role
           permissions = teamPermissions.permissions
           break
 
@@ -62,7 +62,7 @@ export class PermissionCheckerService {
             throw new HanaException('项目上下文需要提供项目ID', ErrorCode.INVALID_PARAMS)
           }
           const projectPermissions = await this.getProjectPermissions(userId, context.id)
-          roles = projectPermissions.roles
+          role = projectPermissions.role
           permissions = projectPermissions.permissions
           break
 
@@ -73,7 +73,7 @@ export class PermissionCheckerService {
       return {
         userId,
         context,
-        roles,
+        role,
         permissions,
       }
     }
@@ -82,8 +82,8 @@ export class PermissionCheckerService {
       return {
         userId,
         context,
-        roles: [],
-        permissions: [],
+        role: null,
+        permissions: [] as PermissionType[],
       }
     }
   }
@@ -112,13 +112,13 @@ export class PermissionCheckerService {
 
     if (!teamMember) {
       this.logger.debug(`用户 ${userId} 不是团队 ${teamId} 的成员`)
-      return { roles: [], permissions: [] }
+      return { role: null, permissions: [] }
     }
 
-    const roles = [teamMember.role.name] as RoleType[]
+    const role = teamMember.role.name as RoleType
     const permissions = teamMember.role.rolePermissions.map(rp => rp.permission.name) as PermissionType[]
 
-    return { roles, permissions }
+    return { role, permissions }
   }
 
   /** 获取用户在特定项目中的权限 */
@@ -146,12 +146,12 @@ export class PermissionCheckerService {
 
     if (!projectMember) {
       this.logger.debug(`用户 ${userId} 不是项目 ${projectId} 的成员`)
-      return { roles: [], permissions: [] }
+      return { role: null, permissions: [] }
     }
 
-    const roles = [projectMember.role.name] as RoleType[]
+    const role = projectMember.role.name as RoleType
     const permissions = projectMember.role.rolePermissions.map(rp => rp.permission.name) as PermissionType[]
-    return { roles, permissions }
+    return { role, permissions }
   }
 
   /** 检查用户是否是系统管理员 */

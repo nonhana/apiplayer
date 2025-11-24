@@ -3,7 +3,7 @@ import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { PermissionContext, PermissionContextConfig } from '@/common/types/permission'
+import { PermissionContext, PermissionContextConfig, PermissionContextParamName } from '@/common/types/permission'
 import { PermissionCheckerService } from '@/permission/permission-checker.service'
 import {
   CONTEXT_PERMISSIONS_KEY,
@@ -33,13 +33,13 @@ export class PermissionsGuard implements CanActivate {
     )
 
     // 检查是否设置了团队成员要求
-    const teamContext = this.reflector.getAllAndOverride<{ paramName: string }>(
+    const teamContext = this.reflector.getAllAndOverride<{ paramName: PermissionContextParamName }>(
       TEAM_CONTEXT_KEY,
       [context.getHandler(), context.getClass()],
     )
 
     // 检查是否设置了项目成员要求
-    const projectContext = this.reflector.getAllAndOverride<{ paramName: string }>(
+    const projectContext = this.reflector.getAllAndOverride<{ paramName: PermissionContextParamName }>(
       PROJECT_CONTEXT_KEY,
       [context.getHandler(), context.getClass()],
     )
@@ -192,25 +192,26 @@ export class PermissionsGuard implements CanActivate {
   }
 
   /**
-   * 从请求中提取上下文ID
+   * 从请求中提取上下文ID（主要是为了避免每次都得手动写）
+   * @description 根据传进来的 paramName，尝试从路径参数、查询参数或请求体中提取对应的值
    */
-  private extractContextId(request: FastifyRequest, paramName: string): string | null {
+  private extractContextId(request: FastifyRequest, paramName: PermissionContextParamName) {
     // 优先从路径参数中获取
     const params = request.params as Record<string, string> || {}
     if (params[paramName]) {
-      return params[paramName]
+      return params[paramName] as string
     }
 
     // 然后从查询参数中获取
     const query = request.query as Record<string, string> || {}
     if (query[paramName]) {
-      return query[paramName]
+      return query[paramName] as string
     }
 
     // 最后从请求体中获取
     const body = request.body as Record<string, any> || {}
     if (body[paramName]) {
-      return body[paramName]
+      return body[paramName] as string
     }
 
     return null

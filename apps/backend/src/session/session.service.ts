@@ -12,11 +12,11 @@ export interface SessionData {
 }
 
 export interface SessionOptions {
-  // 空闲超时时间（秒），默认30分钟
+  /** 空闲超时时间（秒），默认30分钟 */
   idleTimeout?: number
-  // 绝对超时时间（秒），默认8小时
+  /** 绝对超时时间（秒），默认8小时 */
   absoluteTimeout?: number
-  // Session ID 长度（字节），默认32字节
+  /** Session ID 长度（字节），默认32字节 */
   sessionIdLength?: number
 }
 
@@ -33,7 +33,7 @@ export class SessionService {
     @Inject(REDIS_CLIENT) private readonly redisClient: Redis,
   ) {}
 
-  /** 生成高熵、密码学安全的 Session ID */
+  /** 生成 Session ID */
   private generateSessionId(length = this.defaultOptions.sessionIdLength): string {
     return randomBytes(length).toString('hex')
   }
@@ -72,23 +72,12 @@ export class SessionService {
     const userSessionsKey = this.getUserSessionsKey(userId)
 
     try {
-      // 使用 Redis 事务确保原子性
       const multi = this.redisClient.multi()
-
-      // 设置 Session 数据
-      multi.hset(sessionKey, sessionData as any)
-
-      // 设置空闲超时
+      multi.hset(sessionKey, sessionData)
       multi.expire(sessionKey, mergedOptions.idleTimeout)
-
-      // 将 Session ID 添加到用户的 Session 列表中
       multi.sadd(userSessionsKey, sessionId)
-
-      // 设置用户 Session 列表的过期时间
       multi.expire(userSessionsKey, mergedOptions.absoluteTimeout)
-
       await multi.exec()
-
       this.logger.log(`为用户 ${userId} 创建了新的Session: ${sessionId}`)
       return sessionId
     }

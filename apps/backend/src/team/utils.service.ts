@@ -7,7 +7,7 @@ import { PrismaService } from '@/infra/prisma/prisma.service'
 export class TeamUtilsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async checkTeamNameExists(name: string): Promise<void> {
+  async checkTeamNameExists(name: string) {
     const existingTeam = await this.prisma.team.findFirst({
       where: {
         name,
@@ -20,7 +20,7 @@ export class TeamUtilsService {
     }
   }
 
-  async checkTeamSlugExists(slug: string): Promise<void> {
+  async checkTeamSlugExists(slug: string) {
     const existingTeam = await this.prisma.team.findUnique({
       where: { slug },
     })
@@ -46,7 +46,7 @@ export class TeamUtilsService {
     return team
   }
 
-  async checkUserTeamMembership(teamId: string, userId: string): Promise<void> {
+  async checkUserTeamMembership(teamId: string, userId: string) {
     const membership = await this.prisma.teamMember.findUnique({
       where: {
         userId_teamId: {

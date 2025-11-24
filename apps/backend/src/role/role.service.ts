@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
+import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import {
   AssignPermissionsReqDto,
@@ -370,6 +371,35 @@ export class RoleService {
     catch (error) {
       this.logger.error('获取用户权限失败:', error)
       throw new HanaException('获取用户权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /** 获取某个特定角色 */
+  async getRoleByName(name: RoleName) {
+    try {
+      const role = await this.prisma.role.findUnique({
+        where: { name },
+        include: {
+          rolePermissions: {
+            include: {
+              permission: true,
+            },
+          },
+        },
+      })
+
+      if (!role) {
+        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+      }
+
+      return role
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error('获取角色详情失败:', error)
+      throw new HanaException('获取角色详情失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 }
