@@ -35,19 +35,7 @@ export class ApiUtilsService {
     }
   }
 
-  /**
-   * 记录 API 操作日志的工具方法
-   *
-   * @param params - 日志参数
-   * @param params.apiId - API 主键 ID
-   * @param params.userId - 执行操作的用户 ID
-   * @param params.operation - 操作类型（创建、更新、删除、发布、归档、回滚等）
-   * @param params.versionId - 关联的版本 ID（若存在）
-   * @param params.changes - 版本变更类型列表
-   * @param params.description - 操作描述
-   * @param params.metadata - 额外元数据（如 Diff 摘要、来源等）
-   * @param tx - 可选的事务客户端，若提供则在同一事务内写入日志
-   */
+  /** 记录 API 操作日志 */
   async createOperationLog(
     params: {
       apiId: string

@@ -21,7 +21,6 @@ export class VersionService {
   async getVersionList(apiId: string, projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const api = await this.prisma.aPI.findUnique({
         where: { id: apiId, projectId, recordStatus: 'ACTIVE' },
@@ -75,7 +74,6 @@ export class VersionService {
   ) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const api = await this.prisma.aPI.findUnique({
         where: { id: apiId, projectId, recordStatus: 'ACTIVE' },
@@ -127,7 +125,6 @@ export class VersionService {
   ) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const api = await this.prisma.aPI.findUnique({
         where: { id: apiId, projectId, recordStatus: 'ACTIVE' },
@@ -243,7 +240,6 @@ export class VersionService {
   ) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const api = await this.prisma.aPI.findUnique({
         where: { id: apiId, projectId, recordStatus: 'ACTIVE' },
@@ -347,7 +343,6 @@ export class VersionService {
   ): Promise<void> {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const version = await this.prisma.aPIVersion.findUnique({
         where: { id: versionId, apiId, projectId },
@@ -410,7 +405,6 @@ export class VersionService {
   ): Promise<void> {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const api = await this.prisma.aPI.findUnique({
         where: { id: apiId, projectId, recordStatus: 'ACTIVE' },
@@ -569,7 +563,6 @@ export class VersionService {
   ) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       if (fromVersionId === toVersionId) {
         throw new HanaException(
