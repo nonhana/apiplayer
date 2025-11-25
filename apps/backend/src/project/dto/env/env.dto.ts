@@ -1,4 +1,4 @@
-import type { ProjectEnvType } from '@/constants/project-env'
+import { ProjectEnvType } from '@prisma/client'
 import { Exclude, Expose } from 'class-transformer'
 
 @Exclude()

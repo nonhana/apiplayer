@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ProjectPermissions, RequireProjectMember } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
@@ -28,52 +28,47 @@ export class ProjectEnvController {
     private readonly projectEnvService: ProjectEnvService,
   ) {}
 
-  /**
-   * 创建项目环境
-   */
+  /** 创建项目环境 */
   @Post(':projectId/environments')
+  @RequireProjectMember()
   @ProjectPermissions(['project:write'])
   async createProjectEnvironment(
     @Param('projectId') projectId: string,
-    @Body() createEnvDto: CreateProjectEnvReqDto,
+    @Body() dto: CreateProjectEnvReqDto,
     @ReqUser('id') userId: string,
   ): Promise<ProjectEnvDto> {
-    const newEnv = await this.projectEnvService.createProjectEnv(projectId, createEnvDto, userId)
-    return plainToInstance(ProjectEnvDto, newEnv)
+    const result = await this.projectEnvService.createProjectEnv(dto, projectId, userId)
+    return plainToInstance(ProjectEnvDto, result)
   }
 
-  /**
-   * 获取项目环境列表
-   */
+  /** 获取项目环境列表 */
   @Get(':projectId/environments')
+  @RequireProjectMember()
   @ProjectPermissions(['project:read'])
   async getProjectEnvironments(
     @Param('projectId') projectId: string,
-    @ReqUser('id') userId: string,
   ): Promise<ProjectEnvDto[]> {
-    const envs = await this.projectEnvService.getProjectEnvs(projectId, userId)
-    return plainToInstance(ProjectEnvDto, envs)
+    const result = await this.projectEnvService.getProjectEnvs(projectId)
+    return plainToInstance(ProjectEnvDto, result)
   }
 
-  /**
-   * 更新项目环境
-   */
+  /** 更新项目环境 */
   @Patch(':projectId/environments/:environmentId')
+  @RequireProjectMember()
   @ProjectPermissions(['project:write'])
   async updateProjectEnvironment(
     @Param('projectId') projectId: string,
     @Param('environmentId') environmentId: string,
-    @Body() updateEnvDto: UpdateProjectEnvReqDto,
+    @Body() dto: UpdateProjectEnvReqDto,
     @ReqUser('id') userId: string,
   ): Promise<ProjectEnvDto> {
-    const updatedEnv = await this.projectEnvService.updateProjectEnv(projectId, environmentId, updateEnvDto, userId)
-    return plainToInstance(ProjectEnvDto, updatedEnv)
+    const result = await this.projectEnvService.updateProjectEnv(dto, projectId, environmentId, userId)
+    return plainToInstance(ProjectEnvDto, result)
   }
 
-  /**
-   * 删除项目环境
-   */
+  /** 删除项目环境 */
   @Delete(':projectId/environments/:environmentId')
+  @RequireProjectMember()
   @ProjectPermissions(['project:write'])
   @ResMsg('项目环境删除成功')
   async deleteProjectEnvironment(

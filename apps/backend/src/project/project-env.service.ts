@@ -15,15 +15,10 @@ export class ProjectEnvService {
     private readonly projectUtilsService: ProjectUtilsService,
   ) {}
 
-  async createProjectEnv(projectId: string, dto: CreateProjectEnvReqDto, userId: string) {
+  async createProjectEnv(dto: CreateProjectEnvReqDto, projectId: string, userId: string) {
     try {
-      // 检查项目是否存在
       await this.projectUtilsService.getProjectById(projectId)
 
-      // 验证用户权限
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
-
-      // 检查环境名称是否已存在
       const existingEnv = await this.prisma.projectEnvironment.findUnique({
         where: {
           projectId_name: {
@@ -69,17 +64,14 @@ export class ProjectEnvService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`创建项目环境失败: ${error.message}`, error.stack)
       throw new HanaException('创建项目环境失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
-  async getProjectEnvs(projectId: string, userId: string) {
+  async getProjectEnvs(projectId: string) {
     try {
-      // 检查项目是否存在和用户权限
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const environments = await this.prisma.projectEnvironment.findMany({
         where: { projectId },
@@ -95,21 +87,15 @@ export class ProjectEnvService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`获取项目环境列表失败: ${error.message}`, error.stack)
       throw new HanaException('获取项目环境列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
-  async updateProjectEnv(projectId: string, environmentId: string, dto: UpdateProjectEnvReqDto, userId: string) {
+  async updateProjectEnv(dto: UpdateProjectEnvReqDto, projectId: string, environmentId: string, userId: string) {
     try {
-      // 检查项目是否存在
       await this.projectUtilsService.getProjectById(projectId)
 
-      // 验证用户权限
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
-
-      // 检查环境是否存在
       const existingEnv = await this.prisma.projectEnvironment.findUnique({
         where: { id: environmentId },
       })
@@ -166,7 +152,6 @@ export class ProjectEnvService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`更新项目环境失败: ${error.message}`, error.stack)
       throw new HanaException('更新项目环境失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
@@ -174,11 +159,7 @@ export class ProjectEnvService {
 
   async deleteProjectEnv(projectId: string, environmentId: string, userId: string) {
     try {
-      // 检查项目是否存在
       await this.projectUtilsService.getProjectById(projectId)
-
-      // 验证用户权限
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查环境是否存在
       const environment = await this.prisma.projectEnvironment.findUnique({
@@ -189,7 +170,6 @@ export class ProjectEnvService {
         throw new HanaException('环境不存在', ErrorCode.ENVIRONMENT_NOT_FOUND, 404)
       }
 
-      // 检查是否是默认环境且是最后一个环境
       if (environment.isDefault) {
         const envCount = await this.prisma.projectEnvironment.count({
           where: { projectId },
@@ -230,7 +210,6 @@ export class ProjectEnvService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`删除项目环境失败: ${error.message}`, error.stack)
       throw new HanaException('删除项目环境失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
