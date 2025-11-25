@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { TeamMemberWhereInput } from 'prisma/generated/models'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
@@ -78,7 +78,7 @@ export class TeamMemberService {
 
       const skip = (page - 1) * limit
 
-      const searchCondition: Prisma.TeamMemberWhereInput = search
+      const searchCondition: TeamMemberWhereInput = search
         ? {
             OR: [
               { user: { username: { contains: search, mode: 'insensitive' as const } } },

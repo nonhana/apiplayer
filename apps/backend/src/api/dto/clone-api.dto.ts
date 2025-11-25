@@ -1,5 +1,5 @@
-import { APIMethod } from '@prisma/client'
 import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
+import { APIMethod } from 'prisma/generated/client'
 
 export class CloneApiReqDto {
   @IsNotEmpty({ message: '目标分组ID不能为空' })

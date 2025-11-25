@@ -1,6 +1,6 @@
-import { ParamType, RequestParamCategory } from '@prisma/client'
-import { InputJsonValue } from '@prisma/client/runtime/library'
+import type { InputJsonValue } from 'prisma/generated/internal/prismaNamespace'
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
+import { ParamType, RequestParamCategory } from 'prisma/generated/client'
 import { IsJsonValue } from '@/common/validator/is-json'
 
 /** 创建全局参数请求 DTO */

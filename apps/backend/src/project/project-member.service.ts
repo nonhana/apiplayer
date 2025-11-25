@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { ProjectMemberWhereInput } from 'prisma/generated/models'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -94,7 +94,7 @@ export class ProjectMemberService {
       const skip = (page - 1) * limit
 
       // 构建搜索条件
-      const searchCondition: Prisma.ProjectMemberWhereInput = search
+      const searchCondition: ProjectMemberWhereInput = search
         ? {
             OR: [
               { user: { username: { contains: search, mode: 'insensitive' as const } } },

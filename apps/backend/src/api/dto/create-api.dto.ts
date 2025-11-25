@@ -1,4 +1,3 @@
-import { APIMethod, APIStatus } from '@prisma/client'
 import {
   IsArray,
   IsEnum,
@@ -12,6 +11,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator'
+import { APIMethod, APIStatus } from 'prisma/generated/client'
 
 export class CreateApiReqDto {
   @IsNotEmpty({ message: 'API分组ID不能为空' })

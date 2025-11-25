@@ -1,12 +1,16 @@
 // It is best to run this file in place using bun runtime
 
 import process from 'node:process'
-import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from 'prisma/generated/client'
 import { permissions } from '../src/constants/permission'
 import { roles } from '../src/constants/role'
 import { systemConfigs } from '../src/constants/system-config'
+import 'dotenv/config'
 
-const prisma = new PrismaClient()
+const connectionString = `${process.env.DATABASE_URL}`
+const adapter = new PrismaPg({ connectionString })
+const prisma = new PrismaClient({ adapter })
 
 async function main() {
   console.log('🌱 开始种子数据初始化...')

@@ -1,5 +1,5 @@
+import type { User } from 'prisma/generated/client'
 import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common'
-import { User } from '@prisma/client'
 import { plainToInstance } from 'class-transformer'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { Public } from '@/common/decorators/public.decorator'

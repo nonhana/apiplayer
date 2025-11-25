@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { APIOperationType, Prisma, VersionChangeType } from '@prisma/client'
+import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { RoleName } from '@/constants/role'

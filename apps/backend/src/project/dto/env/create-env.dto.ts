@@ -1,5 +1,5 @@
-import { ProjectEnvType } from '@prisma/client'
 import { IsBoolean, IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, IsUrl, MaxLength, MinLength } from 'class-validator'
+import { ProjectEnvType } from 'prisma/generated/client'
 
 export class CreateProjectEnvReqDto {
   /** 环境名称 */

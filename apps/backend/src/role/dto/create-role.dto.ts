@@ -1,5 +1,5 @@
-import { RoleType } from '@prisma/client'
 import { IsArray, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { RoleType } from 'prisma/generated/client'
 
 export class CreateRoleReqDto {
   @IsString({ message: '角色名称必须是字符串' })

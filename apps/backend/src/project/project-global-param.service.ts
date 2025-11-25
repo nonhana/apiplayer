@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { GlobalParamWhereInput } from 'prisma/generated/models'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -68,7 +68,7 @@ export class ProjectGlobalParamService {
 
       const skip = (page - 1) * limit
 
-      const whereCondition: Prisma.GlobalParamWhereInput = {
+      const whereCondition: GlobalParamWhereInput = {
         projectId,
         ...(category && { category }),
         ...(type && { type }),

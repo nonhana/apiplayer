@@ -1,5 +1,5 @@
-import { APIMethod, APIStatus } from '@prisma/client'
 import { IsEnum, IsOptional, IsString } from 'class-validator'
+import { APIMethod, APIStatus } from 'prisma/generated/client'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 
 /** 获取 API 列表请求 DTO */

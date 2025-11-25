@@ -1,4 +1,3 @@
-import { APIOperationType, VersionChangeType } from '@prisma/client'
 import { Exclude, Expose, Type } from 'class-transformer'
 import {
   IsArray,
@@ -7,6 +6,7 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator'
+import { APIOperationType, VersionChangeType } from 'prisma/generated/client'
 import { BasePaginatedQueryDto, PaginationDto } from '@/common/dto/pagination.dto'
 import { UserBriefInfoDto } from '@/common/dto/user.dto'
 

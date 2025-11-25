@@ -1,5 +1,5 @@
-import { APIMethod, APIStatus, VersionChangeType, VersionStatus } from '@prisma/client'
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
+import { APIMethod, APIStatus, VersionChangeType, VersionStatus } from 'prisma/generated/client'
 
 @Exclude()
 export class ApiVersionBriefDto {

@@ -1,5 +1,5 @@
-import { RoleType } from '@prisma/client'
 import { IsEnum, IsOptional, IsString } from 'class-validator'
+import { RoleType } from 'prisma/generated/client'
 
 export class GetRolesReqDto {
   @IsOptional()

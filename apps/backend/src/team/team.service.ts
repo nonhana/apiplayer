@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { TeamWhereInput } from 'prisma/generated/models'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
@@ -70,7 +70,7 @@ export class TeamService {
       const skip = (page - 1) * limit
 
       // 构建查询条件
-      const whereCondition: Prisma.TeamWhereInput = {
+      const whereCondition: TeamWhereInput = {
         isActive: true,
         members: {
           some: {

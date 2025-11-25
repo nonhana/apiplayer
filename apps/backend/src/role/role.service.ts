@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
+import { RoleWhereInput } from 'prisma/generated/models'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -89,7 +89,7 @@ export class RoleService {
     try {
       const { keyword, type } = queryDto
 
-      const where: Prisma.RoleWhereInput = {}
+      const where: RoleWhereInput = {}
 
       if (keyword) {
         where.OR = [

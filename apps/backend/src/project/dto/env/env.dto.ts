@@ -1,5 +1,5 @@
-import { ProjectEnvType } from '@prisma/client'
 import { Exclude, Expose } from 'class-transformer'
+import { ProjectEnvType } from 'prisma/generated/client'
 
 @Exclude()
 export class ProjectEnvDto {

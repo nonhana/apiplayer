@@ -1,5 +1,5 @@
-import { ParamType, RequestParamCategory } from '@prisma/client'
 import { IsBoolean, IsEnum, IsOptional } from 'class-validator'
+import { ParamType, RequestParamCategory } from 'prisma/generated/client'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 
 /** 全局参数查询 DTO */

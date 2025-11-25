@@ -1,4 +1,3 @@
-import { APIMethod, APIStatus, VersionChangeType, VersionStatus } from '@prisma/client'
 import { Type } from 'class-transformer'
 import {
   IsArray,
@@ -13,6 +12,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator'
+import { APIMethod, APIStatus, VersionChangeType, VersionStatus } from 'prisma/generated/client'
 
 /** 更新 API 基本信息 DTO */
 export class UpdateApiBaseInfoDto {

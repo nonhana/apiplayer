@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { Permission } from '@prisma/client'
+import { Permission } from 'prisma/generated/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'

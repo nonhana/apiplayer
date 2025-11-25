@@ -1,6 +1,6 @@
-import { ParamType, RequestParamCategory } from '@prisma/client'
-import { JsonValue } from '@prisma/client/runtime/library'
+import type { JsonValue } from 'prisma/generated/internal/prismaNamespace'
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
+import { ParamType, RequestParamCategory } from 'prisma/generated/client'
 import { PaginationDto } from '@/common/dto/pagination.dto'
 
 @Exclude()

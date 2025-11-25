@@ -1,5 +1,5 @@
-import { APIMethod, APIStatus } from '@prisma/client'
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator'
+import { APIMethod, APIStatus } from 'prisma/generated/client'
 
 export class GetGroupWithAPIReqDto {
   @IsOptional()

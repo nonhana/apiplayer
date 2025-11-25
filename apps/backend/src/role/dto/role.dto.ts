@@ -1,5 +1,5 @@
-import { RoleType } from '@prisma/client'
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
+import { RoleType } from 'prisma/generated/client'
 import { PermissionDto } from '@/permission/dto/permission.dto'
 
 @Exclude()

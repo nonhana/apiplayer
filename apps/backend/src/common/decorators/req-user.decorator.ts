@@ -1,6 +1,6 @@
 import { createParamDecorator } from '@nestjs/common'
-import { User } from '@prisma/client'
 import { FastifyRequest } from 'fastify'
+import { User } from 'prisma/generated/client'
 
 export const ReqUser = createParamDecorator(
   (key: keyof User | undefined, ctx) => {

@@ -1,6 +1,6 @@
-import { ParamType } from '@prisma/client'
-import { InputJsonValue } from '@prisma/client/runtime/library'
+import type { InputJsonValue } from 'prisma/generated/internal/prismaNamespace'
 import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator'
+import { ParamType } from 'prisma/generated/client'
 import { IsJsonValue } from '@/common/validator/is-json'
 
 export class UpdateGlobalParamReqDto {

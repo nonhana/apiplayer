@@ -1,8 +1,8 @@
 import antfu from '@antfu/eslint-config'
 
 export default antfu({
-  typescript: true,
   javascript: true,
+  typescript: true,
   jsonc: true,
   markdown: true,
   yaml: true,
@@ -12,4 +12,5 @@ export default antfu({
     'no-case-declarations': 'off',
     'import/consistent-type-specifier-style': 'off',
   },
+  ignores: ['dist/**', 'node_modules/**', 'prisma/**'],
 })
