@@ -52,7 +52,6 @@ pids/
 
 # Environment files
 .env
-.env.*
 *.local
 
 # Editor directories and files
