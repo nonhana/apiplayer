@@ -1,5 +1,5 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
-import { ApiBriefDto } from './api.dto'
+import { ApiBriefDto } from '../api.dto'
 
 @Exclude()
 export class GroupBriefDto {

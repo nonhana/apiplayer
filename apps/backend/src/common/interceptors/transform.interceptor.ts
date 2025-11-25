@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core'
 import { Observable } from 'rxjs'
 import { map } from 'rxjs/operators'
-import { RES_MSG } from '../decorators/res-msg.decorator'
+import { RES_MSG } from '@/common/decorators/res-msg.decorator'
 
 export interface Response<T> {
   data?: T

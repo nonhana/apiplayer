@@ -1,0 +1,6 @@
+export * from './create-group.dto'
+export * from './delete-group.dto'
+export * from './get-groups.dto'
+export * from './group.dto'
+export * from './move-group.dto'
+export * from './update-group.dto'

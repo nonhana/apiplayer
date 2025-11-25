@@ -5,8 +5,8 @@ import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { CreateVersionReqDto } from './dto/create-version.dto'
-import { ApiVersionComparisonDto, ApiVersionDetailDto, ApiVersionsDto } from './dto/version.dto'
+import { CreateVersionReqDto } from './dto/version/create-version.dto'
+import { ApiVersionComparisonDto, ApiVersionDetailDto, ApiVersionsDto } from './dto/version/version.dto'
 import { VersionService } from './version.service'
 
 @Controller('api')

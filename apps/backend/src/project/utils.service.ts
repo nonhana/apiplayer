@@ -57,21 +57,6 @@ export class ProjectUtilsService {
     return project
   }
 
-  async checkUserProjectMembership(projectId: string, userId: string) {
-    const membership = await this.prisma.projectMember.findUnique({
-      where: {
-        userId_projectId: {
-          userId,
-          projectId,
-        },
-      },
-    })
-
-    if (!membership) {
-      throw new HanaException('您不是该项目的成员', ErrorCode.NOT_PROJECT_MEMBER, 403)
-    }
-  }
-
   /** 添加用户访问项目记录 */
   async recordUserVisit(userId: string, projectId: string) {
     try {

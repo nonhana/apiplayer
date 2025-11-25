@@ -4,12 +4,14 @@ import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ProjectUtilsService } from '@/project/utils.service'
-import { CloneApiReqDto } from './dto/clone-api.dto'
-import { CreateApiReqDto } from './dto/create-api.dto'
-import { GetApisReqDto } from './dto/get-apis.dto'
-import { GetApiOperationLogsReqDto } from './dto/operation-log.dto'
-import { SortItemsReqDto } from './dto/sort-items.dto'
-import { UpdateApiReqDto } from './dto/update-api.dto'
+import {
+  CloneApiReqDto,
+  CreateApiReqDto,
+  GetApiOperationLogsReqDto,
+  GetApisReqDto,
+  SortItemsReqDto,
+  UpdateApiReqDto,
+} from './dto'
 import { ApiUtilsService } from './utils.service'
 
 @Injectable()
@@ -26,7 +28,6 @@ export class ApiService {
   async createAPI(dto: CreateApiReqDto, projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
       await this.apiUtilsService.checkApiGroupExists(projectId, dto.groupId)
 
       const created = await this.prisma.$transaction(async (tx) => {
@@ -122,17 +123,12 @@ export class ApiService {
   }
 
   /** 查询 API 列表 */
-  async getAPIList(dto: GetApisReqDto, projectId: string, userId: string) {
+  async getAPIList(dto: GetApisReqDto, projectId: string) {
     const { page = 1, limit = 10, search, groupId, method, status } = dto
 
     try {
-      const skip = (page - 1) * limit
-
-      // 前置校验
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
-      // 构建查询条件
       const whereCondition: Prisma.APIWhereInput = {
         recordStatus: 'ACTIVE',
         projectId,
@@ -146,6 +142,7 @@ export class ApiService {
           ],
         }),
       }
+      const skip = (page - 1) * limit
 
       // 查询 API 列表和总数
       const [apis, total] = await Promise.all([
@@ -185,10 +182,9 @@ export class ApiService {
   }
 
   /** 获取 API 详情 */
-  async getAPIDetail(apiId: string, projectId: string, userId: string) {
+  async getAPIDetail(apiId: string, projectId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const api = await this.prisma.aPI.findUnique({
         where: { id: apiId },
@@ -199,7 +195,7 @@ export class ApiService {
       })
 
       if (!api || api.projectId !== projectId || api.recordStatus !== 'ACTIVE') {
-        throw new HanaException('API 不存在', ErrorCode.INVALID_PARAMS, 404)
+        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
       }
 
       return api
@@ -221,7 +217,6 @@ export class ApiService {
     try {
       // 基础校验
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 获取目标 API
       const api = await this.prisma.aPI.findUnique({
@@ -229,7 +224,7 @@ export class ApiService {
         include: { currentVersion: { include: { snapshot: true } } },
       })
       if (!api || api.projectId !== projectId || api.recordStatus !== 'ACTIVE') {
-        throw new HanaException('API 不存在', ErrorCode.INVALID_PARAMS, 404)
+        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
       }
 
       // 更新流程：
@@ -356,14 +351,11 @@ export class ApiService {
   /** 删除 API */
   async deleteAPI(apiId: string, projectId: string, userId: string) {
     try {
-      // 基础校验
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
-      // 获取目标 API
       const api = await this.prisma.aPI.findUnique({ where: { id: apiId } })
       if (!api || api.projectId !== projectId || api.recordStatus !== 'ACTIVE') {
-        throw new HanaException('API 不存在', ErrorCode.INVALID_PARAMS, 404)
+        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
       }
 
       // 软删除
@@ -399,7 +391,6 @@ export class ApiService {
     try {
       // 基础校验
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
       await this.apiUtilsService.checkApiGroupExists(projectId, dto.targetGroupId)
 
       // 获取源 API 及当前版本与快照
@@ -452,7 +443,6 @@ export class ApiService {
             name: targetName,
             method: targetMethod,
             path: targetPath,
-            // 以下字段以源快照为模板，若不存在则回退到合理的默认值
             description: snap?.description ?? undefined,
             tags: clonedApi.tags,
             status: 'DRAFT',
@@ -515,7 +505,6 @@ export class ApiService {
   async sortAPIs(dto: SortItemsReqDto, projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const ids = dto.items.map(item => item.id)
 
@@ -579,11 +568,7 @@ export class ApiService {
     } = dto
 
     try {
-      const skip = (page - 1) * limit
-
-      // 前置校验
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const api = await this.prisma.aPI.findUnique({
         where: { id: apiId, projectId, recordStatus: 'ACTIVE' },
@@ -615,6 +600,7 @@ export class ApiService {
           ],
         }),
       }
+      const skip = (page - 1) * limit
 
       const [logs, total] = await Promise.all([
         this.prisma.aPIOperationLog.findMany({

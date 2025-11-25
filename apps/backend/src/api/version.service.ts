@@ -4,7 +4,7 @@ import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ProjectUtilsService } from '@/project/utils.service'
-import { CreateVersionReqDto } from './dto/create-version.dto'
+import { CreateVersionReqDto } from './dto/version/create-version.dto'
 import { ApiUtilsService } from './utils.service'
 
 @Injectable()

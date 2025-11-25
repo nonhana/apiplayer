@@ -15,17 +15,17 @@ import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { CreateGroupReqDto } from './dto/create-group.dto'
-import { DeleteGroupReqDto } from './dto/delete-group.dto'
-import { GetGroupWithAPIReqDto } from './dto/get-groups.dto'
+import { CreateGroupReqDto } from './dto/group/create-group.dto'
+import { DeleteGroupReqDto } from './dto/group/delete-group.dto'
+import { GetGroupWithAPIReqDto } from './dto/group/get-groups.dto'
 import {
   GroupBriefDto,
   GroupNodeDto,
   GroupNodeWithAPIDto,
-} from './dto/group.dto'
-import { MoveGroupReqDto } from './dto/move-group.dto'
+} from './dto/group/group.dto'
+import { MoveGroupReqDto } from './dto/group/move-group.dto'
 import { SortItemsReqDto } from './dto/sort-items.dto'
-import { UpdateGroupReqDto } from './dto/update-group.dto'
+import { UpdateGroupReqDto } from './dto/group/update-group.dto'
 import { GroupService } from './group.service'
 
 @Controller('api')

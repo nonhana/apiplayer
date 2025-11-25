@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer'
 import { IsOptional, ValidateNested } from 'class-validator'
-import { UpdateApiBaseInfoDto, UpdateApiCoreInfoDto, UpdateApiVersionInfoDto } from './update-api.dto'
+import { UpdateApiBaseInfoDto, UpdateApiCoreInfoDto, UpdateApiVersionInfoDto } from '../update-api.dto'
 
 /** 创建草稿版本请求 DTO */
 export class CreateVersionReqDto {
