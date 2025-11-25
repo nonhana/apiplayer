@@ -4,12 +4,14 @@ import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ProjectUtilsService } from '@/project/utils.service'
-import { CreateGroupReqDto } from './dto/group/create-group.dto'
-import { DeleteGroupReqDto } from './dto/group/delete-group.dto'
-import { GetGroupWithAPIReqDto } from './dto/group/get-groups.dto'
-import { MoveGroupReqDto } from './dto/group/move-group.dto'
-import { SortItemsReqDto } from './dto/sort-items.dto'
-import { UpdateGroupReqDto } from './dto/group/update-group.dto'
+import {
+  CreateGroupReqDto,
+  DeleteGroupReqDto,
+  GetGroupWithAPIReqDto,
+  MoveGroupReqDto,
+  SortItemsReqDto,
+  UpdateGroupReqDto,
+} from './dto'
 import { ApiUtilsService } from './utils.service'
 
 interface TempGroupNode {
@@ -47,7 +49,6 @@ export class GroupService {
   async createGroup(dto: CreateGroupReqDto, projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       if (dto.parentId) {
         const parent = await this.prisma.aPIGroup.findUnique({ where: { id: dto.parentId } })
@@ -78,10 +79,9 @@ export class GroupService {
   }
 
   /** 获取分组树（含每组 API 数量统计） */
-  async getGroupTree(projectId: string, userId: string) {
+  async getGroupTree(projectId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const [groups, apiCounts] = await Promise.all([
         this.prisma.aPIGroup.findMany({
@@ -97,7 +97,7 @@ export class GroupService {
 
       const countMap = new Map<string, number>()
       for (const row of apiCounts)
-        countMap.set(row.groupId as string, (row as any)._count?._all ?? row._count?._all ?? 0)
+        countMap.set(row.groupId as string, row._count?._all ?? 0)
 
       const nodeMap = new Map<string, TempGroupNode>()
       for (const g of groups) {
@@ -138,7 +138,7 @@ export class GroupService {
   }
 
   /** 获取分组树（含 API 聚合） */
-  async getGroupTreeWithApis(dto: GetGroupWithAPIReqDto, projectId: string, userId: string) {
+  async getGroupTreeWithApis(dto: GetGroupWithAPIReqDto, projectId: string) {
     const {
       subtreeRootId,
       maxDepth,
@@ -151,7 +151,6 @@ export class GroupService {
 
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 读取全部分组
       const groups = await this.prisma.aPIGroup.findMany({
@@ -270,7 +269,6 @@ export class GroupService {
   async updateGroup(dto: UpdateGroupReqDto, groupId: string, projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const existing = await this.prisma.aPIGroup.findUnique({
         where: { id: groupId },
@@ -306,7 +304,6 @@ export class GroupService {
 
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const group = await this.prisma.aPIGroup.findUnique({
         where: { id: groupId },
@@ -332,7 +329,7 @@ export class GroupService {
             throw new HanaException('目标父分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
           }
 
-          // 校验不会形成环：向上查找父链，若遇到自身则为非法
+          // 校验不会形成环
           let currentParentId: string | null | undefined = parent.parentId
           while (currentParentId) {
             if (currentParentId === groupId) {
@@ -374,7 +371,6 @@ export class GroupService {
 
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const group = await this.prisma.aPIGroup.findUnique({
         where: { id: groupId },
@@ -505,7 +501,6 @@ export class GroupService {
   async sortGroups(dto: SortItemsReqDto, projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const ids = dto.items.map(item => item.id)
 
