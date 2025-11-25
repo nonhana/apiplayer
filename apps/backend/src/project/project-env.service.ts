@@ -2,8 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { CreateProjectEnvReqDto } from './dto/env/create-env.dto'
-import { UpdateProjectEnvReqDto } from './dto/env/update-env.dto'
+import { CreateProjectEnvReqDto, UpdateProjectEnvReqDto } from './dto'
 import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
