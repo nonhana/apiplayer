@@ -1,4 +1,5 @@
-import type { ParamCategory, ParamType } from '@/constants/global-param'
+import { ParamType, RequestParamCategory } from '@prisma/client'
+import { JsonValue } from '@prisma/client/runtime/library'
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
 import { PaginationDto } from '@/common/dto/pagination.dto'
 
@@ -8,7 +9,7 @@ export class GlobalParamDto {
   id: string
 
   @Expose()
-  category: ParamCategory
+  category: RequestParamCategory
 
   @Expose()
   name: string
@@ -17,7 +18,7 @@ export class GlobalParamDto {
   type: ParamType
 
   @Expose()
-  value: any
+  value: JsonValue
 
   @Expose()
   @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })

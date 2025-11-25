@@ -89,6 +89,10 @@ export enum ErrorCode {
   CANNOT_DELETE_LAST_ENVIRONMENT = 40012,
   /** 用户不是团队成员 */
   USER_NOT_TEAM_MEMBER = 40013,
+  /** 全局参数名称已存在 */
+  GLOBAL_PARAM_NAME_EXISTS = 40014,
+  /** 全局参数不存在 */
+  GLOBAL_PARAM_NOT_FOUND = 40015,
 
   /** API 分组不存在 */
   API_GROUP_NOT_FOUND = 50001,

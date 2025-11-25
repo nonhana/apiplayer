@@ -1,12 +1,14 @@
+import { ParamType, RequestParamCategory } from '@prisma/client'
+import { InputJsonValue } from '@prisma/client/runtime/library'
 import { IsBoolean, IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
-import { PARAM_CATEGORY, PARAM_TYPE, type ParamCategory, type ParamType } from '@/constants/global-param'
+import { IsJsonValue } from '@/common/validator/is-json'
 
 /** 创建全局参数请求 DTO */
 export class CreateGlobalParamReqDto {
   /** 参数类别 */
   @IsNotEmpty({ message: '参数类别不能为空' })
-  @IsEnum(PARAM_CATEGORY, { message: '参数类别必须是有效的枚举值' })
-  category: ParamCategory
+  @IsEnum(RequestParamCategory, { message: '参数类别必须是有效的枚举值' })
+  category: RequestParamCategory
 
   /** 参数名称 */
   @IsNotEmpty({ message: '参数名称不能为空' })
@@ -17,12 +19,13 @@ export class CreateGlobalParamReqDto {
 
   /** 参数类型 */
   @IsNotEmpty({ message: '参数类型不能为空' })
-  @IsEnum(PARAM_TYPE, { message: '参数类型必须是有效的枚举值' })
+  @IsEnum(ParamType, { message: '参数类型必须是有效的枚举值' })
   type: ParamType
 
   /** 参数值 */
   @IsNotEmpty({ message: '参数值不能为空' })
-  value: any
+  @IsJsonValue({ message: '参数值必须是有效的 JSON 值' })
+  value: InputJsonValue
 
   /** 参数描述 */
   @IsOptional()

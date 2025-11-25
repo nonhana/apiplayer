@@ -15,12 +15,10 @@ export class ProjectGlobalParamService {
     private readonly projectUtilsService: ProjectUtilsService,
   ) {}
 
-  async createGlobalParam(projectId: string, dto: CreateGlobalParamReqDto, userId: string) {
+  async createGlobalParam(dto: CreateGlobalParamReqDto, projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
-      // 检查参数名称在同一类别下是否已存在
       const existingParam = await this.prisma.globalParam.findUnique({
         where: {
           projectId_category_name: {
@@ -32,7 +30,7 @@ export class ProjectGlobalParamService {
       })
 
       if (existingParam) {
-        throw new HanaException(`参数 "${dto.name}" 在类别 "${dto.category}" 下已存在`, ErrorCode.PERMISSION_NAME_EXISTS)
+        throw new HanaException(`参数 "${dto.name}" 在类别 "${dto.category}" 下已存在`, ErrorCode.GLOBAL_PARAM_NAME_EXISTS)
       }
 
       // 创建全局参数
@@ -62,16 +60,14 @@ export class ProjectGlobalParamService {
     }
   }
 
-  async getGlobalParams(projectId: string, userId: string, dto: GetGlobalParamsReqDto) {
+  async getGlobalParams(dto: GetGlobalParamsReqDto, projectId: string) {
     const { page = 1, limit = 10, search, category, type, isActive } = dto
 
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       const skip = (page - 1) * limit
 
-      // 构建查询条件
       const whereCondition: Prisma.GlobalParamWhereInput = {
         projectId,
         ...(category && { category }),
@@ -85,7 +81,6 @@ export class ProjectGlobalParamService {
         }),
       }
 
-      // 查询参数列表和总数
       const [params, total] = await Promise.all([
         this.prisma.globalParam.findMany({
           where: whereCondition,
@@ -117,16 +112,14 @@ export class ProjectGlobalParamService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`获取全局参数列表失败: ${error.message}`, error.stack)
       throw new HanaException('获取全局参数列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
-  async updateGlobalParam(projectId: string, paramId: string, dto: UpdateGlobalParamReqDto, userId: string) {
+  async updateGlobalParam(dto: UpdateGlobalParamReqDto, projectId: string, paramId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查参数是否存在
       const existingParam = await this.prisma.globalParam.findUnique({
@@ -134,7 +127,7 @@ export class ProjectGlobalParamService {
       })
 
       if (!existingParam || existingParam.projectId !== projectId) {
-        throw new HanaException('全局参数不存在', ErrorCode.PERMISSION_NOT_FOUND, 404)
+        throw new HanaException('对应全局参数不存在', ErrorCode.GLOBAL_PARAM_NOT_FOUND, 404)
       }
 
       // 更新参数
@@ -156,7 +149,6 @@ export class ProjectGlobalParamService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`更新全局参数失败: ${error.message}`, error.stack)
       throw new HanaException('更新全局参数失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
@@ -165,7 +157,6 @@ export class ProjectGlobalParamService {
   async deleteGlobalParam(projectId: string, paramId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查参数是否存在
       const existingParam = await this.prisma.globalParam.findUnique({
@@ -173,7 +164,7 @@ export class ProjectGlobalParamService {
       })
 
       if (!existingParam || existingParam.projectId !== projectId) {
-        throw new HanaException('全局参数不存在', ErrorCode.PERMISSION_NOT_FOUND, 404)
+        throw new HanaException('对应全局参数不存在', ErrorCode.GLOBAL_PARAM_NOT_FOUND, 404)
       }
 
       // 删除参数
@@ -182,34 +173,28 @@ export class ProjectGlobalParamService {
       })
 
       this.logger.log(`用户 ${userId} 删除了项目 ${projectId} 中的全局参数 ${existingParam.name}`)
-
-      return {
-        deletedParamId: paramId,
-      }
     }
     catch (error) {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`删除全局参数失败: ${error.message}`, error.stack)
       throw new HanaException('删除全局参数失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
-  async createGlobalParams(projectId: string, dto: CreateGlobalParamsReqDto, userId: string) {
+  async createGlobalParams(dto: CreateGlobalParamsReqDto, projectId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)
-      await this.projectUtilsService.checkUserProjectMembership(projectId, userId)
 
       // 检查参数名称是否有重复
-      const paramKeys = dto.params.map(p => ({ category: p.category, name: p.name }))
+      const paramKeys = dto.params
       const duplicateKeys = paramKeys.filter((key, index) =>
         paramKeys.findIndex(k => k.category === key.category && k.name === key.name) !== index,
       )
 
       if (duplicateKeys.length > 0) {
-        throw new HanaException('批量创建的参数中存在重复的名称', ErrorCode.PERMISSION_NAME_EXISTS)
+        throw new HanaException('批量创建的参数中存在重复的名称', ErrorCode.INVALID_PARAMS)
       }
 
       // 检查数据库中是否已存在相同的参数
@@ -225,10 +210,9 @@ export class ProjectGlobalParamService {
 
       if (existingParams.length > 0) {
         const conflictNames = existingParams.map(p => `${p.category}:${p.name}`).join(', ')
-        throw new HanaException(`以下参数已存在: ${conflictNames}`, ErrorCode.PERMISSION_NAME_EXISTS)
+        throw new HanaException(`以下参数已存在: ${conflictNames}`, ErrorCode.GLOBAL_PARAM_NAME_EXISTS)
       }
 
-      // 使用事务批量创建参数
       const createdParams = await this.prisma.$transaction(
         dto.params.map(paramDto =>
           this.prisma.globalParam.create({
@@ -253,7 +237,6 @@ export class ProjectGlobalParamService {
       if (error instanceof HanaException) {
         throw error
       }
-
       this.logger.error(`批量创建全局参数失败: ${error.message}`, error.stack)
       throw new HanaException('批量创建全局参数失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }

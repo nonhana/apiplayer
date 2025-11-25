@@ -1,15 +1,18 @@
+import { ParamType } from '@prisma/client'
+import { InputJsonValue } from '@prisma/client/runtime/library'
 import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator'
-import { PARAM_TYPE, type ParamType } from '@/constants/global-param'
+import { IsJsonValue } from '@/common/validator/is-json'
 
 export class UpdateGlobalParamReqDto {
   /** 参数类型 */
   @IsOptional()
-  @IsEnum(PARAM_TYPE, { message: '参数类型必须是有效的枚举值' })
+  @IsEnum(ParamType, { message: '参数类型必须是有效的枚举值' })
   type?: ParamType
 
   /** 参数值 */
   @IsOptional()
-  value?: any
+  @IsJsonValue({ message: '参数值必须是合法的 JSON 值' })
+  value?: InputJsonValue
 
   /** 参数描述 */
   @IsOptional()

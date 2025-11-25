@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import {
   AssignPermissionsReqDto,

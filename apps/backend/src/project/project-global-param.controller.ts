@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { ProjectPermissions } from '@/common/decorators/permissions.decorator'
+import { ProjectPermissions, RequireProjectMember } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
@@ -22,24 +22,22 @@ export class ProjectGlobalParamController {
     private readonly projectGlobalParamService: ProjectGlobalParamService,
   ) {}
 
-  /**
-   * 创建全局参数
-   */
+  /** 创建项目全局参数 */
   @Post(':projectId/global-params')
+  @RequireProjectMember()
   @ProjectPermissions(['project:write'])
   async createGlobalParam(
     @Param('projectId') projectId: string,
-    @Body() createParamDto: CreateGlobalParamReqDto,
+    @Body() dto: CreateGlobalParamReqDto,
     @ReqUser('id') userId: string,
   ): Promise<GlobalParamDto> {
-    const newGlobalParam = await this.projectGlobalParamService.createGlobalParam(projectId, createParamDto, userId)
-    return plainToInstance(GlobalParamDto, newGlobalParam)
+    const result = await this.projectGlobalParamService.createGlobalParam(dto, projectId, userId)
+    return plainToInstance(GlobalParamDto, result)
   }
 
-  /**
-   * 批量创建全局参数
-   */
+  /** 批量创建项目全局参数 */
   @Post(':projectId/global-params/batch')
+  @RequireProjectMember()
   @ProjectPermissions(['project:write'])
   @ResMsg('批量创建全局参数成功')
   async createGlobalParams(
@@ -47,43 +45,39 @@ export class ProjectGlobalParamController {
     @Body() dto: CreateGlobalParamsReqDto,
     @ReqUser('id') userId: string,
   ): Promise<GlobalParamDto[]> {
-    const params = await this.projectGlobalParamService.createGlobalParams(projectId, dto, userId)
-    return plainToInstance(GlobalParamDto, params)
+    const result = await this.projectGlobalParamService.createGlobalParams(dto, projectId, userId)
+    return plainToInstance(GlobalParamDto, result)
   }
 
-  /**
-   * 获取全局参数列表
-   */
+  /** 获取项目全局参数列表 */
   @Get(':projectId/global-params')
+  @RequireProjectMember()
   @ProjectPermissions(['project:read'])
   async getGlobalParams(
     @Param('projectId') projectId: string,
     @Query() dto: GetGlobalParamsReqDto,
-    @ReqUser('id') userId: string,
   ): Promise<GlobalParamsDto> {
-    const result = await this.projectGlobalParamService.getGlobalParams(projectId, userId, dto)
+    const result = await this.projectGlobalParamService.getGlobalParams(dto, projectId)
     return plainToInstance(GlobalParamsDto, result)
   }
 
-  /**
-   * 更新全局参数
-   */
+  /** 更新全局参数 */
   @Patch(':projectId/global-params/:paramId')
+  @RequireProjectMember()
   @ProjectPermissions(['project:write'])
   async updateGlobalParam(
     @Param('projectId') projectId: string,
     @Param('paramId') paramId: string,
-    @Body() updateParamDto: UpdateGlobalParamReqDto,
+    @Body() dto: UpdateGlobalParamReqDto,
     @ReqUser('id') userId: string,
   ): Promise<GlobalParamDto> {
-    const result = await this.projectGlobalParamService.updateGlobalParam(projectId, paramId, updateParamDto, userId)
+    const result = await this.projectGlobalParamService.updateGlobalParam(dto, projectId, paramId, userId)
     return plainToInstance(GlobalParamDto, result)
   }
 
-  /**
-   * 删除全局参数
-   */
+  /** 删除全局参数 */
   @Delete(':projectId/global-params/:paramId')
+  @RequireProjectMember()
   @ProjectPermissions(['project:write'])
   @ResMsg('全局参数删除成功')
   async deleteGlobalParam(
