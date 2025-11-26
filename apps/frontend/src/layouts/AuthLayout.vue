@@ -3,14 +3,26 @@
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-zinc-950 p-4">
-    <div class="w-full max-w-md">
+  <div class="min-h-screen w-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 p-4">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/20 to-transparent blur-3xl opacity-50 transform rotate-12" />
+      <div class="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-blue-500/20 to-transparent blur-3xl opacity-50 transform -rotate-12" />
+    </div>
+
+    <!-- Main Content -->
+    <div class="w-full max-w-md relative z-10">
       <div class="mb-8 text-center">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        <!-- Logo placeholder -->
+        <h1 class="text-3xl font-bold tracking-tight text-primary">
           ApiPlayer
         </h1>
+        <p class="text-muted-foreground mt-2">
+          Your Modern API Management Platform
+        </p>
       </div>
-      <slot />
+
+      <router-view />
     </div>
   </div>
 </template>

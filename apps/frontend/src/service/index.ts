@@ -1,6 +1,7 @@
 import type { Hooks, KyInstance, Options } from 'ky'
 import type { IApiResponse } from './types'
 import ky from 'ky'
+import { toast } from 'vue-sonner'
 import { useUserStore } from '../stores/useUserStore'
 import { HanaError } from './error'
 
@@ -34,15 +35,22 @@ const hooks: Hooks = {
       }
 
       if (parsed.code !== 0 && parsed.code !== 200) {
+        const message = parsed.message || 'Business Error'
+
         if (parsed.code === 401) {
           console.error('Login expired, please log in again!')
           const userStore = useUserStore()
           userStore.logout()
+          toast.error(message, {
+            description: 'Please login again',
+          })
           // Optional: Redirect to login
           // window.location.href = '/auth/login'
         }
-
-        console.error(parsed.message || 'Business Error')
+        else {
+          console.error(message)
+          toast.error(message)
+        }
 
         throw new HanaError(parsed.message, parsed.code)
       }
@@ -56,17 +64,41 @@ const hooks: Hooks = {
   ],
 
   beforeError: [
-    (error) => {
+    async (error) => {
       const { response } = error
       let message = ''
+      let description = ''
+
       if (response) {
-        message = `[${response.status}] ${response.statusText}`
+        message = `Request Failed: ${response.status}`
+        description = response.statusText
+
+        // Try to parse error message from backend if available
+        try {
+          const errorData = await response.json() as any
+          if (errorData && errorData.message) {
+            // If message is array (class-validator), join it
+            if (Array.isArray(errorData.message)) {
+              description = errorData.message.join(', ')
+            }
+            else {
+              description = errorData.message
+            }
+          }
+        }
+        catch {
+          // Ignore parsing error
+        }
       }
       else {
-        message = 'Network connection failed, please try again later'
+        message = 'Network Error'
+        description = 'Connection failed, please try again later'
       }
 
-      console.error(message)
+      console.error(`${message}: ${description}`)
+      toast.error(message, {
+        description,
+      })
 
       return error
     },

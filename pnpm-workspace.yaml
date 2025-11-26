@@ -11,3 +11,4 @@ onlyBuiltDependencies:
   - bcrypt
   - esbuild
   - prisma
+  - vue-demi
