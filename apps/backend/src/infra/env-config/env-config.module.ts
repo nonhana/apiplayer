@@ -17,6 +17,17 @@ import * as Joi from 'joi'
         REDIS_PORT: Joi.number().default(6379),
         REDIS_DB: Joi.number().default(0),
         REDIS_PASSWORD: Joi.string().optional(),
+
+        // 上传相关配置
+        R2_ACCESS_KEY_ID: Joi.string().optional(),
+        R2_SECRET_ACCESS_KEY: Joi.string().optional(),
+        R2_BUCKET: Joi.string().optional(),
+        R2_DOMAIN: Joi.string().optional(),
+        R2_ACCOUNT_ID: Joi.string().optional(),
+
+        // 邮件相关配置
+        RESEND_API_KEY: Joi.string().optional(),
+        RESEND_FROM_EMAIL: Joi.string().email().optional(),
       }),
     }),
   ],

@@ -1,11 +1,13 @@
 import type { MultipartFile } from '@fastify/multipart'
 import type { FastifyRequest } from 'fastify'
+import type { MailProvider } from '@/infra/email/email.types'
 import type { UploadMode } from '@/infra/upload/upload.types'
-import { Controller, Post, Query, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Post, Query, Req, UseGuards } from '@nestjs/common'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { UPLOADS_URL_PREFIX } from '@/constants/file-upload'
+import { SendEmailDto } from './dto/send-email.dto'
 import { UtilService } from './util.service'
 
 interface MultipartUploadRequest extends FastifyRequest {
@@ -44,6 +46,32 @@ export class UtilController {
 
     return {
       url: fileUrl,
+    }
+  }
+
+  /**
+   * 发送邮件
+   *
+   * @description 指定邮件 provider，调用对应邮件服务
+   */
+  @Post('email/send')
+  async sendEmail(
+    @Body() body: SendEmailDto,
+    @Query('provider') provider?: MailProvider,
+  ): Promise<{ id?: string, provider: MailProvider }> {
+    const result = await this.utilService.sendMail(
+      {
+        to: body.to,
+        subject: body.subject,
+        text: body.text,
+        html: body.html,
+      },
+      provider,
+    )
+
+    return {
+      id: result.id,
+      provider: result.provider,
     }
   }
 }
