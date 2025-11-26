@@ -25,7 +25,7 @@ import * as Joi from 'joi'
         R2_ACCOUNT_ID: Joi.string().optional(),
 
         RESEND_API_KEY: Joi.string().optional(),
-        RESEND_FROM_EMAIL: Joi.string().email().optional(),
+        RESEND_FROM_EMAIL: Joi.string().optional(),
       }),
     }),
   ],
