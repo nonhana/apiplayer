@@ -56,13 +56,6 @@ pids/
 
 # Editor directories and files
 .cursor/
-.vscode/
-!.vscode/extensions.json
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
 
 # Swap and temp files
 *.sw?
