@@ -1,7 +1,9 @@
 import type { MultipartFile } from '@fastify/multipart'
 import type { FastifyRequest } from 'fastify'
 import type { UploadMode } from '@/infra/upload/upload.types'
-import { BadRequestException, Controller, Post, Query, Req, UseGuards } from '@nestjs/common'
+import { Controller, Post, Query, Req, UseGuards } from '@nestjs/common'
+import { ErrorCode } from '@/common/exceptions/error-code'
+import { HanaException } from '@/common/exceptions/hana.exception'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { UPLOADS_URL_PREFIX } from '@/constants/file-upload'
 import { UtilService } from './util.service'
@@ -28,14 +30,14 @@ export class UtilController {
     const multipartFile = await req.file()
 
     if (!multipartFile) {
-      throw new BadRequestException('未检测到上传文件，请确认 FormData 中包含字段 "file"')
+      throw new HanaException('未检测到上传文件，请确认 FormData 中包含字段 "file"', ErrorCode.INVALID_PARAMS, 400)
     }
 
     const result = await this.utilService.uploadFile(multipartFile, mode)
     const host = req.headers.host
 
     if (!host) {
-      throw new BadRequestException('无法解析请求 Host 头信息')
+      throw new HanaException('无法解析请求 Host 头信息', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
 
     const fileUrl = result.url ?? `${req.protocol}://${host}${UPLOADS_URL_PREFIX}/${result.key}`
