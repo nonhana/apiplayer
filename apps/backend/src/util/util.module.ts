@@ -8,5 +8,6 @@ import { UtilService } from './util.service'
   imports: [AuthModule],
   controllers: [UtilController],
   providers: [UtilService, LocalUploadService],
+  exports: [UtilService],
 })
 export class UtilModule {}
