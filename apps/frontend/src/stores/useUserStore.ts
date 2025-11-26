@@ -2,7 +2,7 @@ import type { LoginReq, RegisterReq } from '@/types/auth'
 import type { UserBriefInfo, UserDetailInfo } from '@/types/user'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { authApi } from '@/service/api/auth'
+import { authApi } from '@/api/auth'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref<string>('')

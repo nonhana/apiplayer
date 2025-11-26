@@ -6,7 +6,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import * as z from 'zod'
-
+import { authApi } from '@/api/auth'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -24,7 +24,6 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { authApi } from '@/service/api/auth'
 import { useUserStore } from '@/stores/useUserStore'
 
 const router = useRouter()

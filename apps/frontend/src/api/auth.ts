@@ -1,4 +1,12 @@
-import type { CheckAuthStatusRes, CheckAvailabilityReq, CheckAvailabilityRes, LoginReq, LoginRes, LogoutAllRes, RegisterReq } from '@/types/auth'
+import type {
+  CheckAuthStatusRes,
+  CheckAvailabilityReq,
+  CheckAvailabilityRes,
+  LoginReq,
+  LoginRes,
+  LogoutAllRes,
+  RegisterReq,
+} from '@/types/auth'
 import type { UserBriefInfo, UserDetailInfo, UserSession } from '@/types/user'
 import http from '@/service'
 
