@@ -109,4 +109,6 @@ export enum ErrorCode {
   INVALID_PARAMS = 90001,
   /** 系统内部错误 */
   INTERNAL_SERVER_ERROR = 99999,
+  /** 环境变量配置错误 */
+  ENV_CONFIG_ERROR = 90002,
 }

@@ -1,12 +1,18 @@
+import { existsSync, mkdirSync } from 'node:fs'
 import process from 'node:process'
 import cookie from '@fastify/cookie'
+import multipart from '@fastify/multipart'
+import fastifyStatic from '@fastify/static'
 import { Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { NestFactory } from '@nestjs/core'
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { UPLOADS_DIR, UPLOADS_URL_PREFIX } from '@/constants/file-upload'
 import { AppModule } from './app.module'
 import { WinstonLogger } from './common/logger/winston-logger.service'
+
+const STATIC_UPLOAD_ROOT = UPLOADS_DIR
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -24,6 +30,10 @@ async function bootstrap() {
   const port = configService.get<number>('PORT')
   const host = configService.get<string>('HOST')
 
+  if (!existsSync(STATIC_UPLOAD_ROOT)) {
+    mkdirSync(STATIC_UPLOAD_ROOT, { recursive: true })
+  }
+
   if (nodeEnv === 'production') {
     app.useLogger(app.get(WinstonLogger))
   }
@@ -38,6 +48,20 @@ async function bootstrap() {
       secure: nodeEnv === 'production',
       sameSite: 'lax',
     },
+  })
+
+  await app.register(multipart, {
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 单文件最大 10MB，可按需调整
+      files: 1,
+    },
+  })
+
+  // 注册静态资源服务
+  await app.register(fastifyStatic, {
+    root: STATIC_UPLOAD_ROOT,
+    prefix: `${UPLOADS_URL_PREFIX}/`,
+    decorateReply: false,
   })
 
   if (nodeEnv !== 'production') {
