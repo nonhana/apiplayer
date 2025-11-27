@@ -1,51 +1,31 @@
 <script setup lang="ts">
-import { toTypedSchema } from '@vee-validate/zod'
 import { Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
-import * as z from 'zod'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useUserStore } from '@/stores/useUserStore'
+import { loginFormSchema } from '@/validators/login'
 
 const router = useRouter()
 const userStore = useUserStore()
 const isLoading = ref(false)
 
-const formSchema = toTypedSchema(z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  rememberMe: z.boolean().default(false),
-}))
-
 const form = useForm({
-  validationSchema: formSchema,
+  validationSchema: loginFormSchema,
 })
 
 const onSubmit = form.handleSubmit(async (values) => {
   isLoading.value = true
   try {
     await userStore.login(values)
-    toast.success('Welcome back!', {
-      description: 'You have successfully logged in.',
+    toast.success('欢迎回来！', {
+      description: '登录成功，欢迎使用。',
     })
     router.push('/dashboard')
   }
@@ -59,19 +39,19 @@ const onSubmit = form.handleSubmit(async (values) => {
   <Card class="w-full shadow-lg">
     <CardHeader>
       <CardTitle class="text-2xl">
-        Login
+        登录账号
       </CardTitle>
       <CardDescription>
-        Enter your email below to login to your account
+        输入您的邮箱和密码以登录
       </CardDescription>
     </CardHeader>
     <CardContent>
       <form class="space-y-4" @submit="onSubmit">
         <FormField v-slot="{ componentField }" name="email">
           <FormItem>
-            <FormLabel>Email</FormLabel>
+            <FormLabel>邮箱</FormLabel>
             <FormControl>
-              <Input type="email" placeholder="m@example.com" v-bind="componentField" />
+              <Input type="email" placeholder="请输入邮箱地址" v-bind="componentField" />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -79,9 +59,14 @@ const onSubmit = form.handleSubmit(async (values) => {
 
         <FormField v-slot="{ componentField }" name="password">
           <FormItem>
-            <FormLabel>Password</FormLabel>
+            <FormLabel>密码</FormLabel>
             <FormControl>
-              <Input type="password" placeholder="******" v-bind="componentField" />
+              <Input
+                type="password"
+                placeholder="请输入密码"
+                password-toggle
+                v-bind="componentField"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -94,7 +79,7 @@ const onSubmit = form.handleSubmit(async (values) => {
             </FormControl>
             <div class="space-y-1 leading-none">
               <FormLabel>
-                Remember me
+                记住我
               </FormLabel>
             </div>
           </FormItem>
@@ -102,15 +87,15 @@ const onSubmit = form.handleSubmit(async (values) => {
 
         <Button type="submit" class="w-full" :disabled="isLoading">
           <Loader2 v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
-          Sign In
+          登录
         </Button>
       </form>
     </CardContent>
     <CardFooter class="flex justify-center">
       <div class="text-sm text-muted-foreground">
-        Don't have an account?
+        还没有账号？
         <router-link to="/auth/register" class="text-primary hover:underline">
-          Sign up
+          立即注册
         </router-link>
       </div>
     </CardFooter>

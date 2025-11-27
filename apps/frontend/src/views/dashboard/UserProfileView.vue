@@ -1,39 +1,20 @@
 <script setup lang="ts">
 import type { UpdateUserProfileReq, UserFullInfo } from '@/types/user'
-import { toTypedSchema } from '@vee-validate/zod'
 import { Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, onMounted, ref } from 'vue'
-import VuePictureCropper, { cropper } from 'vue-picture-cropper'
 import { toast } from 'vue-sonner'
-import * as z from 'zod'
 import { userApi } from '@/api/user'
-import { utilApi } from '@/api/util'
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import Cropper from '@/components/user-profile/Cropper.vue'
 import { useUserStore } from '@/stores/useUserStore'
+import { userProfileFormSchema } from '@/validators/user-profile'
 
 const userStore = useUserStore()
 
@@ -45,39 +26,9 @@ const isSendingCode = ref(false)
 // 头像裁剪相关状态
 const isAvatarCropperOpen = ref(false)
 const avatarSourceUrl = ref<string | null>(null)
-const isUploadingAvatar = ref(false)
 
-const baseSchema = z.object({
-  name: z.string().min(1, '显示名称不能为空').max(50, '显示名称长度不能超过 50 个字符'),
-  username: z.string()
-    .min(3, '用户名至少 3 个字符')
-    .max(20, '用户名不能超过 20 个字符')
-    .regex(/^[\w-]+$/, '用户名只能包含字母、数字、下划线和连字符'),
-  avatar: z.string().url('请输入合法的头像链接').optional().or(z.literal('')),
-  bio: z.string().max(200, '个人简介最多 200 字').optional().or(z.literal('')),
-  newEmail: z.string().email('请输入合法的邮箱地址').optional().or(z.literal('')),
-  newPassword: z.string()
-    .min(8, '密码长度不能少于 8 位')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, '密码必须包含大小写字母和数字')
-    .optional()
-    .or(z.literal('')),
-  confirmNewPassword: z.string().optional().or(z.literal('')),
-  verificationCode: z.string().length(6, '验证码必须为 6 位数字').optional().or(z.literal('')),
-})
-
-const formSchema = toTypedSchema(
-  baseSchema.refine((data) => {
-    if (!data.newPassword || data.newPassword === '')
-      return true
-    return data.newPassword === data.confirmNewPassword
-  }, {
-    message: '两次密码输入不一致',
-    path: ['confirmNewPassword'],
-  }),
-)
-
-const form = useForm<z.output<typeof baseSchema>>({
-  validationSchema: formSchema,
+const form = useForm({
+  validationSchema: userProfileFormSchema,
 })
 
 const displayEmail = computed(() => profile.value?.email ?? '')
@@ -88,6 +39,7 @@ const displayLastLoginAt = computed(() => profile.value?.lastLoginAt
   ? new Date(profile.value.lastLoginAt).toLocaleString()
   : '首次登录')
 
+// 初始头像，取用户名、邮箱或显示名称的首字母
 const avatarInitials = computed(() => {
   const name = profile.value?.name || profile.value?.username || profile.value?.email || 'U'
   const trimmed = name.trim()
@@ -149,49 +101,6 @@ async function handleAvatarChange(event: Event) {
 
   reader.readAsDataURL(file)
   target.value = ''
-}
-
-function handleCancelAvatarCrop() {
-  isAvatarCropperOpen.value = false
-  avatarSourceUrl.value = null
-}
-
-async function handleConfirmAvatarCrop() {
-  if (!avatarSourceUrl.value || !cropper) {
-    toast.error('无法裁剪头像，请重新选择图片')
-    return
-  }
-
-  try {
-    isUploadingAvatar.value = true
-
-    const file = await cropper.getFile({
-      fileName: 'avatar.png',
-      fileType: 'image/png',
-    })
-
-    if (!file) {
-      toast.error('裁剪头像失败，请重试')
-      return
-    }
-
-    const { url } = await utilApi.uploadFile(file)
-    form.setFieldValue('avatar', url)
-
-    toast.success('头像上传成功', {
-      description: '请点击下方保存按钮以更新个人资料。',
-    })
-
-    isAvatarCropperOpen.value = false
-    avatarSourceUrl.value = null
-  }
-  catch (error) {
-    console.error('Upload avatar failed', error)
-    toast.error('上传头像失败，请稍后重试')
-  }
-  finally {
-    isUploadingAvatar.value = false
-  }
 }
 
 async function handleSendVerificationCode() {
@@ -472,74 +381,11 @@ const onSubmit = form.handleSubmit(async (values) => {
         正在加载个人资料…
       </div>
     </div>
-
-    <!-- 头像裁剪弹层 -->
-    <div
-      v-if="isAvatarCropperOpen"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
-    >
-      <div class="bg-card rounded-lg shadow-lg border w-full max-w-lg max-h-[80vh] flex flex-col">
-        <div class="flex items-center justify-between px-4 py-3 border-b">
-          <div class="space-y-0.5">
-            <h2 class="text-sm font-medium">
-              裁剪头像
-            </h2>
-            <p class="text-xs text-muted-foreground">
-              拖动图片或缩放以调整头像显示区域，确认后会自动上传并更新下方预览。
-            </p>
-          </div>
-          <button
-            type="button"
-            class="text-xs text-muted-foreground hover:text-foreground"
-            @click="handleCancelAvatarCrop"
-          >
-            关闭
-          </button>
-        </div>
-
-        <div class="p-4 flex-1 min-h-[260px]">
-          <VuePictureCropper
-            v-if="avatarSourceUrl"
-            :img="avatarSourceUrl"
-            :box-style="{
-              width: '100%',
-              height: '320px',
-              backgroundColor: 'hsl(var(--muted))',
-              margin: '0 auto',
-            }"
-            :options="{
-              aspectRatio: 1,
-              viewMode: 1,
-              dragMode: 'move',
-              background: false,
-              movable: true,
-              zoomable: true,
-              responsive: true,
-            }"
-          />
-        </div>
-
-        <div class="flex items-center justify-end gap-2 px-4 py-3 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            :disabled="isUploadingAvatar"
-            @click="handleCancelAvatarCrop"
-          >
-            取消
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            :disabled="isUploadingAvatar"
-            @click="handleConfirmAvatarCrop"
-          >
-            <Loader2 v-if="isUploadingAvatar" class="mr-2 h-4 w-4 animate-spin" />
-            确认并上传
-          </Button>
-        </div>
-      </div>
-    </div>
   </div>
+
+  <Cropper
+    v-model:open="isAvatarCropperOpen"
+    v-model:source-url="avatarSourceUrl"
+    @confirm="(url) => form.setFieldValue('avatar', url)"
+  />
 </template>
