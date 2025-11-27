@@ -8,7 +8,6 @@ import { HanaError } from './error'
 const hooks: Hooks = {
   beforeRequest: [
     (request) => {
-      // Access store inside the hook to ensure Pinia is initialized
       const userStore = useUserStore()
       const token = userStore.token
 
@@ -106,9 +105,10 @@ const hooks: Hooks = {
 }
 
 const options: Options = {
-  prefixUrl: import.meta.env.VITE_API_BASE_URL || '/api', // Fallback to /api proxy
+  prefixUrl: import.meta.env.DEV ? '/api' : import.meta.env.API_BASE_URL,
   timeout: 10000,
   hooks,
+  credentials: 'include',
 }
 
 const service: KyInstance = ky.create(options)

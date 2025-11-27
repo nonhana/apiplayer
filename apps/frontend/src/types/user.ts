@@ -17,6 +17,17 @@ export interface UserFullInfo extends UserDetailInfo {
   updatedAt: string
 }
 
+export interface UpdateUserProfileReq {
+  name?: string
+  username?: string
+  avatar?: string
+  bio?: string
+  newEmail?: string
+  newPassword?: string
+  confirmNewPassword?: string
+  verificationCode?: string
+}
+
 export interface UserSession {
   sessionId: string
   createdAt: string

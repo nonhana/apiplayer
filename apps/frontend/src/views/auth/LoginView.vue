@@ -42,12 +42,16 @@ const form = useForm({
 
 const onSubmit = form.handleSubmit(async (values) => {
   isLoading.value = true
-  await userStore.login(values)
-  toast.success('Welcome back!', {
-    description: 'You have successfully logged in.',
-  })
-  router.push('/dashboard')
-  isLoading.value = false
+  try {
+    await userStore.login(values)
+    toast.success('Welcome back!', {
+      description: 'You have successfully logged in.',
+    })
+    router.push('/dashboard')
+  }
+  finally {
+    isLoading.value = false
+  }
 })
 </script>
 

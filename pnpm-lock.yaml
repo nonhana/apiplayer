@@ -174,6 +174,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      cropperjs:
+        specifier: ^2.1.0
+        version: 2.1.0
       dayjs:
         specifier: ^1.11.19
         version: 1.11.19
@@ -213,6 +216,9 @@ importers:
       vue:
         specifier: ^3.5.25
         version: 3.5.25(typescript@5.9.3)
+      vue-picture-cropper:
+        specifier: ^0.7.0
+        version: 0.7.0(vue@3.5.25(typescript@5.9.3))
       vue-router:
         specifier: ^4.6.3
         version: 4.6.3(vue@3.5.25(typescript@5.9.3))
@@ -521,6 +527,9 @@ packages:
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
     engines: {node: '>=6.9.0'}
 
+  '@bassist/utils@0.4.0':
+    resolution: {integrity: sha512-aoFTl0jUjm8/tDZodP41wnEkvB+C5O9NFCuYN/ztL6jSUSsuBkXq90/1ifBm1XhV/zySHgLYlU1+tgo3XtQ+nA==}
+
   '@borewit/text-codec@0.1.1':
     resolution: {integrity: sha512-5L/uBxmjaCIX5h8Z+uu+kA9BQLkc/Wl06UGR5ajNRxu+/XjonB5i8JpgFMrPj3LXTCPA0pv8yxUvbUi+QthGGA==}
 
@@ -549,6 +558,39 @@ packages:
   '@colors/colors@1.6.0':
     resolution: {integrity: sha512-Ir+AOibqzrIsL6ajt3Rz3LskB7OiMVHqltZmspbW/TJuTVuyOMirVqAkjfY6JISiLHgyNqicAC8AyHHGzNd/dA==}
     engines: {node: '>=0.1.90'}
+
+  '@cropper/element-canvas@2.1.0':
+    resolution: {integrity: sha512-el+rfJpZxsD2q5XxDBA4fRczcrOqB65Lb7roqXOq8LKufwf4bPWA9C6DjNJJahh/TP94dsLIEy3tSkgRMDv3Aw==}
+
+  '@cropper/element-crosshair@2.1.0':
+    resolution: {integrity: sha512-0V589dAx8uZAfvJwdINLn76gfPQEafPH94ukjJ76uX0FCUovLaAVX+VRD/MDSYn0Mza/xejzmL9Dhd1DfemvmA==}
+
+  '@cropper/element-grid@2.1.0':
+    resolution: {integrity: sha512-dEnk0rO+vp553LMvsPYgfrqVFcYXeVFrgFeavBYYEhAXtO40p7kN4rmLYLMMjaN+T/Mx2BATv6kUQpALKy2HLw==}
+
+  '@cropper/element-handle@2.1.0':
+    resolution: {integrity: sha512-8BklWA4C/2GGAULupIWleSnGutECvYt3vx9flodqDfZpDEozws4LgLqmmzVuQmVkRVUdLnXdtx28kjgWLtzkHg==}
+
+  '@cropper/element-image@2.1.0':
+    resolution: {integrity: sha512-mXOV8ixJvG0XtTxLebYAKDjEkFbFOQnsF02hXPZk1yQSV0J+LLhN7a2NePrtKnoTsEV19fhhX3UorMoyGGxvzg==}
+
+  '@cropper/element-selection@2.1.0':
+    resolution: {integrity: sha512-mtFtBl6HIa/s9TWohXw+Z5eJoeYTqylrIcHvS7oVv0uM7IyeRwBW65Q7z+KtLfq/LW+2Sw/XDyvR+VN/DawBPw==}
+
+  '@cropper/element-shade@2.1.0':
+    resolution: {integrity: sha512-zMdyqbb0lc0Vd1oj2Z1miIZvhyZG41OXMHvrNt0hNwblh0dVdrvtw48lnFDgRv+672vt2CNx7Q04GuvCQfPlgg==}
+
+  '@cropper/element-viewer@2.1.0':
+    resolution: {integrity: sha512-XnxlQuqHitd1FOFZ6E0yXAF5NYd/LyIvONLLHI9p1rJw747WYKUPxQaSYtFKF7IOizJu/8mMj++Zc1dZ5ZP3YQ==}
+
+  '@cropper/element@2.1.0':
+    resolution: {integrity: sha512-2zELddqHQNmlvkPoiYzE5nxEjPE+C8nXoTPuvV3FvLp3YjBinc7qb73Icg9UXP0o9qC4+h9q96JgGo0AyMO/Ng==}
+
+  '@cropper/elements@2.1.0':
+    resolution: {integrity: sha512-qvzlYDn3VQgPPpsCu6Gi1XUO0v3vpXQFSjjxcVijbXeNsl/eiKrN7H9/CEiRgi5vr8kXfd7ZvgYxBjUBbH+y+w==}
+
+  '@cropper/utils@2.1.0':
+    resolution: {integrity: sha512-wLtpZ4/UWgo+fGmG8NBWge8x5ehjfDe9ovleDfLy8kpwFaw43XXOEXQtRL1UNr0u4JZxaeO8FcXcolRWUUrlRQ==}
 
   '@dabh/diagnostics@2.0.8':
     resolution: {integrity: sha512-R4MSXTVnuMzGD7bzHdW2ZhhdPC/igELENcq5IjEverBvq5hn1SXCWcsi6eSsdWP0/Ur+SItRRjAktmdoX/8R/Q==}
@@ -2606,6 +2648,9 @@ packages:
   '@webassemblyjs/wast-printer@1.14.1':
     resolution: {integrity: sha512-kPSSXE6De1XOR820C90RIo2ogvZG+c3KiHzqUoO/F34Y2shGzesfqv7o57xrxovZJH/MetF5UjroJ/R/3isoiw==}
 
+  '@withtypes/mime@0.1.2':
+    resolution: {integrity: sha512-PB9BfZGzwblUONJY0LiOwsHCA6uV3DIPj/w9ReekdHxPOl0VdUFgI5s4avKycuuq9Gf5Nz2ZPA2O36GAUzlMPA==}
+
   '@xhmikosr/archive-type@7.1.0':
     resolution: {integrity: sha512-xZEpnGplg1sNPyEgFh0zbHxqlw5dtYg6viplmWSxUj12+QjU9SKu3U/2G73a15pEjLaOqTefNSZ1fOPUOT4Xgg==}
     engines: {node: '>=18'}
@@ -3097,6 +3142,12 @@ packages:
     peerDependenciesMeta:
       typescript:
         optional: true
+
+  cropperjs@1.6.2:
+    resolution: {integrity: sha512-nhymn9GdnV3CqiEHJVai54TULFAE3VshJTXSqSJKa8yXAKyBKDWdhHarnlIPrshJ0WMFTGuFvG02YjLXfPiuOA==}
+
+  cropperjs@2.1.0:
+    resolution: {integrity: sha512-SsSDqdVRl+mjbIBkGWlk1gCGcc+HzBqCbH5EQ+1tkAFUdxq2KUGukXF1RqhmvXrrdrX7PDwSUkWgXS7E36KvGQ==}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -5584,6 +5635,11 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
 
+  vue-picture-cropper@0.7.0:
+    resolution: {integrity: sha512-NF7+Dgso6d0GB16E5d/BbrcTIHm1VWz8dS3IjLhoBl+ZeC+yDA46CyJphQuO32SisaPmrKHN8VbiE2LgAfhnkQ==}
+    peerDependencies:
+      vue: '>=3.2.13'
+
   vue-router@4.6.3:
     resolution: {integrity: sha512-ARBedLm9YlbvQomnmq91Os7ck6efydTSpRP3nuOKCvgJOHNrhRoJDSKtee8kcL1Vf7nz6U+PMBL+hTvR3bTVQg==}
     peerDependencies:
@@ -6347,6 +6403,10 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
+  '@bassist/utils@0.4.0':
+    dependencies:
+      '@withtypes/mime': 0.1.2
+
   '@borewit/text-codec@0.1.1': {}
 
   '@chevrotain/cst-dts-gen@10.5.0':
@@ -6379,6 +6439,72 @@ snapshots:
     optional: true
 
   '@colors/colors@1.6.0': {}
+
+  '@cropper/element-canvas@2.1.0':
+    dependencies:
+      '@cropper/element': 2.1.0
+      '@cropper/utils': 2.1.0
+
+  '@cropper/element-crosshair@2.1.0':
+    dependencies:
+      '@cropper/element': 2.1.0
+      '@cropper/utils': 2.1.0
+
+  '@cropper/element-grid@2.1.0':
+    dependencies:
+      '@cropper/element': 2.1.0
+      '@cropper/utils': 2.1.0
+
+  '@cropper/element-handle@2.1.0':
+    dependencies:
+      '@cropper/element': 2.1.0
+      '@cropper/utils': 2.1.0
+
+  '@cropper/element-image@2.1.0':
+    dependencies:
+      '@cropper/element': 2.1.0
+      '@cropper/element-canvas': 2.1.0
+      '@cropper/utils': 2.1.0
+
+  '@cropper/element-selection@2.1.0':
+    dependencies:
+      '@cropper/element': 2.1.0
+      '@cropper/element-canvas': 2.1.0
+      '@cropper/element-image': 2.1.0
+      '@cropper/utils': 2.1.0
+
+  '@cropper/element-shade@2.1.0':
+    dependencies:
+      '@cropper/element': 2.1.0
+      '@cropper/element-canvas': 2.1.0
+      '@cropper/element-selection': 2.1.0
+      '@cropper/utils': 2.1.0
+
+  '@cropper/element-viewer@2.1.0':
+    dependencies:
+      '@cropper/element': 2.1.0
+      '@cropper/element-canvas': 2.1.0
+      '@cropper/element-image': 2.1.0
+      '@cropper/element-selection': 2.1.0
+      '@cropper/utils': 2.1.0
+
+  '@cropper/element@2.1.0':
+    dependencies:
+      '@cropper/utils': 2.1.0
+
+  '@cropper/elements@2.1.0':
+    dependencies:
+      '@cropper/element': 2.1.0
+      '@cropper/element-canvas': 2.1.0
+      '@cropper/element-crosshair': 2.1.0
+      '@cropper/element-grid': 2.1.0
+      '@cropper/element-handle': 2.1.0
+      '@cropper/element-image': 2.1.0
+      '@cropper/element-selection': 2.1.0
+      '@cropper/element-shade': 2.1.0
+      '@cropper/element-viewer': 2.1.0
+
+  '@cropper/utils@2.1.0': {}
 
   '@dabh/diagnostics@2.0.8':
     dependencies:
@@ -8540,6 +8666,10 @@ snapshots:
       '@webassemblyjs/ast': 1.14.1
       '@xtuc/long': 4.2.2
 
+  '@withtypes/mime@0.1.2':
+    dependencies:
+      mime: 3.0.0
+
   '@xhmikosr/archive-type@7.1.0':
     dependencies:
       file-type: 20.5.0
@@ -9043,6 +9173,13 @@ snapshots:
       path-type: 4.0.0
     optionalDependencies:
       typescript: 5.9.3
+
+  cropperjs@1.6.2: {}
+
+  cropperjs@2.1.0:
+    dependencies:
+      '@cropper/elements': 2.1.0
+      '@cropper/utils': 2.1.0
 
   cross-spawn@7.0.6:
     dependencies:
@@ -11702,6 +11839,12 @@ snapshots:
       semver: 7.7.2
     transitivePeerDependencies:
       - supports-color
+
+  vue-picture-cropper@0.7.0(vue@3.5.25(typescript@5.9.3)):
+    dependencies:
+      '@bassist/utils': 0.4.0
+      cropperjs: 1.6.2
+      vue: 3.5.25(typescript@5.9.3)
 
   vue-router@4.6.3(vue@3.5.25(typescript@5.9.3)):
     dependencies:

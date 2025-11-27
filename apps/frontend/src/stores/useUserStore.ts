@@ -1,12 +1,13 @@
 import type { LoginReq, RegisterReq } from '@/types/auth'
-import type { UserBriefInfo, UserDetailInfo } from '@/types/user'
+import type { UserBriefInfo, UserDetailInfo, UserFullInfo } from '@/types/user'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { authApi } from '@/api/auth'
+import { userApi } from '@/api/user'
 
 export const useUserStore = defineStore('user', () => {
   const token = ref<string>('')
-  const user = ref<UserBriefInfo | UserDetailInfo | null>(null)
+  const user = ref<UserBriefInfo | UserDetailInfo | UserFullInfo | null>(null)
   const isAuthenticated = ref(false)
 
   function setToken(newToken: string) {
@@ -14,7 +15,7 @@ export const useUserStore = defineStore('user', () => {
     isAuthenticated.value = !!newToken
   }
 
-  function setUser(newUser: UserBriefInfo | UserDetailInfo | null) {
+  function setUser(newUser: UserBriefInfo | UserDetailInfo | UserFullInfo | null) {
     user.value = newUser
   }
 
@@ -54,6 +55,20 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  async function loadFullProfile() {
+    if (!token.value)
+      return
+    try {
+      const profile = await userApi.getProfile()
+      setUser(profile)
+      return profile
+    }
+    catch (error) {
+      console.error('Failed to load full profile', error)
+      // 如果拿不到完整资料，也不强制登出，交给上层处理
+    }
+  }
+
   return {
     token,
     user,
@@ -64,6 +79,7 @@ export const useUserStore = defineStore('user', () => {
     register,
     logout,
     fetchCurrentUser,
+    loadFullProfile,
   }
 }, {
   persist: true,
