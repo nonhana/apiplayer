@@ -1,5 +1,5 @@
 export interface IApiResponse<T = any> {
   code: number
-  message: string
+  message: string | string[]
   data: T
 }

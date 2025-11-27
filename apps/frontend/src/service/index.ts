@@ -12,14 +12,10 @@ const hooks: Hooks = {
         return response
       }
 
-      // 尝试解析 JSON，优雅处理非 JSON 返回
-      let parsed: IApiResponse
-      try {
-        parsed = (await response.json()) as IApiResponse
-      }
-      catch {
-        // 若解析失败但状态正常，可直接返回 response 或自定义处理
-        return response
+      const resJson = await response.json() as IApiResponse
+      const parsed = {
+        ...resJson,
+        message: Array.isArray(resJson.message) ? resJson.message[0] ?? '' : resJson.message,
       }
 
       if (parsed.code !== 0 && parsed.code !== 200) {
@@ -32,8 +28,7 @@ const hooks: Hooks = {
           toast.error(message, {
             description: '请重新登录',
           })
-          // 可选：跳转到登录页
-          // window.location.href = '/auth/login'
+          window.location.href = '/auth/login'
         }
         else {
           console.error(message)
