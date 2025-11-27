@@ -4,4 +4,4 @@
 /**
  * 隐藏头部导航的路由名称
  */
-export const PUBLIC_ROUTES = ['Login', 'Register', 'Home']
+export const PUBLIC_ROUTES = ['Login', 'Register', 'Home', 'NotFound']
