@@ -4,15 +4,14 @@ import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
+import { authApi } from '@/api/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useUserStore } from '@/stores/useUserStore'
 import { registerFormSchema } from '@/validators/register'
 
 const router = useRouter()
-const userStore = useUserStore()
 const isLoading = ref(false)
 
 const form = useForm({
@@ -22,7 +21,7 @@ const form = useForm({
 const onSubmit = form.handleSubmit(async (values) => {
   isLoading.value = true
   try {
-    await userStore.register(values)
+    await authApi.register(values)
     toast.success('注册成功！', {
       description: '您现在可以使用新账号登录。',
     })

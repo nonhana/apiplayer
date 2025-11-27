@@ -4,6 +4,7 @@ import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
+import { authApi } from '@/api/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -23,7 +24,10 @@ const form = useForm({
 const onSubmit = form.handleSubmit(async (values) => {
   isLoading.value = true
   try {
-    await userStore.login(values)
+    const { token, user } = await authApi.login(values)
+    userStore.setToken(token)
+    userStore.setUser(user)
+
     toast.success('欢迎回来！', {
       description: '登录成功，欢迎使用。',
     })

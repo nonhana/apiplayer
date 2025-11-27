@@ -1,10 +1,13 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
+import { PUBLIC_ROUTES } from '@/constants'
+import { useUserStore } from '@/stores/useUserStore'
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/dashboard',
+    name: 'Home',
+    component: () => import('../views/home/HomeView.vue'),
   },
   {
     path: '/auth',
@@ -58,6 +61,21 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+})
+
+router.beforeEach((to, _, next) => {
+  const userStore = useUserStore()
+  if (PUBLIC_ROUTES.includes(to.name as string)) {
+    next()
+  }
+  else {
+    if (userStore.isAuthenticated) {
+      next()
+    }
+    else {
+      next({ name: 'Login' })
+    }
+  }
 })
 
 export default router

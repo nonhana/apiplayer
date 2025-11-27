@@ -6,44 +6,33 @@ import { useUserStore } from '../stores/useUserStore'
 import { HanaError } from './error'
 
 const hooks: Hooks = {
-  beforeRequest: [
-    (request) => {
-      const userStore = useUserStore()
-      const token = userStore.token
-
-      if (token) {
-        request.headers.set('Authorization', `Bearer ${token}`)
-      }
-    },
-  ],
-
   afterResponse: [
     async (_, __, response) => {
       if (response.status === 204) {
         return response
       }
 
-      // Try-catch for JSON parsing to handle non-JSON responses gracefully
+      // 尝试解析 JSON，优雅处理非 JSON 返回
       let parsed: IApiResponse
       try {
         parsed = (await response.json()) as IApiResponse
       }
       catch {
-        // If parsing fails but status is OK, we might return the response as is or handle it
+        // 若解析失败但状态正常，可直接返回 response 或自定义处理
         return response
       }
 
       if (parsed.code !== 0 && parsed.code !== 200) {
-        const message = parsed.message || 'Business Error'
+        const message = parsed.message || '业务异常'
 
         if (parsed.code === 401) {
-          console.error('Login expired, please log in again!')
+          console.error('登录已过期，请重新登录！')
           const userStore = useUserStore()
           userStore.logout()
           toast.error(message, {
-            description: 'Please login again',
+            description: '请重新登录',
           })
-          // Optional: Redirect to login
+          // 可选：跳转到登录页
           // window.location.href = '/auth/login'
         }
         else {
@@ -69,14 +58,14 @@ const hooks: Hooks = {
       let description = ''
 
       if (response) {
-        message = `Request Failed: ${response.status}`
+        message = `请求失败：${response.status}`
         description = response.statusText
 
-        // Try to parse error message from backend if available
+        // 若后端有详细错误信息，优先展示
         try {
           const errorData = await response.json() as any
           if (errorData && errorData.message) {
-            // If message is array (class-validator), join it
+            // message 为数组（例如 class-validator），拼接为字符串
             if (Array.isArray(errorData.message)) {
               description = errorData.message.join(', ')
             }
@@ -86,12 +75,12 @@ const hooks: Hooks = {
           }
         }
         catch {
-          // Ignore parsing error
+          // 忽略解析异常
         }
       }
       else {
-        message = 'Network Error'
-        description = 'Connection failed, please try again later'
+        message = '网络异常'
+        description = '连接失败，请稍后重试'
       }
 
       console.error(`${message}: ${description}`)
