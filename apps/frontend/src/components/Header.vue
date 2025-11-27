@@ -1,6 +1,8 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { Search } from 'lucide-vue-next'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { CreateTeamDialog, TeamSwitcher } from '@/components/dashboard'
 import {
   Avatar,
   AvatarFallback,
@@ -15,14 +17,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
 
 const router = useRouter()
 const userStore = useUserStore()
+const teamStore = useTeamStore()
 
+const isCreateTeamDialogOpen = ref(false)
+const searchQuery = ref('')
+
+/** 显示名称 */
 const displayName = computed(() => userStore.user?.name || userStore.user?.username || '未登录用户')
 const displayEmail = computed(() => userStore.user?.email || '')
 
+/** 头像首字母 */
 const avatarInitials = computed(() => {
   const source = displayName.value || displayEmail.value || 'U'
   const trimmed = source.trim()
@@ -43,22 +53,67 @@ function goDashboard() {
 }
 
 function handleLogout() {
+  teamStore.reset()
   userStore.logout()
   router.push('/auth/login')
 }
+
+function handleOpenCreateTeam() {
+  isCreateTeamDialogOpen.value = true
+}
+
+function handleSearch() {
+  // TODO: 实现全局搜索功能
+}
+
+onMounted(() => {
+  if (teamStore.teams.length === 0) {
+    teamStore.fetchTeams()
+  }
+})
 </script>
 
 <template>
-  <!-- Top Navigation -->
+  <!-- 顶部导航栏 -->
   <header class="h-14 border-b border-border flex items-center px-6 sticky top-0 bg-background/95 backdrop-blur z-50">
-    <div class="flex items-center gap-2">
-      <span class="font-bold text-lg tracking-tight">ApiPlayer</span>
-      <span class="text-xs text-muted-foreground hidden sm:inline-flex">
-        Modern API Workspace
-      </span>
+    <!-- 左侧：Logo + 团队切换器 -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 cursor-pointer" @click="goDashboard">
+        <span class="font-bold text-lg tracking-tight">ApiPlayer</span>
+        <span class="text-xs text-muted-foreground hidden sm:inline-flex">
+          Modern API Workspace
+        </span>
+      </div>
+
+      <div class="h-6 w-px bg-border hidden sm:block" />
+
+      <!-- 团队切换器 -->
+      <TeamSwitcher
+        class="hidden sm:flex"
+        @create-team="handleOpenCreateTeam"
+      />
     </div>
+
+    <!-- 中间：全局搜索 -->
+    <div class="flex-1 max-w-md mx-8 hidden md:block">
+      <div class="relative">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          v-model="searchQuery"
+          placeholder="搜索项目..."
+          class="pl-9 bg-muted/50"
+          @keyup.enter="handleSearch"
+        />
+      </div>
+    </div>
+
+    <!-- 右侧：用户菜单 -->
     <div class="ml-auto flex items-center gap-4">
-      <Button v-if="!userStore.isAuthenticated" variant="outline" @click="router.push('/auth/login')">
+      <Button
+        v-if="!userStore.isAuthenticated"
+        variant="outline"
+        @click="router.push('/auth/login')"
+      >
         用户登录
       </Button>
       <DropdownMenu v-else>
@@ -101,11 +156,15 @@ function handleLogout() {
             个人资料
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem class="text-destructive focus:text-destructive" @click="handleLogout">
+          <DropdownMenuItem
+            class="text-destructive focus:text-destructive"
+            @click="handleLogout"
+          >
             退出登录
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
   </header>
+  <CreateTeamDialog v-model:open="isCreateTeamDialogOpen" />
 </template>

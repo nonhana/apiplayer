@@ -56,21 +56,15 @@ const hooks: Hooks = {
         message = `请求失败：${response.status}`
         description = response.statusText
 
-        // 若后端有详细错误信息，优先展示
-        try {
-          const errorData = await response.json() as any
-          if (errorData && errorData.message) {
-            // message 为数组（例如 class-validator），拼接为字符串
-            if (Array.isArray(errorData.message)) {
-              description = errorData.message.join(', ')
-            }
-            else {
-              description = errorData.message
-            }
+        const errorData = await response.json() as any
+        if (errorData && errorData.message) {
+          // message 为数组（例如 class-validator），拼接为字符串
+          if (Array.isArray(errorData.message)) {
+            description = errorData.message.join(', ')
           }
-        }
-        catch {
-          // 忽略解析异常
+          else {
+            description = errorData.message
+          }
         }
       }
       else {

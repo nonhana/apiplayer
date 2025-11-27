@@ -1,8 +1,10 @@
+import { autoAnimatePlugin } from '@formkit/auto-animate/vue'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+
 import './style/global.css'
 
 const app = createApp(App)
@@ -11,4 +13,5 @@ pinia.use(piniaPluginPersistedstate)
 
 app.use(router)
 app.use(pinia)
+app.use(autoAnimatePlugin)
 app.mount('#app')
