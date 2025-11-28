@@ -1,12 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import Redis from 'ioredis'
-import { UserUpdateInput } from 'prisma/generated/models'
+import { UserUpdateInput, UserWhereInput } from 'prisma/generated/models'
 import { AuthService } from '@/auth/auth.service'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { REDIS_CLIENT } from '@/infra/redis/redis.module'
 import { UtilService } from '@/util/util.service'
+import { SearchUsersReqDto } from './dto/search-users.dto'
 import { UpdateUserProfileReqDto } from './dto/update-profile.dto'
 
 @Injectable()
@@ -225,6 +226,54 @@ export class UserService {
         throw error
       }
       throw new HanaException('获取用户失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /** 分页搜索用户 */
+  async searchUsers(dto: SearchUsersReqDto) {
+    const { page = 1, limit = 10, search } = dto
+
+    try {
+      const skip = (page - 1) * limit
+
+      const whereCondition: UserWhereInput = {
+        isActive: true,
+        ...(search && {
+          OR: [
+            { username: { contains: search, mode: 'insensitive' } },
+            { name: { contains: search, mode: 'insensitive' } },
+            { email: { contains: search, mode: 'insensitive' } },
+          ],
+        }),
+      }
+
+      const [users, total] = await Promise.all([
+        this.prisma.user.findMany({
+          where: whereCondition,
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.user.count({ where: whereCondition }),
+      ])
+
+      const totalPages = Math.ceil(total / limit)
+
+      return {
+        users,
+        total,
+        pagination: {
+          page,
+          limit,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      }
+    }
+    catch (error) {
+      this.logger.error(`搜索用户失败: ${error.message}`, error.stack)
+      throw new HanaException('搜索用户失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 }

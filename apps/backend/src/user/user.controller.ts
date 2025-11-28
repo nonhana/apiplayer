@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { UserFullInfoDto } from '@/common/dto/user.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
+import { SearchUsersReqDto, SearchUsersResDto } from './dto/search-users.dto'
 import { UpdateUserProfileReqDto } from './dto/update-profile.dto'
 import { UserService } from './user.service'
 
@@ -34,5 +35,14 @@ export class UserController {
     @ReqUser('id') userId: string,
   ): Promise<void> {
     await this.userService.sendProfileVerificationCode(userId)
+  }
+
+  /** 分页搜索用户 */
+  @Get('search')
+  async searchUsers(
+    @Query() dto: SearchUsersReqDto,
+  ): Promise<SearchUsersResDto> {
+    const result = await this.userService.searchUsers(dto)
+    return plainToInstance(SearchUsersResDto, result)
   }
 }

@@ -115,3 +115,21 @@ export interface ProjectPermissionsResponse {
   role: RoleBrief
   permissions: string[]
 }
+
+/** 项目成员列表响应 */
+export interface ProjectMembersResponse {
+  members: ProjectMember[]
+  total: number
+  pagination: Pagination
+}
+
+/** 邀请项目成员请求 */
+export interface InviteProjectMemberReq {
+  email: string
+  roleId: string
+}
+
+/** 更新项目成员请求 */
+export interface UpdateProjectMemberReq {
+  roleId: string
+}

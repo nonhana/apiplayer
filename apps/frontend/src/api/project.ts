@@ -1,11 +1,16 @@
+import type { BasePaginatedQuery } from '@/types'
 import type {
   CreateProjectReq,
   GetProjectsReq,
+  InviteProjectMemberReq,
   ProjectBrief,
   ProjectDetail,
+  ProjectMember,
+  ProjectMembersResponse,
   ProjectPermissionsResponse,
   ProjectsResponse,
   RecentProjectItem,
+  UpdateProjectMemberReq,
   UpdateProjectReq,
 } from '@/types/project'
 import http from '@/service'
@@ -38,4 +43,20 @@ export const projectApi = {
   /** 获取我的项目角色 */
   getMyProjectRole: (projectId: string) =>
     http.get(`projects/${projectId}/my-role`).json<ProjectPermissionsResponse>(),
+
+  /** 获取项目成员列表 */
+  getProjectMembers: (projectId: string, params?: BasePaginatedQuery) =>
+    http.get(`projects/${projectId}/members`, { searchParams: params as Record<string, string | number> }).json<ProjectMembersResponse>(),
+
+  /** 邀请项目成员 */
+  inviteProjectMember: (projectId: string, data: InviteProjectMemberReq) =>
+    http.post(`projects/${projectId}/members`, { json: data }).json<ProjectMember>(),
+
+  /** 更新项目成员角色 */
+  updateProjectMember: (projectId: string, memberId: string, data: UpdateProjectMemberReq) =>
+    http.patch(`projects/${projectId}/members/${memberId}`, { json: data }).json<ProjectMember>(),
+
+  /** 移除项目成员 */
+  removeProjectMember: (projectId: string, memberId: string) =>
+    http.delete(`projects/${projectId}/members/${memberId}`).json<void>(),
 }

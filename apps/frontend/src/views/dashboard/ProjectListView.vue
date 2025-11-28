@@ -1,12 +1,14 @@
 <script lang="ts" setup>
+import type { ProjectFormMode } from '@/components/dashboard/ProjectFormDialog.vue'
 import type { ProjectVisibility } from '@/constants'
 import type { ProjectItem } from '@/types/project'
 import { FolderKanban, Inbox, Plus, RefreshCw, Search } from 'lucide-vue-next'
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { projectApi } from '@/api/project'
-import CreateProjectDialog from '@/components/dashboard/CreateProjectDialog.vue'
 import DeleteProjectDialog from '@/components/dashboard/DeleteProjectDialog.vue'
 import ProjectCard from '@/components/dashboard/ProjectCard.vue'
+import ProjectFormDialog from '@/components/dashboard/ProjectFormDialog.vue'
+import ProjectMembersSheet from '@/components/dashboard/ProjectMembersSheet.vue'
 import RecentProjects from '@/components/dashboard/RecentProjects.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,9 +32,15 @@ const searchQuery = ref('')
 const visibilityFilter = ref<ProjectVisibility>('all')
 
 // 对话框状态
-const isCreateProjectDialogOpen = ref(false)
+const isProjectFormDialogOpen = ref(false)
+const projectFormMode = ref<ProjectFormMode>('create')
 const isDeleteProjectDialogOpen = ref(false)
+const isMembersSheetOpen = ref(false)
+
+// 当前操作的项目
+const currentProject = ref<ProjectItem | null>(null)
 const projectToDelete = ref<ProjectItem | null>(null)
+const projectToManageMembers = ref<ProjectItem | null>(null)
 
 /** 过滤后的项目列表 */
 const filteredProjects = computed(() => {
@@ -94,15 +102,35 @@ function handleRefresh() {
   recentProjectsRef.value?.refresh()
 }
 
-/** 项目创建成功 */
-function handleProjectCreated(project: ProjectItem) {
-  projects.value.unshift(project)
-  recentProjectsRef.value?.refresh()
+/** 打开创建项目对话框 */
+function openCreateProjectDialog() {
+  projectFormMode.value = 'create'
+  currentProject.value = null
+  isProjectFormDialogOpen.value = true
 }
 
 /** 打开编辑项目对话框 */
-function handleEditProject(_project: ProjectItem) {
-  // TODO: 实现编辑项目功能
+function handleEditProject(project: ProjectItem) {
+  projectFormMode.value = 'edit'
+  currentProject.value = project
+  isProjectFormDialogOpen.value = true
+}
+
+/** 项目表单操作成功（创建或编辑） */
+function handleProjectFormSuccess(project: ProjectItem) {
+  if (projectFormMode.value === 'create') {
+    // 创建成功，添加到列表头部
+    projects.value.unshift(project)
+    recentProjectsRef.value?.refresh()
+  }
+  else {
+    // 编辑成功，更新列表中的项目
+    const index = projects.value.findIndex(p => p.id === project.id)
+    if (index !== -1) {
+      projects.value[index] = project
+    }
+  }
+  currentProject.value = null
 }
 
 /** 打开删除项目确认框 */
@@ -119,8 +147,23 @@ function handleProjectDeleted(projectId: string) {
 }
 
 /** 打开成员管理 */
-function handleManageMembers(_project: ProjectItem) {
-  // TODO: 实现成员管理功能
+function handleManageMembers(project: ProjectItem) {
+  projectToManageMembers.value = project
+  isMembersSheetOpen.value = true
+}
+
+/** 成员数量变化 */
+function handleMemberCountChanged(count: number) {
+  if (projectToManageMembers.value) {
+    const index = projects.value.findIndex(p => p.id === projectToManageMembers.value?.id)
+    const existingProject = projects.value[index]
+    if (index !== -1 && existingProject) {
+      projects.value[index] = {
+        ...existingProject,
+        memberCount: count,
+      }
+    }
+  }
 }
 
 /** 监听团队变化，重新获取项目 */
@@ -164,7 +207,7 @@ onMounted(() => {
             <RefreshCw class="h-4 w-4 mr-1" :class="{ 'animate-spin': isLoading }" />
             刷新
           </Button>
-          <Button size="sm" @click="isCreateProjectDialogOpen = true">
+          <Button size="sm" @click="openCreateProjectDialog">
             <Plus class="h-4 w-4 mr-1" />
             新建项目
           </Button>
@@ -236,7 +279,7 @@ onMounted(() => {
         </p>
         <Button
           v-if="!searchQuery"
-          @click="isCreateProjectDialogOpen = true"
+          @click="openCreateProjectDialog"
         >
           <Plus class="h-4 w-4 mr-1" />
           创建第一个项目
@@ -261,15 +304,26 @@ onMounted(() => {
       </div>
     </section>
 
-    <CreateProjectDialog
-      v-model:open="isCreateProjectDialogOpen"
-      @created="handleProjectCreated"
+    <!-- 项目表单对话框（创建/编辑） -->
+    <ProjectFormDialog
+      v-model:open="isProjectFormDialogOpen"
+      :mode="projectFormMode"
+      :project="currentProject"
+      @success="handleProjectFormSuccess"
     />
 
+    <!-- 删除项目确认框 -->
     <DeleteProjectDialog
       v-model:open="isDeleteProjectDialogOpen"
       :project="projectToDelete"
       @deleted="handleProjectDeleted"
+    />
+
+    <!-- 成员管理抽屉 -->
+    <ProjectMembersSheet
+      v-model:open="isMembersSheetOpen"
+      :project="projectToManageMembers"
+      @member-count-changed="handleMemberCountChanged"
     />
   </div>
 </template>
