@@ -15,6 +15,8 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   (e: 'update:modelValue', payload: string | number): void
+  (e: 'focus', event: Event): void
+  (e: 'blur', event: Event): void
 }>()
 
 const modelValue = useVModel(props, 'modelValue', emits, {
@@ -44,6 +46,8 @@ const inputType = computed(() => {
         'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
         props.class,
       )"
+      @focus="(e) => emits('focus', e)"
+      @blur="(e) => emits('blur', e)"
     >
     <button
       v-if="props.passwordToggle"
