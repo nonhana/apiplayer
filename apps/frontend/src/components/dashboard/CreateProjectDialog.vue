@@ -74,7 +74,7 @@ watch(
 /** 提交创建项目 */
 const onSubmit = handleSubmit(async (formValues) => {
   if (!teamStore.currentTeamId) {
-    toast.error('请先选择一个团队')
+    toast.error('创建项目时请指定一个团队')
     return
   }
 
@@ -88,7 +88,7 @@ const onSubmit = handleSubmit(async (formValues) => {
       isPublic: formValues.isPublic,
     })
 
-    // 构建完整的项目项用于更新列表
+    // 构建完整的项目项用于本地回显更新列表
     const projectItem: ProjectItem = {
       ...newProject,
       updatedAt: newProject.createdAt,
@@ -137,7 +137,6 @@ watch(isOpen, (open) => {
       </DialogHeader>
 
       <form class="space-y-4" @submit="onSubmit">
-        <!-- 项目名称 -->
         <FormField v-slot="{ componentField }" name="name">
           <FormItem>
             <FormLabel>项目名称 <span class="text-destructive">*</span></FormLabel>
@@ -147,7 +146,7 @@ watch(isOpen, (open) => {
             <FormMessage />
           </FormItem>
         </FormField>
-        <!-- 项目标识符 -->
+
         <FormField v-slot="{ componentField }" name="slug">
           <FormItem>
             <FormLabel>项目标识符 <span class="text-destructive">*</span></FormLabel>
@@ -163,7 +162,7 @@ watch(isOpen, (open) => {
             <FormMessage />
           </FormItem>
         </FormField>
-        <!-- 项目描述 -->
+
         <FormField v-slot="{ componentField }" name="description">
           <FormItem>
             <FormLabel>项目描述</FormLabel>
@@ -174,7 +173,6 @@ watch(isOpen, (open) => {
           </FormItem>
         </FormField>
 
-        <!-- 公开/私有切换 -->
         <div class="flex items-center justify-between rounded-lg border p-4">
           <div class="space-y-0.5">
             <Label class="text-base flex items-center gap-2">

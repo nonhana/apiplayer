@@ -1,3 +1,5 @@
+import type { RoleName } from '@/constants/roles'
+
 /** 团队简要信息 */
 export interface TeamBrief {
   id: string
@@ -11,7 +13,7 @@ export interface TeamBrief {
 /** 角色简要信息 */
 export interface RoleBrief {
   id: string
-  name: string
+  name: RoleName
   description?: string
 }
 

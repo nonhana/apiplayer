@@ -35,7 +35,6 @@ function goHome() {
         </div>
       </div>
 
-      <!-- Message -->
       <h1 class="text-2xl sm:text-3xl font-semibold mb-3">
         页面未找到
       </h1>
@@ -45,7 +44,6 @@ function goHome() {
         请检查地址是否正确，或返回首页继续浏览。
       </p>
 
-      <!-- Actions -->
       <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
         <Button variant="outline" class="w-full sm:w-auto" @click="goBack">
           <ArrowLeft class="mr-2 h-4 w-4" />
@@ -58,7 +56,6 @@ function goHome() {
       </div>
     </div>
 
-    <!-- Footer -->
     <p class="absolute bottom-6 text-xs text-muted-foreground/50">
       ApiPlayer · 现代化 API 管理平台
     </p>

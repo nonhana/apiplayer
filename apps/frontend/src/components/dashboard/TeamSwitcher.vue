@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
+import { cn, getTeamFallbackIcon } from '@/lib/utils'
 import { useTeamStore } from '@/stores/useTeamStore'
 
 const emits = defineEmits<{
@@ -25,21 +25,12 @@ const teamStore = useTeamStore()
 
 const isOpen = ref(false)
 
-/** 获取团队头像 Fallback */
-function getTeamInitials(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) {
-    return (parts[0]?.charAt(0) ?? 'T').toUpperCase()
-  }
-  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'T'
-}
-
 /** 当前团队显示名 */
 const currentTeamName = computed(() => teamStore.currentTeam?.name ?? '选择团队')
 
-/** 当前团队显示的 initials */
-const currentTeamInitials = computed(() =>
-  teamStore.currentTeam ? getTeamInitials(teamStore.currentTeam.name) : 'T',
+/** 当前团队的兜底 Icon */
+const currentTeamFallbackIcon = computed(() =>
+  teamStore.currentTeam ? getTeamFallbackIcon(teamStore.currentTeam.name) : 'T',
 )
 
 /** 切换团队 */
@@ -83,7 +74,7 @@ watch(
           <Avatar class="h-5 w-5 border">
             <AvatarImage v-if="teamStore.currentTeam?.avatar" :src="teamStore.currentTeam.avatar" />
             <AvatarFallback class="text-[10px] font-semibold bg-primary/10 text-primary">
-              {{ currentTeamInitials }}
+              {{ currentTeamFallbackIcon }}
             </AvatarFallback>
           </Avatar>
           <span class="flex-1 truncate text-left font-medium">{{ currentTeamName }}</span>
@@ -107,7 +98,7 @@ watch(
               <Avatar class="h-5 w-5 border">
                 <AvatarImage v-if="team.avatar" :src="team.avatar" />
                 <AvatarFallback class="text-[10px] font-semibold bg-primary/10 text-primary">
-                  {{ getTeamInitials(team.name) }}
+                  {{ getTeamFallbackIcon(team.name) }}
                 </AvatarFallback>
               </Avatar>
               <span class="flex-1 truncate">{{ team.name }}</span>

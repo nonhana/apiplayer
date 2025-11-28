@@ -22,25 +22,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import dayjs from '@/lib/dayjs'
+import { getProjectFallbackIcon } from '@/lib/utils'
 
 const router = useRouter()
 
 const recentProjects = ref<RecentProjectItem[]>([])
 const isLoading = ref(true)
 
-/** 获取项目图标 Fallback */
-function getProjectInitials(name: string) {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) {
-    return (name.charAt(0) ?? 'P').toUpperCase()
-  }
-  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'P'
-}
-
-/** 格式化访问时间 */
-function formatLastVisited(date: string) {
-  return dayjs(date).fromNow()
-}
+const getRelativeLastVisitedAt = (date: string) => dayjs(date).fromNow()
 
 /** 是否显示最近访问区域 */
 const hasRecentProjects = computed(() => recentProjects.value.length > 0)
@@ -121,7 +110,7 @@ defineExpose({
                     <Avatar class="h-8 w-8 rounded-md border shadow-sm">
                       <AvatarImage v-if="project.icon" :src="project.icon" />
                       <AvatarFallback class="rounded-md text-xs font-bold bg-linear-to-br from-primary/20 to-primary/5 text-primary">
-                        {{ getProjectInitials(project.name) }}
+                        {{ getProjectFallbackIcon(project.name) }}
                       </AvatarFallback>
                     </Avatar>
                     <div class="flex-1 min-w-0">
@@ -142,7 +131,7 @@ defineExpose({
                   </div>
                   <p class="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock class="h-3 w-3" />
-                    {{ formatLastVisited(project.lastVisitedAt) }}
+                    {{ getRelativeLastVisitedAt(project.lastVisitedAt) }}
                   </p>
 
                   <!-- Hover 时显示箭头 -->

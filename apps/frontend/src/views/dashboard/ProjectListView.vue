@@ -1,14 +1,13 @@
 <script lang="ts" setup>
+import type { ProjectVisibility } from '@/constants'
 import type { ProjectItem } from '@/types/project'
 import { FolderKanban, Inbox, Plus, RefreshCw, Search } from 'lucide-vue-next'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { projectApi } from '@/api/project'
-import {
-  CreateProjectDialog,
-  DeleteProjectDialog,
-  ProjectCard,
-  RecentProjects,
-} from '@/components/dashboard'
+import CreateProjectDialog from '@/components/dashboard/CreateProjectDialog.vue'
+import DeleteProjectDialog from '@/components/dashboard/DeleteProjectDialog.vue'
+import ProjectCard from '@/components/dashboard/ProjectCard.vue'
+import RecentProjects from '@/components/dashboard/RecentProjects.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -22,13 +21,13 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useTeamStore } from '@/stores/useTeamStore'
 
 const teamStore = useTeamStore()
-const recentProjectsRef = ref<InstanceType<typeof RecentProjects> | null>(null)
+const recentProjectsRef = useTemplateRef('recentProjectsRef')
 
 // 项目列表状态
 const projects = ref<ProjectItem[]>([])
 const isLoading = ref(false)
 const searchQuery = ref('')
-const visibilityFilter = ref<'all' | 'public' | 'private'>('all')
+const visibilityFilter = ref<ProjectVisibility>('all')
 
 // 对话框状态
 const isCreateProjectDialogOpen = ref(false)
@@ -39,7 +38,7 @@ const projectToDelete = ref<ProjectItem | null>(null)
 const filteredProjects = computed(() => {
   let result = projects.value
 
-  // 按团队过滤
+  // 属于当前团队的项目
   if (teamStore.currentTeamId) {
     result = result.filter(p => p.team.id === teamStore.currentTeamId)
   }
@@ -139,12 +138,9 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    <!-- 最近访问的项目 -->
     <RecentProjects ref="recentProjectsRef" />
 
-    <!-- 项目列表区域 -->
     <section class="space-y-4">
-      <!-- 头部：标题 + 操作 -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-3">
           <FolderKanban class="h-6 w-6 text-primary" />
@@ -175,7 +171,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 筛选栏 -->
       <div class="flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1 max-w-sm">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -203,7 +198,7 @@ onMounted(() => {
         </Select>
       </div>
 
-      <!-- 加载状态 -->
+      <!-- shadcn 骨架屏 -->
       <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div
           v-for="i in 6"
@@ -226,7 +221,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 空状态 -->
       <div
         v-else-if="showEmptyState"
         class="flex flex-col items-center justify-center py-16 px-4 border border-dashed rounded-lg bg-muted/20"
@@ -249,7 +243,6 @@ onMounted(() => {
         </Button>
       </div>
 
-      <!-- 项目网格 -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <ProjectCard
           v-for="project in filteredProjects"
@@ -261,7 +254,6 @@ onMounted(() => {
         />
       </div>
 
-      <!-- 加载更多提示 -->
       <div v-if="!isLoading && hasProjects" class="text-center py-4">
         <p class="text-sm text-muted-foreground">
           共 {{ filteredProjects.length }} 个项目
@@ -269,13 +261,11 @@ onMounted(() => {
       </div>
     </section>
 
-    <!-- 创建项目对话框 -->
     <CreateProjectDialog
       v-model:open="isCreateProjectDialogOpen"
       @created="handleProjectCreated"
     />
 
-    <!-- 删除项目确认框 -->
     <DeleteProjectDialog
       v-model:open="isDeleteProjectDialogOpen"
       :project="projectToDelete"

@@ -27,6 +27,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import dayjs from '@/lib/dayjs'
+import { getProjectFallbackIcon } from '@/lib/utils'
 
 const props = defineProps<{
   project: ProjectItem
@@ -38,16 +39,6 @@ const emits = defineEmits<{
 }>()
 
 const router = useRouter()
-
-/** 项目图标 Fallback */
-const projectInitials = computed(() => {
-  const name = props.project.name.trim()
-  const parts = name.split(/\s+/)
-  if (parts.length === 1) {
-    return (name.charAt(0) ?? 'P').toUpperCase()
-  }
-  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'P'
-})
 
 /** 相对时间 */
 const relativeUpdatedAt = computed(() => dayjs(props.project.updatedAt).fromNow())
@@ -81,7 +72,6 @@ function handleManageMembers() {
     class="group relative cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/20 hover:-translate-y-0.5"
     @click="handleEnterProject"
   >
-    <!-- 操作菜单 -->
     <div
       v-if="canManage"
       class="absolute right-3 top-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -123,7 +113,7 @@ function handleManageMembers() {
         <Avatar class="h-12 w-12 rounded-lg border shadow-sm">
           <AvatarImage v-if="project.icon" :src="project.icon" />
           <AvatarFallback class="rounded-lg text-base font-bold bg-linear-to-br from-primary/20 to-primary/5 text-primary">
-            {{ projectInitials }}
+            {{ getProjectFallbackIcon(project.name) }}
           </AvatarFallback>
         </Avatar>
         <div class="flex-1 min-w-0 space-y-1">
@@ -169,7 +159,6 @@ function handleManageMembers() {
         暂无描述
       </p>
 
-      <!-- 底部统计信息 -->
       <div class="flex items-center gap-4 text-xs text-muted-foreground">
         <div class="flex items-center gap-1">
           <Code2 class="h-3.5 w-3.5" />

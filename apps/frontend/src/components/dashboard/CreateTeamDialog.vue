@@ -75,7 +75,7 @@ const onSubmit = handleSubmit(async (formValues) => {
       avatar: formValues.avatar || undefined,
     })
 
-    // 添加到 store（需要补充一些字段）
+    // store 自动切换到新创建的团队
     const teamItem: TeamItem = {
       ...newTeam,
       isActive: true,
@@ -89,7 +89,6 @@ const onSubmit = handleSubmit(async (formValues) => {
       },
     }
     teamStore.addTeam(teamItem)
-    // 自动切换到新创建的团队
     teamStore.switchTeam(newTeam.id)
 
     toast.success('团队创建成功', {

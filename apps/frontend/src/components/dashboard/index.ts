@@ -1,6 +1,0 @@
-export { default as CreateProjectDialog } from './CreateProjectDialog.vue'
-export { default as CreateTeamDialog } from './CreateTeamDialog.vue'
-export { default as DeleteProjectDialog } from './DeleteProjectDialog.vue'
-export { default as ProjectCard } from './ProjectCard.vue'
-export { default as RecentProjects } from './RecentProjects.vue'
-export { default as TeamSwitcher } from './TeamSwitcher.vue'
