@@ -2,7 +2,6 @@
 import { Search } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { CreateTeamDialog, TeamSwitcher } from '@/components/dashboard'
 import {
   Avatar,
   AvatarFallback,
@@ -20,6 +19,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
+import CreateTeamDialog from './dashboard/CreateTeamDialog.vue'
+import TeamSwitcher from './dashboard/TeamSwitcher.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
