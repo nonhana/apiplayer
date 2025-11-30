@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
-import { ProjectPermissions, RequireProjectMember, RequireTeamMember } from '@/common/decorators/permissions.decorator'
+import { ProjectPermissions, RequireProjectMember, RequireTeamMember, TeamPermissions } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
@@ -25,7 +25,7 @@ export class ProjectController {
   /** 创建项目 */
   @Post(':teamId')
   @RequireTeamMember()
-  @ProjectPermissions(['project:create'], 'teamId')
+  @TeamPermissions(['project:create'])
   @ResMsg('项目创建成功')
   async createProject(
     @Param('teamId') teamId: string,
