@@ -47,6 +47,11 @@ export interface ProjectMember {
   joinedAt: string
 }
 
+/** 项目成员数组 */
+export interface ProjectMembersArr {
+  members: ProjectMember[]
+}
+
 /** 项目环境 */
 export interface ProjectEnv {
   id: string
@@ -123,10 +128,15 @@ export interface ProjectMembersResponse {
   pagination: Pagination
 }
 
-/** 邀请项目成员请求 */
-export interface InviteProjectMemberReq {
+/** 邀请项目成员 Item */
+export interface InviteProjectMemberItem {
   email: string
   roleId: string
+}
+
+/** 邀请项目成员请求 */
+export interface InviteProjectMembersReq {
+  members: InviteProjectMemberItem[]
 }
 
 /** 更新项目成员请求 */

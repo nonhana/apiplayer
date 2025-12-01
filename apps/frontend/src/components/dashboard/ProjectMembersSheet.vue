@@ -2,7 +2,7 @@
 import type { ProjectItem, ProjectMember } from '@/types/project'
 import type { RoleItem } from '@/types/role'
 import type { UserSearchItem } from '@/types/user'
-import { Loader2, Search, Trash2, UserPlus, Users } from 'lucide-vue-next'
+import { Loader2, Search, UserPlus, Users } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { projectApi } from '@/api/project'
@@ -17,8 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -38,6 +36,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import ProjectMemberItem from './ProjectMemberItem.vue'
 import UserSearchSelect from './UserSearchSelect.vue'
 
 const props = defineProps<{
@@ -70,42 +69,8 @@ const isDeleteDialogOpen = ref(false)
 const memberToDelete = ref<ProjectMember | null>(null)
 const isDeleting = ref(false)
 
-// 角色更新状态
-const updatingMemberId = ref<string | null>(null)
-
 /** 已有成员的用户 ID 列表，用于在搜索时排除 */
 const existingMemberUserIds = computed(() => members.value.map(m => m.user.id))
-
-/** 获取用户头像 Fallback */
-function getAvatarInitials(name: string) {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1)
-    return (parts[0]?.charAt(0) ?? 'U').toUpperCase()
-  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'U'
-}
-
-/** 角色显示名称 */
-function getRoleDisplayName(roleName: string) {
-  const role = projectRoles.value.find(r => r.name === roleName)
-  if (role?.description)
-    return role.description
-  // 兜底：根据角色名称返回中文名
-  const fallbackMap: Record<string, string> = {
-    'project:admin': '管理员',
-    'project:editor': '编辑者',
-    'project:viewer': '查看者',
-  }
-  return fallbackMap[roleName] ?? roleName
-}
-
-/** 角色徽章颜色 */
-function getRoleBadgeVariant(roleName: string): 'default' | 'secondary' | 'outline' {
-  if (roleName === 'project:admin')
-    return 'default'
-  if (roleName === 'project:editor')
-    return 'secondary'
-  return 'outline'
-}
 
 /** 过滤后的成员列表 */
 const filteredMembers = computed(() => {
@@ -157,52 +122,29 @@ async function fetchMembers() {
   }
 }
 
-/** 邀请成员（批量邀请） */
+/** 邀请成员 */
 async function handleInvite() {
   if (!props.project || selectedUsers.value.length === 0 || !inviteRoleId.value)
     return
 
   isInviteSubmitting.value = true
   try {
-    const results: ProjectMember[] = []
-    const errors: string[] = []
-
-    // 逐个邀请用户（后端目前不支持批量邀请）
-    for (const user of selectedUsers.value) {
-      try {
-        const newMember = await projectApi.inviteProjectMember(props.project.id, {
-          email: user.email,
-          roleId: inviteRoleId.value,
-        })
-        results.push(newMember)
-      }
-      catch {
-        errors.push(user.name)
-      }
-    }
+    const { members: newMembers } = await projectApi.inviteProjectMembers(props.project.id, {
+      members: selectedUsers.value.map(user => ({
+        email: user.email,
+        roleId: inviteRoleId.value,
+      })),
+    })
 
     // 更新本地成员列表
-    if (results.length > 0) {
-      members.value.push(...results)
+    if (newMembers.length > 0) {
+      members.value.push(...newMembers)
       emits('memberCountChanged', members.value.length)
     }
 
-    // 显示结果
-    if (errors.length === 0) {
-      toast.success('邀请成功', {
-        description: `已邀请 ${results.length} 名用户加入项目`,
-      })
-    }
-    else if (results.length > 0) {
-      toast.warning('部分邀请成功', {
-        description: `成功邀请 ${results.length} 人，${errors.join('、')} 邀请失败`,
-      })
-    }
-    else {
-      toast.error('邀请失败', {
-        description: '所有用户邀请均失败，请稍后重试',
-      })
-    }
+    toast.success('邀请成功', {
+      description: `已邀请 ${newMembers.length} 名用户加入项目`,
+    })
 
     // 重置表单
     selectedUsers.value = []
@@ -215,39 +157,22 @@ async function handleInvite() {
 }
 
 /** 更新成员角色 */
-async function handleUpdateRole(member: ProjectMember, newRoleId: string) {
-  if (!props.project || member.role.id === newRoleId)
-    return
-
-  updatingMemberId.value = member.id
-  try {
-    const updatedMember = await projectApi.updateProjectMember(
-      props.project.id,
-      member.id,
-      { roleId: newRoleId },
-    )
-
-    // 更新本地数据
-    const index = members.value.findIndex(m => m.id === member.id)
-    if (index !== -1) {
-      members.value[index] = updatedMember
-    }
-
-    toast.success('角色已更新')
-  }
-  finally {
-    updatingMemberId.value = null
+async function handleUpdateRole(member: ProjectMember) {
+  // 更新本地数据
+  const index = members.value.findIndex(m => m.id === member.id)
+  if (index !== -1) {
+    members.value[index] = member
   }
 }
 
 /** 确认删除成员 */
-function confirmDeleteMember(member: ProjectMember) {
+function handleDeleteMember(member: ProjectMember) {
   memberToDelete.value = member
   isDeleteDialogOpen.value = true
 }
 
 /** 删除成员 */
-async function handleDeleteMember() {
+async function confirmDeleteMember() {
   if (!props.project || !memberToDelete.value)
     return
 
@@ -394,61 +319,16 @@ watch(isOpen, async (open) => {
 
           <!-- 成员列表 -->
           <div v-else class="space-y-2">
-            <div
+            <ProjectMemberItem
               v-for="member in filteredMembers"
               :key="member.id"
-              class="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors group"
-            >
-              <Avatar class="h-10 w-10 border">
-                <AvatarImage v-if="member.user.avatar" :src="member.user.avatar" />
-                <AvatarFallback class="text-sm font-medium">
-                  {{ getAvatarInitials(member.user.name) }}
-                </AvatarFallback>
-              </Avatar>
-
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2">
-                  <span class="font-medium truncate">{{ member.user.name }}</span>
-                  <Badge :variant="getRoleBadgeVariant(member.role.name)" class="shrink-0">
-                    {{ getRoleDisplayName(member.role.name) }}
-                  </Badge>
-                </div>
-                <p class="text-sm text-muted-foreground truncate">
-                  {{ member.user.email }}
-                </p>
-              </div>
-
-              <!-- 操作按钮 -->
-              <div v-if="isCurrentUserAdmin" class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Select
-                  :model-value="member.role.id"
-                  :disabled="updatingMemberId === member.id"
-                  @update:model-value="(v) => handleUpdateRole(member, v as string)"
-                >
-                  <SelectTrigger class="w-[100px] h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem
-                      v-for="role in projectRoles"
-                      :key="role.id"
-                      :value="role.id"
-                    >
-                      {{ role.description || role.name }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  class="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                  @click="confirmDeleteMember(member)"
-                >
-                  <Trash2 class="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+              :project="project"
+              :member="member"
+              :project-roles="projectRoles"
+              :is-current-user-admin="isCurrentUserAdmin"
+              @update-role="handleUpdateRole"
+              @delete-member="handleDeleteMember"
+            />
 
             <!-- 空状态 -->
             <div
@@ -485,7 +365,7 @@ watch(isOpen, async (open) => {
         <AlertDialogAction
           :disabled="isDeleting"
           class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          @click.prevent="handleDeleteMember"
+          @click.prevent="confirmDeleteMember"
         >
           <Loader2 v-if="isDeleting" class="h-4 w-4 mr-1 animate-spin" />
           确认移除

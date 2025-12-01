@@ -2,10 +2,11 @@ import type { BasePaginatedQuery } from '@/types'
 import type {
   CreateProjectReq,
   GetProjectsReq,
-  InviteProjectMemberReq,
+  InviteProjectMembersReq,
   ProjectBrief,
   ProjectDetail,
   ProjectMember,
+  ProjectMembersArr,
   ProjectMembersResponse,
   ProjectPermissionsResponse,
   ProjectsResponse,
@@ -49,8 +50,8 @@ export const projectApi = {
     http.get(`projects/${projectId}/members`, { searchParams: params as Record<string, string | number> }).json<ProjectMembersResponse>(),
 
   /** 邀请项目成员 */
-  inviteProjectMember: (projectId: string, data: InviteProjectMemberReq) =>
-    http.post(`projects/${projectId}/members`, { json: data }).json<ProjectMember>(),
+  inviteProjectMembers: (projectId: string, data: InviteProjectMembersReq) =>
+    http.post(`projects/${projectId}/members`, { json: data }).json<ProjectMembersArr>(),
 
   /** 更新项目成员角色 */
   updateProjectMember: (projectId: string, memberId: string, data: UpdateProjectMemberReq) =>

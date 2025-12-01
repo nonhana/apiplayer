@@ -49,6 +49,13 @@ export class MemberDto {
 }
 
 @Exclude()
+export class MembersArrDto {
+  @Expose()
+  @Type(() => MemberDto)
+  members: MemberDto[]
+}
+
+@Exclude()
 export class MembersDto {
   @Expose()
   @Type(() => MemberDto)

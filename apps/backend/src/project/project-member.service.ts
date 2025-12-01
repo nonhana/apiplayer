@@ -5,7 +5,7 @@ import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { RoleService } from '@/role/role.service'
 import { UserService } from '@/user/user.service'
-import { GetMembersReqDto, InviteMemberReqDto, UpdateMemberReqDto } from './dto'
+import { GetMembersReqDto, InviteMembersReqDto, UpdateMemberReqDto } from './dto'
 import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
@@ -19,61 +19,88 @@ export class ProjectMemberService {
     private readonly roleService: RoleService,
   ) {}
 
-  async inviteProjectMember(dto: InviteMemberReqDto, projectId: string, inviterId: string) {
-    const { email, roleId } = dto
+  async inviteProjectMembers(dto: InviteMembersReqDto, projectId: string, inviterId: string) {
+    const { members } = dto
 
     try {
       const project = await this.projectUtilsService.getProjectById(projectId)
 
-      const invitedUser = await this.userService.getUserByEmail(email)
+      // 批量获取所有要邀请的用户
+      const users = await Promise.all(
+        members.map(m => this.userService.getUserByEmail(m.email)),
+      )
+      const userMap = new Map(users.map(user => [user.email, user]))
 
-      // 检查用户是否已经是项目成员
-      const existingMember = await this.prisma.projectMember.findUnique({
-        where: {
-          userId_projectId: {
-            userId: invitedUser.id,
-            projectId,
-          },
-        },
+      // 批量验证角色是否存在（去重后验证，避免重复查询）
+      const uniqueRoleIds = [...new Set(members.map(m => m.roleId))]
+      await Promise.all(
+        uniqueRoleIds.map(roleId => this.roleService.getRole('id', roleId)),
+      )
+
+      const newMembers = await this.prisma.$transaction(async (tx) => {
+        // 先进行所有验证
+        for (const member of members) {
+          const user = userMap.get(member.email)!
+
+          // 检查用户是否已经是项目成员
+          const existingMember = await tx.projectMember.findUnique({
+            where: {
+              userId_projectId: {
+                userId: user.id,
+                projectId,
+              },
+            },
+          })
+
+          if (existingMember) {
+            throw new HanaException(
+              `用户 ${user.email} 已经是项目成员`,
+              ErrorCode.USER_ALREADY_PROJECT_MEMBER,
+            )
+          }
+
+          // 检查用户是否是团队成员
+          const teamMember = await tx.teamMember.findUnique({
+            where: {
+              userId_teamId: {
+                userId: user.id,
+                teamId: project.teamId,
+              },
+            },
+          })
+
+          if (!teamMember) {
+            throw new HanaException(
+              `用户 ${user.email} 不是团队成员，只能邀请团队成员加入项目`,
+              ErrorCode.USER_NOT_TEAM_MEMBER,
+            )
+          }
+        }
+
+        // 验证通过后，批量创建所有成员
+        return Promise.all(
+          members.map((member) => {
+            const user = userMap.get(member.email)!
+            return tx.projectMember.create({
+              data: {
+                userId: user.id,
+                projectId,
+                roleId: member.roleId,
+              },
+              include: {
+                user: true,
+                role: true,
+              },
+            })
+          }),
+        )
       })
 
-      if (existingMember) {
-        throw new HanaException('用户已经是项目成员', ErrorCode.USER_ALREADY_PROJECT_MEMBER)
-      }
+      this.logger.log(
+        `用户 ${inviterId} 邀请了 ${newMembers.length} 名用户加入项目 ${projectId}`,
+      )
 
-      // 检查用户是否是团队成员
-      const teamMember = await this.prisma.teamMember.findUnique({
-        where: {
-          userId_teamId: {
-            userId: invitedUser.id,
-            teamId: project.teamId,
-          },
-        },
-      })
-
-      if (!teamMember) {
-        throw new HanaException('只能邀请团队成员加入项目', ErrorCode.USER_NOT_TEAM_MEMBER)
-      }
-
-      // 检查角色是否存在
-      await this.roleService.getRole('id', roleId)
-
-      // 创建项目成员关系
-      const newMember = await this.prisma.projectMember.create({
-        data: {
-          userId: invitedUser.id,
-          projectId,
-          roleId,
-        },
-        include: {
-          user: true,
-          role: true,
-        },
-      })
-
-      this.logger.log(`用户 ${inviterId} 邀请了用户 ${invitedUser.username} 加入项目 ${projectId}`)
-
-      return newMember
+      return { members: newMembers }
     }
     catch (error) {
       if (error instanceof HanaException) {

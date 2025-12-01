@@ -3,10 +3,10 @@ import { plainToInstance } from 'class-transformer'
 import { ProjectPermissions, RequireProjectMember } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
-import { MemberDto, MembersDto } from '@/common/dto/member.dto'
+import { MemberDto, MembersArrDto, MembersDto } from '@/common/dto/member.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { GetMembersReqDto, InviteMemberReqDto, UpdateMemberReqDto } from './dto'
+import { GetMembersReqDto, InviteMembersReqDto, UpdateMemberReqDto } from './dto'
 import { ProjectMemberService } from './project-member.service'
 
 @Controller('projects')
@@ -20,13 +20,13 @@ export class ProjectMemberController {
   @Post(':projectId/members')
   @RequireProjectMember()
   @ProjectPermissions(['project:member:invite'])
-  async inviteProjectMember(
+  async inviteProjectMembers(
     @Param('projectId') projectId: string,
-    @Body() dto: InviteMemberReqDto,
+    @Body() dto: InviteMembersReqDto,
     @ReqUser('id') userId: string,
-  ): Promise<MemberDto> {
-    const result = await this.projectMemberService.inviteProjectMember(dto, projectId, userId)
-    return plainToInstance(MemberDto, result)
+  ): Promise<MembersArrDto> {
+    const result = await this.projectMemberService.inviteProjectMembers(dto, projectId, userId)
+    return plainToInstance(MembersArrDto, result)
   }
 
   /** 获取项目成员列表 */

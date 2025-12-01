@@ -1,11 +1,10 @@
 <script lang="ts" setup>
 import type { UserSearchItem } from '@/types/user'
 import { useDebounceFn } from '@vueuse/core'
-import { Check, Loader2, X } from 'lucide-vue-next'
+import { Check, Loader2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { userApi } from '@/api/user'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import {
   Combobox,
   ComboboxAnchor,
@@ -16,6 +15,8 @@ import {
   ComboboxList,
   ComboboxViewport,
 } from '@/components/ui/combobox'
+import { getUserFallbackIcon } from '@/lib/utils'
+import UserBadge from '../UserBadge.vue'
 
 const props = defineProps<{
   /** 需要排除的用户 ID 列表（比如已是成员的用户） */
@@ -34,14 +35,6 @@ const searchQuery = ref('')
 const searchResults = ref<UserSearchItem[]>([])
 const isSearching = ref(false)
 
-/** 获取用户头像 Fallback */
-function getAvatarInitials(name: string) {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1)
-    return (parts[0]?.charAt(0) ?? 'U').toUpperCase()
-  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'U'
-}
-
 /** 过滤掉已排除的用户（不过滤已选择的，因为 Combobox 会自动处理） */
 const filteredResults = computed(() => {
   const excludeIds = new Set(props.excludeUserIds ?? [])
@@ -49,19 +42,16 @@ const filteredResults = computed(() => {
 })
 
 /** 搜索用户 */
-async function searchUsers(query: string) {
-  if (!query.trim()) {
+async function searchUsers(query?: string) {
+  if (!query?.trim()) {
     searchResults.value = []
     return
   }
 
   isSearching.value = true
   try {
-    const response = await userApi.searchUsers({ search: query, limit: 10 })
-    searchResults.value = response.users
-  }
-  catch {
-    searchResults.value = []
+    const res = await userApi.searchUsers({ search: query, limit: 10 })
+    searchResults.value = res.users
   }
   finally {
     isSearching.value = false
@@ -76,65 +66,44 @@ watch(searchQuery, (query) => {
   debouncedSearch(query)
 })
 
-/** 移除用户 */
-function removeUser(userId: string) {
-  selectedUsers.value = selectedUsers.value.filter(u => u.id !== userId)
-}
-
-/** 禁用内置过滤，使用后端搜索 */
-function noFilter() {
-  return true
-}
-
 /** 获取用户的显示标签（用于 Combobox 的 displayValue） */
 function getUserDisplayLabel(user: UserSearchItem) {
   return user.name
+}
+
+/** 移除已经选择的用户 */
+function removeSelectedUser(userId: string) {
+  selectedUsers.value = selectedUsers.value.filter(u => u.id !== userId)
 }
 </script>
 
 <template>
   <div class="space-y-2">
-    <!-- 已选用户展示 -->
     <div v-if="selectedUsers.length > 0" class="flex flex-wrap gap-1.5">
-      <Badge
+      <UserBadge
         v-for="user in selectedUsers"
         :key="user.id"
-        variant="secondary"
-        class="pl-1.5 pr-1 py-0.5 gap-1.5"
-      >
-        <Avatar class="h-5 w-5">
-          <AvatarImage v-if="user.avatar" :src="user.avatar" />
-          <AvatarFallback class="text-[10px]">
-            {{ getAvatarInitials(user.name) }}
-          </AvatarFallback>
-        </Avatar>
-        <span class="text-xs">{{ user.name }}</span>
-        <button
-          type="button"
-          class="rounded-sm hover:bg-muted p-0.5 transition-colors"
-          :disabled="disabled"
-          @click="removeUser(user.id)"
-        >
-          <X class="h-3 w-3" />
-        </button>
-      </Badge>
+        :user="user"
+        :disabled="disabled"
+        @remove-user="removeSelectedUser"
+      />
     </div>
 
     <!-- Combobox 搜索选择器 -->
     <Combobox
       v-model="selectedUsers"
       v-model:open="isOpen"
-      v-model:search-term="searchQuery"
       multiple
-      :filter-function="noFilter"
-      :display-value="getUserDisplayLabel"
+      ignore-filter
       :disabled="disabled"
       reset-search-term-on-blur
     >
       <ComboboxAnchor class="w-full">
         <div class="relative">
           <ComboboxInput
+            v-model="searchQuery"
             :placeholder="placeholder ?? '搜索用户...'"
+            :display-value="getUserDisplayLabel"
             class="w-full"
             auto-focus
           />
@@ -180,7 +149,7 @@ function getUserDisplayLabel(user: UserSearchItem) {
               <Avatar class="h-8 w-8">
                 <AvatarImage v-if="user.avatar" :src="user.avatar" />
                 <AvatarFallback class="text-xs">
-                  {{ getAvatarInitials(user.name) }}
+                  {{ getUserFallbackIcon(user.name) }}
                 </AvatarFallback>
               </Avatar>
               <div class="flex-1 min-w-0">

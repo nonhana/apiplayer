@@ -24,3 +24,11 @@ export function getTeamFallbackIcon(name: string): string {
   }
   return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'T'
 }
+
+/** 获取兜底 User Icon */
+export function getUserFallbackIcon(name: string) {
+  const parts = name.trim().split(/\s+/)
+  if (parts.length === 1)
+    return (parts[0]?.charAt(0) ?? 'U').toUpperCase()
+  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'U'
+}
