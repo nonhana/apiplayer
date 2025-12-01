@@ -5,13 +5,26 @@ import { Eye, EyeOff } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { cn } from '@/lib/utils'
 
-const props = defineProps<{
-  passwordToggle?: boolean
+interface BaseInputProps {
   defaultValue?: string | number
   modelValue?: string | number
   class?: HTMLAttributes['class']
-  type?: InputTypeHTMLAttribute
-}>()
+  placeholder?: string
+}
+
+type PasswordInputProps = BaseInputProps & {
+  type: 'password'
+  passwordToggle?: boolean
+}
+
+type NormalInputProps = BaseInputProps & {
+  type?: Exclude<InputTypeHTMLAttribute, 'password'>
+  passwordToggle?: never // 不是 password 类型，不允许填写 passwordToggle 属性
+}
+
+type InputProps = PasswordInputProps | NormalInputProps
+
+const props = defineProps<InputProps>()
 
 const emits = defineEmits<{
   (e: 'update:modelValue', payload: string | number): void
@@ -46,13 +59,14 @@ const inputType = computed(() => {
         'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
         props.class,
       )"
+      :placeholder="props.placeholder"
       @focus="(e) => emits('focus', e)"
       @blur="(e) => emits('blur', e)"
     >
     <button
       v-if="props.passwordToggle"
       type="button"
-      class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors"
+      class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground transition-colors user-select-none"
       :aria-label="showPassword ? '隐藏密码' : '显示密码'"
       @click="showPassword = !showPassword"
     >
