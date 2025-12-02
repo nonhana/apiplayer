@@ -39,3 +39,29 @@ export const updateTeamFormSchema = toTypedSchema(z.object({
     .optional()
     .or(z.literal('')),
 }))
+
+/**
+ * 邀请团队成员表单校验规则
+ */
+export const inviteTeamMemberFormSchema = toTypedSchema(z.object({
+  email: z.string()
+    .email('请输入有效的邮箱地址'),
+  roleId: z.string()
+    .min(1, '请选择角色'),
+  nickname: z.string()
+    .max(50, '昵称长度不能超过 50 个字符')
+    .optional()
+    .or(z.literal('')),
+}))
+
+/**
+ * 更新团队成员表单校验规则
+ */
+export const updateTeamMemberFormSchema = toTypedSchema(z.object({
+  roleId: z.string()
+    .min(1, '请选择角色'),
+  nickname: z.string()
+    .max(50, '昵称长度不能超过 50 个字符')
+    .optional()
+    .or(z.literal('')),
+}))

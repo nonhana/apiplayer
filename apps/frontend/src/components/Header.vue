@@ -59,10 +59,6 @@ function handleLogout() {
   router.push('/auth/login')
 }
 
-function handleOpenCreateTeam() {
-  isCreateTeamDialogOpen.value = true
-}
-
 function handleSearch() {
   // TODO: 实现全局搜索功能
 }
@@ -89,10 +85,7 @@ onMounted(() => {
       <div class="h-6 w-px bg-border hidden sm:block" />
 
       <!-- 团队切换器 -->
-      <TeamSwitcher
-        class="hidden sm:flex"
-        @create-team="handleOpenCreateTeam"
-      />
+      <TeamSwitcher @create-team="isCreateTeamDialogOpen = true" />
     </div>
 
     <!-- 中间：全局搜索 -->
