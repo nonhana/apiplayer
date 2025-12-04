@@ -119,7 +119,7 @@ function removeSelectedUser(userId: string) {
         align="start"
         :side-offset="4"
       >
-        <ComboboxViewport class="max-h-[240px]">
+        <ComboboxViewport class="max-h-60">
           <!-- 搜索中状态 -->
           <div v-if="isSearching && filteredResults.length === 0" class="py-6 text-center">
             <Loader2 class="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
