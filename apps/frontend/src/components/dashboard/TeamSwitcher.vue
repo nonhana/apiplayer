@@ -128,6 +128,7 @@ watch(
 
     <!-- 团队设置抽屉 -->
     <TeamSettingsSheet
+      v-if="selectedTeamForSettings"
       v-model:open="isTeamSettingsOpen"
       :team="selectedTeamForSettings"
     />

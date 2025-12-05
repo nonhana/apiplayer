@@ -321,6 +321,7 @@ onMounted(() => {
 
     <!-- 成员管理抽屉 -->
     <ProjectMembersSheet
+      v-if="projectToManageMembers"
       v-model:open="isMembersSheetOpen"
       :project="projectToManageMembers"
       @member-count-changed="handleMemberCountChanged"

@@ -32,6 +32,7 @@ import MemberItem from './MemberItem.vue'
 const props = defineProps<{
   team: TeamItem
   isAdmin: boolean
+  isOwner: boolean
 }>()
 
 const teamStore = useTeamStore()
@@ -91,27 +92,9 @@ async function fetchMembers() {
   }
 }
 
-/** 更新成员角色 */
-async function handleUpdateRole(memberId: string, newRoleId: string) {
-  try {
-    const updatedMember = await teamApi.updateTeamMember(
-      props.team.id,
-      memberId,
-      { roleId: newRoleId },
-    )
-
-    // 更新本地数据
-    const index = members.value.findIndex(m => m.id === memberId)
-    if (index !== -1) {
-      members.value[index] = updatedMember
-    }
-
-    toast.success('角色已更新')
-  }
-  catch {
-    // 错误已由 API 层处理，这里只需刷新数据恢复状态
-    await fetchMembers()
-  }
+/** 更新成员 */
+function handleUpdateMember(member: TeamMember) {
+  members.value = members.value.map(m => m.id === member.id ? member : m)
 }
 
 /** 打开删除成员确认 */
@@ -208,10 +191,12 @@ onMounted(async () => {
           v-for="member in filteredMembers"
           :key="member.id"
           type="team"
+          :team-id="team.id"
           :member="member"
           :roles="teamRoles"
-          :is-current-user-admin="isAdmin"
-          @update-role="handleUpdateRole"
+          :is-admin="isAdmin"
+          :is-owner="isOwner"
+          @update-member="handleUpdateMember"
           @delete-member="handleDeleteMember"
         />
 

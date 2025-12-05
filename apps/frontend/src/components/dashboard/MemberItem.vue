@@ -5,6 +5,9 @@ import type { RoleItem } from '@/types/role'
 import type { TeamMember } from '@/types/team'
 import { Crown, Trash2 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
+import { toast } from 'vue-sonner'
+import { projectApi } from '@/api/project'
+import { teamApi } from '@/api/team'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -18,41 +21,35 @@ import {
 import { ROLE_DISPLAY_MAP, ROLE_NAME } from '@/constants/roles'
 import { getUserFallbackIcon } from '@/lib/utils'
 
-/** 成员类型：团队成员 or 项目成员 */
 export type MemberType = 'team' | 'project'
 
 type Props = {
-  /** 成员类型 */
   type: MemberType
-  /** 可选角色列表 */
   roles: RoleItem[]
-  /** 当前用户是否有管理权限 */
-  isCurrentUserAdmin: boolean
+  isAdmin: boolean
 } & (
   {
     type: 'team'
     member: TeamMember
+    teamId: string
+    isOwner: boolean
   } | {
     type: 'project'
     member: ProjectMember
+    projectId: string
   }
 )
 
 const props = defineProps<Props>()
 
 const emits = defineEmits<{
-  /** 更新成员角色 */
-  (e: 'updateRole', memberId: string, newRoleId: string): void
-  /** 删除成员 */
+  (e: 'updateMember', member: TeamMember | ProjectMember): void
   (e: 'deleteMember', member: TeamMember | ProjectMember): void
 }>()
 
-const isUpdatingRole = ref(false)
+const isTeamOwner = computed(() => props.type === 'team' && props.isOwner)
 
-/** 是否是团队所有者（仅团队成员有此概念） */
-const isOwner = computed(() =>
-  props.type === 'team' && props.member.role.name === ROLE_NAME.TEAM_OWNER,
-)
+const isUpdatingRole = ref(false)
 
 /** 获取角色显示名称 */
 function getRoleDisplayName(roleName: RoleName) {
@@ -78,23 +75,62 @@ const selectableRoles = computed(() =>
   props.roles.filter(r => r.name !== ROLE_NAME.TEAM_OWNER),
 )
 
+/** 更新 Project 成员角色 */
+async function updateProjectRole(memberId: string, newRoleId: string) {
+  if (props.type !== 'project')
+    return
+
+  isUpdatingRole.value = true
+  try {
+    const updatedMember = await projectApi.updateProjectMember(
+      props.projectId,
+      memberId,
+      { roleId: newRoleId },
+    )
+
+    emits('updateMember', updatedMember)
+
+    toast.success('角色已更新')
+  }
+  finally {
+    isUpdatingRole.value = false
+  }
+}
+
+/** 更新 Team 成员角色 */
+async function updateTeamRole(memberId: string, newRoleId: string) {
+  if (props.type !== 'team')
+    return
+
+  isUpdatingRole.value = true
+  try {
+    const updatedMember = await teamApi.updateTeamMember(
+      props.teamId,
+      memberId,
+      { roleId: newRoleId },
+    )
+
+    emits('updateMember', updatedMember)
+
+    toast.success('角色已更新')
+  }
+  finally {
+    isUpdatingRole.value = false
+  }
+}
+
 /** 处理角色更新 */
 function handleUpdateRole(newRoleId: string) {
   if (props.member.role.id === newRoleId)
     return
 
-  isUpdatingRole.value = true
-  emits('updateRole', props.member.id, newRoleId)
+  if (props.type === 'project') {
+    updateProjectRole(props.member.id, newRoleId)
+  }
+  else if (props.type === 'team') {
+    updateTeamRole(props.member.id, newRoleId)
+  }
 }
-
-/** 重置更新状态（供父组件调用） */
-function resetUpdatingState() {
-  isUpdatingRole.value = false
-}
-
-defineExpose({
-  resetUpdatingState,
-})
 </script>
 
 <template>
@@ -120,7 +156,7 @@ defineExpose({
         </span>
         <!-- 角色徽章 -->
         <Badge :variant="getRoleBadgeVariant(member.role.name)" class="shrink-0">
-          <Crown v-if="isOwner" class="h-3 w-3 mr-1" />
+          <Crown v-if="isTeamOwner" class="h-3 w-3 mr-1" />
           {{ getRoleDisplayName(member.role.name) }}
         </Badge>
       </div>
@@ -130,7 +166,7 @@ defineExpose({
     </div>
 
     <!-- 操作按钮：管理员可见，且不能操作所有者 -->
-    <div v-if="isCurrentUserAdmin && !isOwner" class="flex items-center gap-2">
+    <div v-if="isAdmin && !isTeamOwner" class="flex items-center gap-2">
       <Select
         :model-value="member.role.id"
         :disabled="isUpdatingRole"
@@ -161,7 +197,7 @@ defineExpose({
     </div>
 
     <!-- 所有者标记（仅团队所有者显示） -->
-    <div v-else-if="isOwner" class="text-xs text-muted-foreground">
+    <div v-else-if="isTeamOwner" class="text-xs text-muted-foreground">
       创建者
     </div>
   </div>

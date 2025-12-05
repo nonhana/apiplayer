@@ -24,27 +24,27 @@ import TeamBasicInfoTab from './TeamBasicInfoTab.vue'
 import TeamMemberTab from './TeamMemberTab.vue'
 
 const props = defineProps<{
-  team: TeamItem | null
+  team: TeamItem
 }>()
 
 const isOpen = defineModel<boolean>('open', { required: true })
 
 /** 当前用户是否为管理员（owner 或 admin） */
-const isCurrentUserAdmin = computed(() => {
-  const roleName = props.team?.currentUserRole?.name
+const isAdmin = computed(() => {
+  const roleName = props.team.currentUserRole?.name
   return roleName === ROLE_NAME.TEAM_OWNER || roleName === ROLE_NAME.TEAM_ADMIN
 })
 
 /** 当前用户是否为所有者 */
-const isCurrentUserOwner = computed(() =>
-  props.team?.currentUserRole?.name === ROLE_NAME.TEAM_OWNER,
+const isOwner = computed(() =>
+  props.team.currentUserRole?.name === ROLE_NAME.TEAM_OWNER,
 )
 
 // Tab 状态
 const activeTab = ref('info')
 
 watch(isOpen, (open) => {
-  if (open && props.team) {
+  if (open) {
     activeTab.value = 'info'
   }
 })
@@ -56,14 +56,14 @@ watch(isOpen, (open) => {
       <SheetHeader class="px-6 pt-6 pb-4">
         <div class="flex items-center gap-3">
           <Avatar class="h-12 w-12 border-2">
-            <AvatarImage v-if="team?.avatar" :src="team.avatar" />
+            <AvatarImage v-if="team.avatar" :src="team.avatar" />
             <AvatarFallback class="text-lg font-semibold bg-primary/10 text-primary">
-              {{ team ? getTeamFallbackIcon(team.name) : 'T' }}
+              {{ getTeamFallbackIcon(team.name) }}
             </AvatarFallback>
           </Avatar>
           <div>
             <SheetTitle class="text-lg">
-              {{ team?.name ?? '团队设置' }}
+              {{ team.name }}
             </SheetTitle>
             <SheetDescription>
               管理团队信息和成员
@@ -82,25 +82,24 @@ watch(isOpen, (open) => {
             <Users class="h-4 w-4" />
             成员管理
             <span class="ml-1 text-xs text-muted-foreground">
-              ({{ team?.memberCount ?? 0 }})
+              ({{ team.memberCount }})
             </span>
           </TabsTrigger>
         </TabsList>
 
         <!-- 基本信息 Tab -->
         <TeamBasicInfoTab
-          v-if="team"
           :team="team"
-          :is-admin="isCurrentUserAdmin"
-          :is-owner="isCurrentUserOwner"
+          :is-admin="isAdmin"
+          :is-owner="isOwner"
           @deleted="isOpen = false"
         />
 
         <!-- 成员管理 Tab -->
         <TeamMemberTab
-          v-if="team"
           :team="team"
-          :is-admin="isCurrentUserAdmin"
+          :is-admin="isAdmin"
+          :is-owner="isOwner"
         />
       </Tabs>
     </SheetContent>

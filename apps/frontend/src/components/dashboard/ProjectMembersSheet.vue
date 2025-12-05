@@ -36,11 +36,12 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ROLE_NAME } from '@/constants/roles'
 import MemberItem from './MemberItem.vue'
 import UserSearchSelect from './UserSearchSelect.vue'
 
 const props = defineProps<{
-  project: ProjectItem | null
+  project: ProjectItem
 }>()
 
 const emits = defineEmits<{
@@ -85,8 +86,8 @@ const filteredMembers = computed(() => {
 })
 
 /** 当前用户是否为管理员 */
-const isCurrentUserAdmin = computed(() =>
-  props.project?.currentUserRole?.name === 'project:admin',
+const isAdmin = computed(() =>
+  props.project.currentUserRole?.name === ROLE_NAME.PROJECT_ADMIN,
 )
 
 /** 默认角色 ID（查看者角色） */
@@ -124,7 +125,7 @@ async function fetchMembers() {
 
 /** 邀请成员 */
 async function handleInvite() {
-  if (!props.project || selectedUsers.value.length === 0 || !inviteRoleId.value)
+  if (selectedUsers.value.length === 0 || !inviteRoleId.value)
     return
 
   isInviteSubmitting.value = true
@@ -156,41 +157,20 @@ async function handleInvite() {
   }
 }
 
-/** 更新成员角色 */
-async function handleUpdateRole(memberId: string, newRoleId: string) {
-  if (!props.project)
-    return
-
-  try {
-    const updatedMember = await projectApi.updateProjectMember(
-      props.project.id,
-      memberId,
-      { roleId: newRoleId },
-    )
-
-    // 更新本地数据
-    const index = members.value.findIndex(m => m.id === memberId)
-    if (index !== -1) {
-      members.value[index] = updatedMember
-    }
-
-    toast.success('角色已更新')
-  }
-  catch {
-    // 错误已由 API 层处理，这里只需刷新数据恢复状态
-    await fetchMembers()
-  }
+/** 更新成员 */
+function handleUpdateMember(member: ProjectMember) {
+  members.value = members.value.map(m => m.id === member.id ? member : m)
 }
 
-/** 确认删除成员 */
+/** 删除成员 */
 function handleDeleteMember(member: ProjectMember) {
   memberToDelete.value = member
   isDeleteDialogOpen.value = true
 }
 
-/** 删除成员 */
+/** 确认删除成员 */
 async function confirmDeleteMember() {
-  if (!props.project || !memberToDelete.value)
+  if (!memberToDelete.value)
     return
 
   isDeleting.value = true
@@ -212,7 +192,7 @@ async function confirmDeleteMember() {
 
 /** 打开时获取数据 */
 watch(isOpen, async (open) => {
-  if (open && props.project) {
+  if (open) {
     // 并行获取角色列表和成员列表
     await Promise.all([
       fetchProjectRoles(),
@@ -239,7 +219,7 @@ watch(isOpen, async (open) => {
           成员管理
         </SheetTitle>
         <SheetDescription>
-          管理项目 <span class="font-medium text-foreground">{{ project?.name }}</span> 的成员
+          管理项目 <span class="font-medium text-foreground">{{ project.name }}</span> 的成员
         </SheetDescription>
       </SheetHeader>
 
@@ -255,7 +235,7 @@ watch(isOpen, async (open) => {
             />
           </div>
           <Button
-            v-if="isCurrentUserAdmin && !isInviting"
+            v-if="isAdmin && !isInviting"
             size="sm"
             @click="isInviting = true"
           >
@@ -341,9 +321,10 @@ watch(isOpen, async (open) => {
               :key="member.id"
               type="project"
               :member="member"
+              :project-id="project.id"
               :roles="projectRoles"
-              :is-current-user-admin="isCurrentUserAdmin"
-              @update-role="handleUpdateRole"
+              :is-admin="isAdmin"
+              @update-member="handleUpdateMember"
               @delete-member="handleDeleteMember"
             />
 
