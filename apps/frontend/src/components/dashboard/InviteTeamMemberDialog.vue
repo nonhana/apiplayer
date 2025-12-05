@@ -35,7 +35,7 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  (e: 'invited', member: TeamMember): void
+  (e: 'invited', members: TeamMember[]): void
 }>()
 
 const isOpen = defineModel<boolean>('open', { required: true })
@@ -89,28 +89,22 @@ async function handleSubmit() {
 
   isSubmitting.value = true
   try {
-    // 目前后端是单个邀请，所以需要循环调用
-    const invitedMembers: TeamMember[] = []
-
-    for (const user of selectedUsers.value) {
-      const member = await teamApi.inviteTeamMember(props.teamId, {
+    const { members: newMembers } = await teamApi.inviteTeamMembers(props.teamId, {
+      members: selectedUsers.value.map(user => ({
         email: user.email,
         roleId: selectedRoleId.value,
         nickname: nickname.value || undefined,
-      })
-      invitedMembers.push(member)
-      emits('invited', member)
-    }
+      })),
+    })
 
     toast.success('邀请成功', {
-      description: `已邀请 ${invitedMembers.length} 名用户加入团队`,
+      description: `已邀请 ${newMembers.length} 名用户加入团队`,
     })
+
+    emits('invited', newMembers)
 
     isOpen.value = false
     resetForm()
-  }
-  catch {
-    // 错误已由全局错误处理器处理
   }
   finally {
     isSubmitting.value = false

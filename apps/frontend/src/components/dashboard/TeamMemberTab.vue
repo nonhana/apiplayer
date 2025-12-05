@@ -130,8 +130,8 @@ async function confirmDeleteMember() {
 }
 
 /** 成员邀请成功 */
-function handleMemberInvited(member: TeamMember) {
-  members.value.push(member)
+function handleMembersInvited(newMembers: TeamMember[]) {
+  members.value.push(...newMembers)
 
   // 更新 store 中的成员数量
   teamStore.updateTeam(props.team.id, {
@@ -221,7 +221,7 @@ onMounted(async () => {
       :team-id="team.id"
       :team-name="team.name"
       :existing-member-ids="existingMemberIds"
-      @invited="handleMemberInvited"
+      @invited="handleMembersInvited"
     />
 
     <!-- 删除成员确认 -->

@@ -50,6 +50,11 @@ export interface TeamMember {
   joinedAt: string
 }
 
+/** 团队成员数组 */
+export interface TeamMembersArr {
+  members: TeamMember[]
+}
+
 /** 团队关联的项目简要信息 */
 export interface TeamProject {
   id: string
@@ -105,11 +110,16 @@ export interface UpdateTeamReq {
   avatar?: string
 }
 
-/** 邀请团队成员请求 */
-export interface InviteTeamMemberReq {
+/** 邀请团队成员 Item */
+export interface InviteTeamMemberItem {
   email: string
   roleId: string
   nickname?: string
+}
+
+/** 邀请团队成员请求 */
+export interface InviteTeamMembersReq {
+  members: InviteTeamMemberItem[]
 }
 
 /** 更新团队成员请求 */

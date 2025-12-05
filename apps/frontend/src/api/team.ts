@@ -1,9 +1,10 @@
 import type {
   CreateTeamReq,
-  InviteTeamMemberReq,
+  InviteTeamMembersReq,
   TeamBrief,
   TeamDetail,
   TeamMember,
+  TeamMembersArr,
   TeamMembersResponse,
   TeamsResponse,
   UpdateTeamMemberReq,
@@ -40,8 +41,8 @@ export const teamApi = {
     http.delete(`teams/${teamId}`).json<void>(),
 
   /** 邀请成员加入团队 */
-  inviteTeamMember: (teamId: string, data: InviteTeamMemberReq) =>
-    http.post(`team-members/${teamId}/members`, { json: data }).json<TeamMember>(),
+  inviteTeamMembers: (teamId: string, data: InviteTeamMembersReq) =>
+    http.post(`team-members/${teamId}/members`, { json: data }).json<TeamMembersArr>(),
 
   /** 获取团队成员列表 */
   getTeamMembers: (teamId: string, params?: BasePaginatedQuery) =>
