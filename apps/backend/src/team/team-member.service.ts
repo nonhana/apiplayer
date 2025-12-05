@@ -6,7 +6,7 @@ import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { RoleService } from '@/role/role.service'
 import { UserService } from '@/user/user.service'
-import { InviteMemberReqDto, UpdateMemberReqDto } from './dto'
+import { InviteMembersReqDto, UpdateMemberReqDto } from './dto'
 import { TeamUtilsService } from './utils.service'
 
 @Injectable()
@@ -20,46 +20,72 @@ export class TeamMemberService {
     private readonly roleService: RoleService,
   ) {}
 
-  async inviteTeamMember(dto: InviteMemberReqDto, teamId: string, inviterId: string) {
-    const { email, roleId, nickname } = dto
+  async inviteTeamMembers(dto: InviteMembersReqDto, teamId: string, inviterId: string) {
+    const { members } = dto
 
     try {
       await this.teamUtilsService.getTeamById(teamId)
 
-      const targetUser = await this.userService.getUserByEmail(email)
+      // 批量获取所有要邀请的用户
+      const users = await Promise.all(
+        members.map(m => this.userService.getUserByEmail(m.email)),
+      )
+      const userMap = new Map(users.map(user => [user.email, user]))
 
-      const existingMember = await this.prisma.teamMember.findUnique({
-        where: {
-          userId_teamId: {
-            userId: targetUser.id,
-            teamId,
-          },
-        },
+      // 批量验证角色是否存在（去重后验证，避免重复查询）
+      const uniqueRoleIds = [...new Set(members.map(m => m.roleId))]
+      await Promise.all(
+        uniqueRoleIds.map(roleId => this.roleService.getRole('id', roleId)),
+      )
+
+      const newMembers = await this.prisma.$transaction(async (tx) => {
+        // 先进行所有验证
+        for (const member of members) {
+          const user = userMap.get(member.email)!
+
+          // 检查用户是否已经是团队成员
+          const existingMember = await tx.teamMember.findUnique({
+            where: {
+              userId_teamId: {
+                userId: user.id,
+                teamId,
+              },
+            },
+          })
+
+          if (existingMember) {
+            throw new HanaException(
+              `用户 ${user.email} 已经是团队成员`,
+              ErrorCode.USER_ALREADY_TEAM_MEMBER,
+            )
+          }
+        }
+
+        // 验证通过后，批量创建所有成员
+        return Promise.all(
+          members.map((member) => {
+            const user = userMap.get(member.email)!
+            return tx.teamMember.create({
+              data: {
+                userId: user.id,
+                teamId,
+                roleId: member.roleId,
+                nickname: member.nickname,
+              },
+              include: {
+                user: true,
+                role: true,
+              },
+            })
+          }),
+        )
       })
 
-      if (existingMember) {
-        throw new HanaException('用户已经是团队成员', ErrorCode.USER_ALREADY_TEAM_MEMBER)
-      }
+      this.logger.log(
+        `用户 ${inviterId} 邀请了 ${newMembers.length} 名用户加入团队 ${teamId}`,
+      )
 
-      await this.roleService.getRole('id', roleId)
-
-      // 创建团队成员关系
-      const newTeamMember = await this.prisma.teamMember.create({
-        data: {
-          userId: targetUser.id,
-          teamId,
-          roleId,
-          nickname,
-        },
-        include: {
-          user: true,
-          role: true,
-        },
-      })
-
-      this.logger.log(`用户 ${inviterId} 邀请了用户 ${targetUser.username} 加入团队 ${teamId}`)
-
-      return newTeamMember
+      return { members: newMembers }
     }
     catch (error) {
       if (error instanceof HanaException) {

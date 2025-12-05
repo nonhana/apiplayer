@@ -10,6 +10,13 @@ export class TeamMemberDto extends MemberDto {
 }
 
 @Exclude()
+export class TeamMembersArrDto {
+  @Expose()
+  @Type(() => TeamMemberDto)
+  members: TeamMemberDto[]
+}
+
+@Exclude()
 export class TeamMembersDto {
   @Expose()
   @Type(() => TeamMemberDto)

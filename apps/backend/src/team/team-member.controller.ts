@@ -6,7 +6,7 @@ import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { InviteMemberReqDto, TeamMemberDto, TeamMembersDto, UpdateMemberReqDto } from './dto'
+import { InviteMembersReqDto, TeamMemberDto, TeamMembersArrDto, TeamMembersDto, UpdateMemberReqDto } from './dto'
 import { TeamMemberService } from './team-member.service'
 
 @Controller('team-members')
@@ -18,13 +18,13 @@ export class TeamMemberController {
   @Post(':teamId/members')
   @RequireTeamMember()
   @TeamPermissions(['team:member:invite'])
-  async inviteTeamMember(
+  async inviteTeamMembers(
     @Param('teamId') teamId: string,
-    @Body() dto: InviteMemberReqDto,
+    @Body() dto: InviteMembersReqDto,
     @ReqUser('id') userId: string,
-  ): Promise<TeamMemberDto> {
-    const newTeamMember = await this.teamMemberService.inviteTeamMember(dto, teamId, userId)
-    return plainToInstance(TeamMemberDto, newTeamMember)
+  ): Promise<TeamMembersArrDto> {
+    const newTeamMember = await this.teamMemberService.inviteTeamMembers(dto, teamId, userId)
+    return plainToInstance(TeamMembersArrDto, newTeamMember)
   }
 
   /** 获取团队成员列表 */
