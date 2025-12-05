@@ -3,7 +3,7 @@ import type { ProjectItem, ProjectMember } from '@/types/project'
 import type { RoleItem } from '@/types/role'
 import type { UserSearchItem } from '@/types/user'
 import { Loader2, Search, UserPlus, Users } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { projectApi } from '@/api/project'
 import { roleApi } from '@/api/role'
@@ -190,23 +190,20 @@ async function confirmDeleteMember() {
   }
 }
 
-/** 打开时获取数据 */
-watch(isOpen, async (open) => {
-  if (open) {
-    // 并行获取角色列表和成员列表
-    await Promise.all([
-      fetchProjectRoles(),
-      fetchMembers(),
-    ])
+onMounted(async () => {
+  // 并行获取角色列表和成员列表
+  await Promise.all([
+    fetchProjectRoles(),
+    fetchMembers(),
+  ])
 
-    // 设置默认角色
-    inviteRoleId.value = defaultRoleId.value
+  // 设置默认角色
+  inviteRoleId.value = defaultRoleId.value
 
-    // 重置邀请状态
-    isInviting.value = false
-    selectedUsers.value = []
-    searchQuery.value = ''
-  }
+  // 重置邀请状态
+  isInviting.value = false
+  selectedUsers.value = []
+  searchQuery.value = ''
 })
 </script>
 

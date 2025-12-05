@@ -19,7 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ROLE_DISPLAY_MAP, ROLE_NAME } from '@/constants/roles'
-import { getUserFallbackIcon } from '@/lib/utils'
+import { cn, getUserFallbackIcon } from '@/lib/utils'
+import { useUserStore } from '@/stores/useUserStore'
 
 export type MemberType = 'team' | 'project'
 
@@ -46,6 +47,10 @@ const emits = defineEmits<{
   (e: 'updateMember', member: TeamMember | ProjectMember): void
   (e: 'deleteMember', member: TeamMember | ProjectMember): void
 }>()
+
+const { user } = useUserStore()
+
+const isMe = computed(() => props.member.user.id === user!.id)
 
 const isTeamOwner = computed(() => props.type === 'team' && props.isOwner)
 
@@ -120,22 +125,26 @@ async function updateTeamRole(memberId: string, newRoleId: string) {
 }
 
 /** 处理角色更新 */
-function handleUpdateRole(newRoleId: string) {
+async function handleUpdateRole(newRoleId: string) {
   if (props.member.role.id === newRoleId)
     return
 
   if (props.type === 'project') {
-    updateProjectRole(props.member.id, newRoleId)
+    await updateProjectRole(props.member.id, newRoleId)
   }
   else if (props.type === 'team') {
-    updateTeamRole(props.member.id, newRoleId)
+    await updateTeamRole(props.member.id, newRoleId)
   }
 }
 </script>
 
 <template>
-  <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-    <!-- 头像 -->
+  <div
+    :class="cn(
+      'flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors',
+      isMe && 'border-2 border-primary',
+    )"
+  >
     <Avatar class="h-10 w-10 border">
       <AvatarImage v-if="member.user.avatar" :src="member.user.avatar" />
       <AvatarFallback class="text-sm font-medium">
@@ -143,18 +152,15 @@ function handleUpdateRole(newRoleId: string) {
       </AvatarFallback>
     </Avatar>
 
-    <!-- 用户信息 -->
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-2">
         <span class="font-medium truncate">{{ member.user.name }}</span>
-        <!-- 团队昵称（仅团队成员显示） -->
         <span
           v-if="type === 'team' && member.nickname"
           class="text-xs text-muted-foreground"
         >
           ({{ member.nickname }})
         </span>
-        <!-- 角色徽章 -->
         <Badge :variant="getRoleBadgeVariant(member.role.name)" class="shrink-0">
           <Crown v-if="isTeamOwner" class="h-3 w-3 mr-1" />
           {{ getRoleDisplayName(member.role.name) }}
@@ -165,14 +171,13 @@ function handleUpdateRole(newRoleId: string) {
       </p>
     </div>
 
-    <!-- 操作按钮：管理员可见，且不能操作所有者 -->
     <div v-if="isAdmin && !isTeamOwner" class="flex items-center gap-2">
       <Select
         :model-value="member.role.id"
         :disabled="isUpdatingRole"
         @update:model-value="(v) => handleUpdateRole(v as string)"
       >
-        <SelectTrigger class="h-8 w-[100px] text-xs">
+        <SelectTrigger class="h-8 w-28 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -196,7 +201,6 @@ function handleUpdateRole(newRoleId: string) {
       </Button>
     </div>
 
-    <!-- 所有者标记（仅团队所有者显示） -->
     <div v-else-if="isTeamOwner" class="text-xs text-muted-foreground">
       创建者
     </div>
