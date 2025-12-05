@@ -27,7 +27,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { TabsContent } from '@/components/ui/tabs'
 import { useTeamStore } from '@/stores/useTeamStore'
 import InviteTeamMemberDialog from './InviteTeamMemberDialog.vue'
-import TeamMemberItem from './TeamMemberItem.vue'
+import MemberItem from './MemberItem.vue'
 
 const props = defineProps<{
   team: TeamItem
@@ -91,11 +91,26 @@ async function fetchMembers() {
   }
 }
 
-/** 成员角色更新 */
-function handleMemberRoleUpdated(member: TeamMember) {
-  const index = members.value.findIndex(m => m.id === member.id)
-  if (index !== -1) {
-    members.value[index] = member
+/** 更新成员角色 */
+async function handleUpdateRole(memberId: string, newRoleId: string) {
+  try {
+    const updatedMember = await teamApi.updateTeamMember(
+      props.team.id,
+      memberId,
+      { roleId: newRoleId },
+    )
+
+    // 更新本地数据
+    const index = members.value.findIndex(m => m.id === memberId)
+    if (index !== -1) {
+      members.value[index] = updatedMember
+    }
+
+    toast.success('角色已更新')
+  }
+  catch {
+    // 错误已由 API 层处理，这里只需刷新数据恢复状态
+    await fetchMembers()
   }
 }
 
@@ -189,14 +204,14 @@ onMounted(async () => {
 
       <!-- 成员列表 -->
       <div v-else class="space-y-2">
-        <TeamMemberItem
+        <MemberItem
           v-for="member in filteredMembers"
           :key="member.id"
-          :team-id="team.id"
+          type="team"
           :member="member"
-          :team-roles="teamRoles"
+          :roles="teamRoles"
           :is-current-user-admin="isAdmin"
-          @update-role="handleMemberRoleUpdated"
+          @update-role="handleUpdateRole"
           @delete-member="handleDeleteMember"
         />
 

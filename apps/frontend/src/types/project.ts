@@ -1,4 +1,5 @@
 import type { Pagination, RoleBrief } from './team'
+import type { RoleName } from '@/constants/roles'
 
 /** 项目所属团队简要信息 */
 export interface ProjectTeam {
@@ -36,14 +37,17 @@ export interface ProjectMemberInfo {
   avatar?: string
 }
 
+/** 项目成员角色 */
+export interface ProjectMemberRole {
+  id: string
+  name: RoleName
+}
+
 /** 项目成员 */
 export interface ProjectMember {
   id: string
   user: ProjectMemberInfo
-  role: {
-    id: string
-    name: string
-  }
+  role: ProjectMemberRole
   joinedAt: string
 }
 

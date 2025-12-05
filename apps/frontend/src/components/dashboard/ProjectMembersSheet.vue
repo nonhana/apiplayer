@@ -36,7 +36,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
-import ProjectMemberItem from './ProjectMemberItem.vue'
+import MemberItem from './MemberItem.vue'
 import UserSearchSelect from './UserSearchSelect.vue'
 
 const props = defineProps<{
@@ -157,11 +157,28 @@ async function handleInvite() {
 }
 
 /** 更新成员角色 */
-async function handleUpdateRole(member: ProjectMember) {
-  // 更新本地数据
-  const index = members.value.findIndex(m => m.id === member.id)
-  if (index !== -1) {
-    members.value[index] = member
+async function handleUpdateRole(memberId: string, newRoleId: string) {
+  if (!props.project)
+    return
+
+  try {
+    const updatedMember = await projectApi.updateProjectMember(
+      props.project.id,
+      memberId,
+      { roleId: newRoleId },
+    )
+
+    // 更新本地数据
+    const index = members.value.findIndex(m => m.id === memberId)
+    if (index !== -1) {
+      members.value[index] = updatedMember
+    }
+
+    toast.success('角色已更新')
+  }
+  catch {
+    // 错误已由 API 层处理，这里只需刷新数据恢复状态
+    await fetchMembers()
   }
 }
 
@@ -319,12 +336,12 @@ watch(isOpen, async (open) => {
 
           <!-- 成员列表 -->
           <div v-else class="space-y-2">
-            <ProjectMemberItem
+            <MemberItem
               v-for="member in filteredMembers"
               :key="member.id"
-              :project="project"
+              type="project"
               :member="member"
-              :project-roles="projectRoles"
+              :roles="projectRoles"
               :is-current-user-admin="isCurrentUserAdmin"
               @update-role="handleUpdateRole"
               @delete-member="handleDeleteMember"

@@ -38,7 +38,7 @@ export interface MemberInfo {
 /** 成员角色信息 */
 export interface MemberRole {
   id: string
-  name: string
+  name: RoleName
 }
 
 /** 团队成员 */

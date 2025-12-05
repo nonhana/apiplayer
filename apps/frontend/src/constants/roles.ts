@@ -166,3 +166,13 @@ export type RoleName = (typeof ROLE_NAME)[keyof typeof ROLE_NAME]
 
 export const ROLE_CATEGORIES = ['TEAM', 'PROJECT', 'SYSTEM'] as const
 export type RoleCategory = (typeof ROLE_CATEGORIES)[number]
+
+export const ROLE_DISPLAY_MAP = {
+  'team:owner': '所有者',
+  'team:admin': '管理员',
+  'team:member': '成员',
+  'team:guest': '访客',
+  'project:admin': '管理员',
+  'project:editor': '编辑者',
+  'project:viewer': '查看者',
+} as const
