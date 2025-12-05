@@ -47,7 +47,7 @@ watch(isOpen, (open) => {
   if (open) {
     activeTab.value = 'info'
   }
-})
+}, { immediate: true })
 </script>
 
 <template>

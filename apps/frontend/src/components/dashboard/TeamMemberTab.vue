@@ -6,7 +6,7 @@ import {
   Search,
   UserPlus,
 } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { roleApi } from '@/api/role'
 import { teamApi } from '@/api/team'
@@ -139,13 +139,13 @@ function handleMembersInvited(newMembers: TeamMember[]) {
   })
 }
 
-onMounted(async () => {
+watch(() => props.team, async () => {
   await Promise.all([
     fetchTeamRoles(),
     fetchMembers(),
   ])
   memberSearchQuery.value = ''
-})
+}, { immediate: true })
 </script>
 
 <template>

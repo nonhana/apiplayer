@@ -3,7 +3,7 @@ import type { ProjectItem, ProjectMember } from '@/types/project'
 import type { RoleItem } from '@/types/role'
 import type { UserSearchItem } from '@/types/user'
 import { Loader2, Search, UserPlus, Users } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { projectApi } from '@/api/project'
 import { roleApi } from '@/api/role'
@@ -190,7 +190,7 @@ async function confirmDeleteMember() {
   }
 }
 
-onMounted(async () => {
+watch(() => props.project, async () => {
   // 并行获取角色列表和成员列表
   await Promise.all([
     fetchProjectRoles(),
@@ -204,7 +204,7 @@ onMounted(async () => {
   isInviting.value = false
   selectedUsers.value = []
   searchQuery.value = ''
-})
+}, { immediate: true })
 </script>
 
 <template>
