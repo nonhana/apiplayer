@@ -13,6 +13,6 @@ export class UpdateTeamReqDto {
   description?: string
 
   @IsOptional()
-  @IsUrl({}, { message: '团队头像必须是有效的 URL' })
+  @IsUrl({ require_tld: false }, { message: '头像地址必须是有效的 URL' })
   avatar?: string
 }

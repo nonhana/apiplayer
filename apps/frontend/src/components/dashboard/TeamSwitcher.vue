@@ -60,16 +60,6 @@ function handleOpenTeamSettings(team: TeamItem, event: Event) {
   isTeamSettingsOpen.value = true
 }
 
-/** 团队信息更新后同步 */
-function handleTeamUpdated(team: TeamItem) {
-  teamStore.updateTeam(team.id, team)
-}
-
-/** 团队删除后同步 */
-function handleTeamDeleted(teamId: string) {
-  teamStore.removeTeam(teamId)
-}
-
 /** 页面加载时获取团队列表 */
 watch(
   () => teamStore.teams.length,
@@ -140,8 +130,6 @@ watch(
     <TeamSettingsSheet
       v-model:open="isTeamSettingsOpen"
       :team="selectedTeamForSettings"
-      @updated="handleTeamUpdated"
-      @deleted="handleTeamDeleted"
     />
   </div>
 </template>

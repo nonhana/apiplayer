@@ -52,7 +52,7 @@ export class TeamItemDto extends TeamDto {
 
     return {
       id: curUser.role.id,
-      name: curUser.role.id,
+      name: curUser.role.name,
       description: curUser.role.description,
     }
   }, { toClassOnly: true })

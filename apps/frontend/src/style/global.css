@@ -43,71 +43,124 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* ============================================
+   * 🌤️ Light Theme - "晴空呼吸"
+   * 设计理念：像清晨的天空，柔和、清新、有层次
+   * ============================================ */
+
+  /* 背景 - 带有极淡蓝色调的白色，像晴空下的薄雾 */
+  --background: oklch(0.985 0.008 230);
+  --foreground: oklch(0.18 0.02 240);
+
+  /* 卡片 - 纯净的白色带微蓝，像飘浮的云朵 */
+  --card: oklch(0.995 0.005 230);
+  --card-foreground: oklch(0.18 0.02 240);
+
+  /* Popover - 同卡片，保持一致的云朵感 */
+  --popover: oklch(0.995 0.005 230);
+  --popover-foreground: oklch(0.18 0.02 240);
+
+  /* 主色 - 天蓝色，柔和但有存在感，像晴朗天空 */
+  --primary: oklch(0.62 0.145 235);
+  --primary-foreground: oklch(0.99 0.005 230);
+
+  /* 次要色 - 更淡的蓝色，像天际线处的淡蓝 */
+  --secondary: oklch(0.95 0.025 232);
+  --secondary-foreground: oklch(0.25 0.035 240);
+
+  /* Muted - 柔和的灰蓝，像远山的颜色 */
+  --muted: oklch(0.96 0.018 232);
+  --muted-foreground: oklch(0.5 0.025 238);
+
+  /* Accent - 强调色，稍微活泼的蓝，像阳光照耀的水面 */
+  --accent: oklch(0.92 0.035 228);
+  --accent-foreground: oklch(0.22 0.03 240);
+
+  /* 危险色 - 珊瑚红，温暖但警示 */
+  --destructive: oklch(0.6 0.2 25);
+
+  /* 边框 - 淡蓝色边框，像轻纱一样若隐若现 */
+  --border: oklch(0.91 0.022 232);
+  --input: oklch(0.92 0.018 232);
+  --ring: oklch(0.62 0.12 235);
+
+  /* Chart 颜色 - 蓝色系的和谐渐变，像海洋到天空 */
+  --chart-1: oklch(0.62 0.145 235);
+  --chart-2: oklch(0.55 0.12 255);
+  --chart-3: oklch(0.68 0.1 210);
+  --chart-4: oklch(0.58 0.085 275);
+  --chart-5: oklch(0.72 0.065 195);
+
+  /* Sidebar - 稍深一点的天蓝调，有层次感 */
+  --sidebar: oklch(0.975 0.012 232);
+  --sidebar-foreground: oklch(0.18 0.02 240);
+  --sidebar-primary: oklch(0.62 0.145 235);
+  --sidebar-primary-foreground: oklch(0.99 0.005 230);
+  --sidebar-accent: oklch(0.93 0.03 230);
+  --sidebar-accent-foreground: oklch(0.22 0.03 240);
+  --sidebar-border: oklch(0.91 0.022 232);
+  --sidebar-ring: oklch(0.62 0.12 235);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* ============================================
+   * 🌙 Dark Theme - "星夜呼吸"
+   * 设计理念：像深邃的夜空，宁静、神秘、有星光点缀
+   * ============================================ */
+
+  /* 背景 - 深邃的夜空蓝，带有微妙的蓝色调 */
+  --background: oklch(0.16 0.025 250);
+  --foreground: oklch(0.95 0.01 230);
+
+  /* 卡片 - 稍浅的深蓝，像夜空中的云层 */
+  --card: oklch(0.2 0.028 248);
+  --card-foreground: oklch(0.95 0.01 230);
+
+  /* Popover - 同卡片 */
+  --popover: oklch(0.2 0.028 248);
+  --popover-foreground: oklch(0.95 0.01 230);
+
+  /* 主色 - 明亮的天蓝，像星光一样在深色背景上闪烁 */
+  --primary: oklch(0.72 0.135 232);
+  --primary-foreground: oklch(0.16 0.025 250);
+
+  /* 次要色 - 深蓝色背景 */
+  --secondary: oklch(0.26 0.038 248);
+  --secondary-foreground: oklch(0.92 0.01 230);
+
+  /* Muted - 更深的蓝灰色 */
+  --muted: oklch(0.26 0.032 248);
+  --muted-foreground: oklch(0.68 0.025 238);
+
+  /* Accent - 带蓝调的强调色 */
+  --accent: oklch(0.28 0.042 246);
+  --accent-foreground: oklch(0.94 0.01 230);
+
+  /* 危险色 - 柔和的珊瑚红 */
+  --destructive: oklch(0.65 0.18 22);
+
+  /* 边框 - 带蓝调的边框，像月光映照 */
+  --border: oklch(0.3 0.035 248);
+  --input: oklch(0.28 0.032 248);
+  --ring: oklch(0.65 0.11 235);
+
+  /* Chart 颜色 - 夜空中的星光色彩 */
+  --chart-1: oklch(0.68 0.14 235);
+  --chart-2: oklch(0.58 0.11 260);
+  --chart-3: oklch(0.72 0.09 205);
+  --chart-4: oklch(0.6 0.095 280);
+  --chart-5: oklch(0.68 0.075 185);
+
+  /* Sidebar - 深邃的侧边栏 */
+  --sidebar: oklch(0.18 0.028 250);
+  --sidebar-foreground: oklch(0.95 0.01 230);
+  --sidebar-primary: oklch(0.72 0.135 232);
+  --sidebar-primary-foreground: oklch(0.16 0.025 250);
+  --sidebar-accent: oklch(0.26 0.038 246);
+  --sidebar-accent-foreground: oklch(0.94 0.01 230);
+  --sidebar-border: oklch(0.3 0.035 248);
+  --sidebar-ring: oklch(0.65 0.11 235);
 }
 
 @layer base {

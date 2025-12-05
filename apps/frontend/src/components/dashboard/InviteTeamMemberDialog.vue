@@ -16,12 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  FormControl,
-  FormDescription,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -153,59 +147,50 @@ watch(isOpen, async (open) => {
 
       <div class="space-y-4 py-2">
         <!-- 用户搜索选择 -->
-        <FormItem>
-          <FormLabel>选择用户 <span class="text-destructive">*</span></FormLabel>
-          <FormControl>
-            <UserSearchSelect
-              v-model="selectedUsers"
-              :exclude-user-ids="existingMemberIds"
-              placeholder="搜索用户名、邮箱或昵称..."
-              :disabled="isSubmitting"
-            />
-          </FormControl>
-          <FormDescription>
-            输入关键词搜索并选择要邀请的用户
-          </FormDescription>
-        </FormItem>
+        <div class="space-y-2">
+          <label class="text-sm font-medium leading-none">
+            选择用户 <span class="text-destructive">*</span>
+          </label>
+          <UserSearchSelect
+            v-model="selectedUsers"
+            :exclude-user-ids="existingMemberIds"
+            placeholder="搜索用户名、邮箱或昵称..."
+            :disabled="isSubmitting"
+          />
+        </div>
 
         <!-- 角色选择 -->
-        <FormItem>
-          <FormLabel>分配角色 <span class="text-destructive">*</span></FormLabel>
-          <FormControl>
-            <Select v-model="selectedRoleId" :disabled="isSubmitting || isLoadingRoles">
-              <SelectTrigger>
-                <SelectValue placeholder="选择角色" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem
-                  v-for="role in selectableRoles"
-                  :key="role.id"
-                  :value="role.id"
-                >
-                  {{ role.description || role.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </FormControl>
-          <FormDescription>
-            设置新成员在团队中的角色和权限
-          </FormDescription>
-        </FormItem>
+        <div class="space-y-2">
+          <label class="text-sm font-medium leading-none">
+            分配角色 <span class="text-destructive">*</span>
+          </label>
+          <Select v-model="selectedRoleId" :disabled="isSubmitting || isLoadingRoles">
+            <SelectTrigger>
+              <SelectValue placeholder="选择角色" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem
+                v-for="role in selectableRoles"
+                :key="role.id"
+                :value="role.id"
+              >
+                {{ role.description || role.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         <!-- 团队内昵称（可选） -->
-        <FormItem>
-          <FormLabel>团队昵称</FormLabel>
-          <FormControl>
-            <Input
-              v-model="nickname"
-              placeholder="成员在团队内的昵称（可选）"
-              :disabled="isSubmitting"
-            />
-          </FormControl>
-          <FormDescription>
-            可以为成员设置一个团队内的专属昵称
-          </FormDescription>
-        </FormItem>
+        <div class="space-y-2">
+          <label class="text-sm font-medium leading-none">
+            团队昵称
+          </label>
+          <Input
+            v-model="nickname"
+            placeholder="成员在团队内的昵称（可选）"
+            :disabled="isSubmitting"
+          />
+        </div>
       </div>
 
       <DialogFooter>
