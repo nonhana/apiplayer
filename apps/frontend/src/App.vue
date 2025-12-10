@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Toaster } from '@/components/ui/sonner'
 import Header from './components/Header.vue'
@@ -8,7 +8,16 @@ import { PUBLIC_ROUTES } from './constants'
 import 'vue-sonner/style.css'
 
 const route = useRoute()
-const hideHeader = computed(() => PUBLIC_ROUTES.includes(route.name as string))
+const hideHeader = ref(false)
+
+watch(() => route.name, (name) => {
+  if (PUBLIC_ROUTES.includes(name as string)) {
+    hideHeader.value = true
+  }
+  else {
+    hideHeader.value = false
+  }
+})
 </script>
 
 <template>

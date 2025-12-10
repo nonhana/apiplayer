@@ -19,20 +19,13 @@ const hooks: Hooks = {
       }
 
       if (parsed.code !== 0 && parsed.code !== 200) {
-        const message = parsed.message || '业务异常'
-
         if (parsed.code === 401) {
-          console.error('登录已过期，请重新登录！')
           const userStore = useUserStore()
           userStore.logout()
-          toast.error(message, {
-            description: '请重新登录',
-          })
           window.location.href = '/auth/login'
         }
         else {
-          console.error(message)
-          toast.error(message)
+          toast.error(parsed.message)
         }
 
         throw new HanaError(parsed.message, parsed.code)
@@ -72,7 +65,6 @@ const hooks: Hooks = {
         description = '连接失败，请稍后重试'
       }
 
-      console.error(`${message}: ${description}`)
       toast.error(message, {
         description,
       })

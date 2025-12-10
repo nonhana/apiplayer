@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Skeleton } from '@/components/ui/skeleton'
 import { getTeamFallbackIcon } from '@/lib/utils'
 import { useTeamStore } from '@/stores/useTeamStore'
+import { useUserStore } from '@/stores/useUserStore'
 import TeamSettingsSheet from './TeamSettingsSheet.vue'
 import TeamSwitcherItem from './TeamSwitcherItem.vue'
 
@@ -25,6 +26,7 @@ const emits = defineEmits<{
 }>()
 
 const teamStore = useTeamStore()
+const userStore = useUserStore()
 
 const isOpen = ref(false)
 
@@ -64,7 +66,7 @@ function handleOpenTeamSettings(team: TeamItem, event: Event) {
 watch(
   () => teamStore.teams.length,
   (length) => {
-    if (length === 0 && !teamStore.isLoading) {
+    if (length === 0 && !teamStore.isLoading && userStore.isAuthenticated) {
       teamStore.fetchTeams()
     }
   },

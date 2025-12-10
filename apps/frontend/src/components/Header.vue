@@ -64,7 +64,7 @@ function handleSearch() {
 }
 
 onMounted(() => {
-  if (teamStore.teams.length === 0) {
+  if (teamStore.teams.length === 0 && userStore.isAuthenticated) {
     teamStore.fetchTeams()
   }
 })

@@ -26,7 +26,7 @@ Purpose: Give AI coding agents the minimum-but-sufficient context to be producti
   - `{ code: 200, success: true, message: 'success' | ResMsg, data?: any }`.
 
 - Errors use `HanaException` (see `common/exceptions`) or Nest HttpException, normalized by `AllExceptionFilter`:
-  - `{ statusCode: <http>, message: string, errorCode: <project code>, timestamp }`.
+  - `{ code: <http>, message: string, errorCode: <project code>, timestamp }`.
 
 - Frontend `ky` client (`apps/frontend/src/service/index.ts`) unwraps API responses and treats only `code === 200` (or `0`) as success. Business errors throw `HanaError`.
 
