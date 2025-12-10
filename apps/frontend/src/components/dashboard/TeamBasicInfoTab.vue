@@ -5,6 +5,7 @@ import { useForm } from 'vee-validate'
 import { onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { teamApi } from '@/api/team'
+import Cropper from '@/components/Cropper.vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,7 +23,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { getTeamFallbackIcon } from '@/lib/utils'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { updateTeamFormSchema } from '@/validators/team'
-import Cropper from '../user-profile/Cropper.vue'
 import DeleteTeamDialog from './DeleteTeamDialog.vue'
 
 const props = defineProps<{
