@@ -24,35 +24,31 @@ import { useUserStore } from '@/stores/useUserStore'
 
 export type MemberType = 'team' | 'project'
 
-type Props = {
+const props = defineProps<{
   type: MemberType
   roles: RoleItem[]
   isAdmin: boolean
-} & (
-  {
-    type: 'team'
-    member: TeamMember
-    teamId: string
-    isOwner: boolean
-  } | {
-    type: 'project'
-    member: ProjectMember
-    projectId: string
-  }
-)
-
-const props = defineProps<Props>()
+  member: TeamMember | ProjectMember
+  teamId?: string
+  isOwner?: boolean
+  projectId?: string
+}>()
 
 const emits = defineEmits<{
   (e: 'updateMember', member: TeamMember | ProjectMember): void
   (e: 'deleteMember', member: TeamMember | ProjectMember): void
 }>()
 
+const isTeamMode = computed(() => props.type === 'team')
+const isProjectMode = computed(() => props.type === 'project')
+
+const teamMember = computed(() => props.member as TeamMember)
+
 const { user } = useUserStore()
 
 const isMe = computed(() => props.member.user.id === user!.id)
 
-const isTeamOwner = computed(() => props.type === 'team' && props.isOwner)
+const isTeamOwner = computed(() => isTeamMode.value && props.isOwner)
 
 const isUpdatingRole = ref(false)
 
@@ -82,13 +78,13 @@ const selectableRoles = computed(() =>
 
 /** 更新 Project 成员角色 */
 async function updateProjectRole(memberId: string, newRoleId: string) {
-  if (props.type !== 'project')
+  if (!isProjectMode.value)
     return
 
   isUpdatingRole.value = true
   try {
     const updatedMember = await projectApi.updateProjectMember(
-      props.projectId,
+      props.projectId!,
       memberId,
       { roleId: newRoleId },
     )
@@ -104,13 +100,13 @@ async function updateProjectRole(memberId: string, newRoleId: string) {
 
 /** 更新 Team 成员角色 */
 async function updateTeamRole(memberId: string, newRoleId: string) {
-  if (props.type !== 'team')
+  if (!isTeamMode.value)
     return
 
   isUpdatingRole.value = true
   try {
     const updatedMember = await teamApi.updateTeamMember(
-      props.teamId,
+      props.teamId!,
       memberId,
       { roleId: newRoleId },
     )
@@ -129,10 +125,10 @@ async function handleUpdateRole(newRoleId: string) {
   if (props.member.role.id === newRoleId)
     return
 
-  if (props.type === 'project') {
+  if (isProjectMode.value) {
     await updateProjectRole(props.member.id, newRoleId)
   }
-  else if (props.type === 'team') {
+  else if (isTeamMode.value) {
     await updateTeamRole(props.member.id, newRoleId)
   }
 }
@@ -156,10 +152,10 @@ async function handleUpdateRole(newRoleId: string) {
       <div class="flex items-center gap-2">
         <span class="font-medium truncate">{{ member.user.name }}</span>
         <span
-          v-if="type === 'team' && member.nickname"
+          v-if="isTeamMode && teamMember.nickname"
           class="text-xs text-muted-foreground"
         >
-          ({{ member.nickname }})
+          ({{ teamMember.nickname }})
         </span>
         <Badge :variant="getRoleBadgeVariant(member.role.name)" class="shrink-0">
           <Crown v-if="isTeamOwner" class="h-3 w-3 mr-1" />

@@ -26,7 +26,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TabsContent } from '@/components/ui/tabs'
 import { useTeamStore } from '@/stores/useTeamStore'
-import InviteTeamMemberDialog from './InviteTeamMemberDialog.vue'
+import InviteMemberDialog from './InviteMemberDialog.vue'
 import MemberItem from './MemberItem.vue'
 
 const props = defineProps<{
@@ -216,10 +216,11 @@ watch(() => props.team, async () => {
     </div>
 
     <!-- 邀请成员对话框 -->
-    <InviteTeamMemberDialog
+    <InviteMemberDialog
       v-model:open="isInviteDialogOpen"
-      :team-id="team.id"
-      :team-name="team.name"
+      type="team"
+      :resource-id="team.id"
+      :resource-name="team.name"
       :existing-member-ids="existingMemberIds"
       @invited="handleMembersInvited"
     />

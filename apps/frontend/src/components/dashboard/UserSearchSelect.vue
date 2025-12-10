@@ -43,11 +43,6 @@ const filteredResults = computed(() => {
 
 /** 搜索用户 */
 async function searchUsers(query?: string) {
-  if (!query?.trim()) {
-    searchResults.value = []
-    return
-  }
-
   isSearching.value = true
   try {
     const res = await userApi.searchUsers({ search: query, limit: 10 })
@@ -63,7 +58,14 @@ const debouncedSearch = useDebounceFn(searchUsers, 300)
 
 /** 监听搜索输入变化 */
 watch(searchQuery, (query) => {
-  debouncedSearch(query)
+  const isQueryValid = query?.trim()
+  if (isQueryValid) {
+    isSearching.value = true
+    debouncedSearch(query)
+  }
+  else {
+    searchResults.value = []
+  }
 })
 
 /** 获取用户的显示标签（用于 Combobox 的 displayValue） */
@@ -129,7 +131,7 @@ function removeSelectedUser(userId: string) {
           </div>
 
           <!-- 空状态提示 -->
-          <ComboboxEmpty v-else-if="!searchQuery">
+          <ComboboxEmpty v-else-if="!searchQuery?.trim()">
             输入关键词搜索用户
           </ComboboxEmpty>
 

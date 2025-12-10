@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectItem, ProjectMember } from '@/types/project'
 import type { RoleItem } from '@/types/role'
-import type { UserSearchItem } from '@/types/user'
 import { Loader2, Search, UserPlus, Users } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
@@ -20,13 +19,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import {
   Sheet,
@@ -37,8 +29,8 @@ import {
 } from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ROLE_NAME } from '@/constants/roles'
+import InviteMemberDialog from './InviteMemberDialog.vue'
 import MemberItem from './MemberItem.vue'
-import UserSearchSelect from './UserSearchSelect.vue'
 
 const props = defineProps<{
   project: ProjectItem
@@ -52,26 +44,22 @@ const isOpen = defineModel<boolean>('open', { required: true })
 
 // 角色列表
 const projectRoles = ref<RoleItem[]>([])
-const isLoadingRoles = ref(false)
 
 // 成员列表状态
 const members = ref<ProjectMember[]>([])
 const isLoading = ref(false)
 const searchQuery = ref('')
 
-// 邀请成员状态
-const isInviting = ref(false)
-const selectedUsers = ref<UserSearchItem[]>([])
-const inviteRoleId = ref('')
-const isInviteSubmitting = ref(false)
+// 邀请成员对话框状态
+const isInviteDialogOpen = ref(false)
 
 // 删除确认状态
 const isDeleteDialogOpen = ref(false)
 const memberToDelete = ref<ProjectMember | null>(null)
 const isDeleting = ref(false)
 
-/** 已有成员的用户 ID 列表，用于在搜索时排除 */
-const existingMemberUserIds = computed(() => members.value.map(m => m.user.id))
+/** 已有成员的用户 ID 列表，用于在邀请时排除 */
+const existingMemberIds = computed(() => members.value.map(m => m.user.id))
 
 /** 过滤后的成员列表 */
 const filteredMembers = computed(() => {
@@ -90,22 +78,10 @@ const isAdmin = computed(() =>
   props.project.currentUserRole?.name === ROLE_NAME.PROJECT_ADMIN,
 )
 
-/** 默认角色 ID（查看者角色） */
-const defaultRoleId = computed(() => {
-  const viewerRole = projectRoles.value.find(r => r.name === 'project:viewer')
-  return viewerRole?.id ?? ''
-})
-
 /** 获取项目角色列表 */
 async function fetchProjectRoles() {
-  isLoadingRoles.value = true
-  try {
-    const response = await roleApi.getRoles({ type: 'PROJECT' })
-    projectRoles.value = response.roles
-  }
-  finally {
-    isLoadingRoles.value = false
-  }
+  const { roles } = await roleApi.getRoles({ type: 'PROJECT' })
+  projectRoles.value = roles
 }
 
 /** 获取成员列表 */
@@ -123,38 +99,10 @@ async function fetchMembers() {
   }
 }
 
-/** 邀请成员 */
-async function handleInvite() {
-  if (selectedUsers.value.length === 0 || !inviteRoleId.value)
-    return
-
-  isInviteSubmitting.value = true
-  try {
-    const { members: newMembers } = await projectApi.inviteProjectMembers(props.project.id, {
-      members: selectedUsers.value.map(user => ({
-        email: user.email,
-        roleId: inviteRoleId.value,
-      })),
-    })
-
-    // 更新本地成员列表
-    if (newMembers.length > 0) {
-      members.value.push(...newMembers)
-      emits('memberCountChanged', members.value.length)
-    }
-
-    toast.success('邀请成功', {
-      description: `已邀请 ${newMembers.length} 名用户加入项目`,
-    })
-
-    // 重置表单
-    selectedUsers.value = []
-    inviteRoleId.value = defaultRoleId.value
-    isInviting.value = false
-  }
-  finally {
-    isInviteSubmitting.value = false
-  }
+/** 成员邀请成功 */
+function handleMembersInvited(newMembers: ProjectMember[]) {
+  members.value.push(...newMembers)
+  emits('memberCountChanged', members.value.length)
 }
 
 /** 更新成员 */
@@ -191,18 +139,7 @@ async function confirmDeleteMember() {
 }
 
 watch(() => props.project, async () => {
-  // 并行获取角色列表和成员列表
-  await Promise.all([
-    fetchProjectRoles(),
-    fetchMembers(),
-  ])
-
-  // 设置默认角色
-  inviteRoleId.value = defaultRoleId.value
-
-  // 重置邀请状态
-  isInviting.value = false
-  selectedUsers.value = []
+  await Promise.all([fetchProjectRoles(), fetchMembers()])
   searchQuery.value = ''
 }, { immediate: true })
 </script>
@@ -232,67 +169,13 @@ watch(() => props.project, async () => {
             />
           </div>
           <Button
-            v-if="isAdmin && !isInviting"
+            v-if="isAdmin"
             size="sm"
-            @click="isInviting = true"
+            @click="isInviteDialogOpen = true"
           >
             <UserPlus class="h-4 w-4 mr-1" />
             邀请
           </Button>
-        </div>
-
-        <!-- 邀请成员表单 -->
-        <div v-if="isInviting" class="p-4 rounded-lg border bg-muted/30 space-y-3">
-          <div class="flex items-center gap-2">
-            <UserPlus class="h-4 w-4 text-muted-foreground" />
-            <span class="text-sm font-medium">邀请新成员</span>
-          </div>
-
-          <!-- 用户搜索选择器 -->
-          <UserSearchSelect
-            v-model="selectedUsers"
-            :exclude-user-ids="existingMemberUserIds"
-            placeholder="搜索用户名、邮箱或昵称..."
-            :disabled="isInviteSubmitting"
-          />
-
-          <!-- 角色选择 -->
-          <div class="flex items-center gap-2">
-            <span class="text-sm text-muted-foreground shrink-0">分配角色：</span>
-            <Select v-model="inviteRoleId" :disabled="isInviteSubmitting || isLoadingRoles">
-              <SelectTrigger class="flex-1">
-                <SelectValue placeholder="选择角色" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem
-                  v-for="role in projectRoles"
-                  :key="role.id"
-                  :value="role.id"
-                >
-                  {{ role.description || role.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div class="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              :disabled="isInviteSubmitting"
-              @click="isInviting = false; selectedUsers = []"
-            >
-              取消
-            </Button>
-            <Button
-              size="sm"
-              :disabled="selectedUsers.length === 0 || !inviteRoleId || isInviteSubmitting"
-              @click="handleInvite"
-            >
-              <Loader2 v-if="isInviteSubmitting" class="h-4 w-4 mr-1 animate-spin" />
-              邀请 {{ selectedUsers.length > 0 ? `(${selectedUsers.length})` : '' }}
-            </Button>
-          </div>
         </div>
 
         <Separator />
@@ -342,6 +225,16 @@ watch(() => props.project, async () => {
       </div>
     </SheetContent>
   </Sheet>
+
+  <!-- 邀请成员对话框 -->
+  <InviteMemberDialog
+    v-model:open="isInviteDialogOpen"
+    type="project"
+    :resource-id="project.id"
+    :resource-name="project.name"
+    :existing-member-ids="existingMemberIds"
+    @invited="handleMembersInvited"
+  />
 
   <!-- 删除确认对话框 -->
   <AlertDialog v-model:open="isDeleteDialogOpen">
