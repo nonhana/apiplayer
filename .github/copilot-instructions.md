@@ -17,8 +17,8 @@ Purpose: Give AI coding agents the minimum-but-sufficient context to be producti
     - `pnpm -C apps/backend dev` (Nest watch) or `pnpm -C apps/backend build && pnpm -C apps/backend start`
   - Frontend: `pnpm -C apps/frontend dev`
 
-- Required backend env vars (validated in `EnvConfigModule`): `NODE_ENV`, `PORT` (default 1204), `HOST` (default 0.0.0.0), `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT` (6379), `REDIS_DB` (0), `COOKIE_SECRET` (optional). Place `.env` in `apps/backend/`.
-- Frontend needs `VITE_API_BASE_URL` pointing to the backend, e.g. `http://localhost:1204`.
+- Required backend env vars (validated in `EnvConfigModule`): `NODE_ENV`, `PORT` (default 4021), `HOST` (default 0.0.0.0), `DATABASE_URL`, `REDIS_HOST`, `REDIS_PORT` (6379), `REDIS_DB` (0), `COOKIE_SECRET` (optional). Place `.env` in `apps/backend/`.
+- Frontend needs `VITE_API_BASE_URL` pointing to the backend, e.g. `http://localhost:4021`.
 
 ## Response and error conventions (critical)
 

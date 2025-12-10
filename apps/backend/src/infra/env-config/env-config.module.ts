@@ -9,7 +9,7 @@ import * as Joi from 'joi'
       envFilePath: '.env',
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('development', 'production', 'test').required(),
-        PORT: Joi.number().default(1204),
+        PORT: Joi.number().default(4021),
         HOST: Joi.string().default('0.0.0.0'),
         COOKIE_SECRET: Joi.string().optional(),
         DATABASE_URL: Joi.string().required(),
