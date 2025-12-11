@@ -7,7 +7,7 @@ import {
   X,
   XCircle,
 } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -20,6 +20,9 @@ import { methodColors } from '@/constants/api'
 import { cn } from '@/lib/utils'
 import { useTabStore } from '@/stores/useTabStore'
 
+/** 插入方向：left 插入到左侧，right 插入到右侧 */
+type DropSide = 'left' | 'right'
+
 const props = defineProps<{
   tab: Tab
   index: number
@@ -27,17 +30,23 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'dragStart', index: number): void
-  (e: 'dragOver', index: number): void
+  (e: 'dragOver', payload: { index: number, side: DropSide }): void
   (e: 'dragEnd'): void
 }>()
 
 const tabStore = useTabStore()
+
+/** Tab 元素引用 */
+const tabRef = useTemplateRef('tabRef')
 
 /** 是否正在拖拽 */
 const isDragging = ref(false)
 
 /** 是否被拖拽经过 */
 const isDragOver = ref(false)
+
+/** 拖拽经过时的方向（偏左还是偏右） */
+const dragOverSide = ref<DropSide | null>(null)
 
 /** 是否是当前激活的标签 */
 const isActive = computed(() => props.tab.id === tabStore.activeTabId)
@@ -77,23 +86,36 @@ function handleDragStart(e: DragEvent) {
 function handleDragEnd() {
   isDragging.value = false
   isDragOver.value = false
+  dragOverSide.value = null
   emit('dragEnd')
 }
 
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
   e.dataTransfer!.dropEffect = 'move'
-  isDragOver.value = true
-  emit('dragOver', props.index)
+
+  // 计算鼠标在当前 Tab 上的相对位置，判断偏左还是偏右
+  if (tabRef.value) {
+    const rect = tabRef.value.getBoundingClientRect()
+    const mouseX = e.clientX
+    const tabCenterX = rect.left + rect.width / 2
+
+    const side: DropSide = mouseX < tabCenterX ? 'left' : 'right'
+    dragOverSide.value = side
+    isDragOver.value = true
+    emit('dragOver', { index: props.index, side })
+  }
 }
 
 function handleDragLeave() {
   isDragOver.value = false
+  dragOverSide.value = null
 }
 
 function handleDrop(e: DragEvent) {
   e.preventDefault()
   isDragOver.value = false
+  dragOverSide.value = null
 }
 
 /** 阻止关闭按钮的事件冒泡 */
@@ -107,14 +129,16 @@ function handleCloseClick(e: MouseEvent) {
   <ContextMenu>
     <ContextMenuTrigger as-child>
       <div
+        ref="tabRef"
         :class="cn(
-          'group relative flex items-center gap-1.5 px-3 h-9 border-r border-border cursor-pointer transition-all duration-150 select-none',
+          'group relative flex items-center gap-1.5 px-3 h-9 border-r border-border cursor-pointer transition-colors duration-100 select-none',
           'hover:bg-accent/50',
           isActive
             ? 'bg-background border-b-2 border-b-primary'
             : 'bg-transparent',
           isDragging && 'opacity-50',
-          isDragOver && 'bg-accent border-l-2 border-l-primary',
+          isDragOver && dragOverSide === 'left' && 'border-l-2 border-l-primary',
+          isDragOver && dragOverSide === 'right' && 'border-r-2 border-r-primary',
         )"
         draggable="true"
         @click="tabStore.setActiveTab(tab.id)"

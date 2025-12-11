@@ -42,8 +42,8 @@ onUnmounted(() => {
 /** 拖的是哪个标签 */
 const dragSourceIndex = ref<number | null>(null)
 
-/** 拖到哪个标签 */
-const dragTargetIndex = ref<number | null>(null)
+/** 拖到哪个标签的哪一侧 */
+const dragTarget = ref<{ index: number, side: 'left' | 'right' } | null>(null)
 
 /** 开始拖拽 */
 function handleDragStart(index: number) {
@@ -51,19 +51,32 @@ function handleDragStart(index: number) {
 }
 
 /** 拖拽经过 */
-function handleDragOver(index: number) {
-  if (dragSourceIndex.value !== null && dragSourceIndex.value !== index) {
-    dragTargetIndex.value = index
+function handleDragOver(payload: { index: number, side: 'left' | 'right' }) {
+  if (dragSourceIndex.value !== null && dragSourceIndex.value !== payload.index) {
+    dragTarget.value = payload
   }
 }
 
 /** 拖拽结束 */
 function handleDragEnd() {
-  if (dragSourceIndex.value !== null && dragTargetIndex.value !== null) {
-    tabStore.moveTab(dragSourceIndex.value, dragTargetIndex.value)
+  if (dragSourceIndex.value !== null && dragTarget.value !== null) {
+    const fromIndex = dragSourceIndex.value
+    const { index: targetIndex, side } = dragTarget.value
+
+    let toIndex = side === 'left' ? targetIndex : targetIndex + 1
+
+    if (fromIndex < targetIndex) {
+      // 源在目标之前，移除后目标索引左移
+      // 但如果源在目标之前，移除源后索引会左移一位，需要调整
+      toIndex -= 1
+    }
+
+    if (fromIndex !== toIndex) {
+      tabStore.moveTab(fromIndex, toIndex)
+    }
   }
   dragSourceIndex.value = null
-  dragTargetIndex.value = null
+  dragTarget.value = null
 }
 </script>
 
