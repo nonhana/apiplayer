@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ApiBrief } from '@/types/api'
-import { computed, onUnmounted, watch } from 'vue'
+import { onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ApiSidebar from '@/components/workbench/ApiSidebar.vue'
@@ -12,9 +12,6 @@ import { useTabStore } from '@/stores/useTabStore'
 const route = useRoute()
 const tabStore = useTabStore()
 const apiTreeStore = useApiTreeStore()
-
-/** 当前标签页列表 */
-const tabs = computed(() => tabStore.tabs)
 
 /** 处理 API 选择 */
 function handleSelectApi(api: ApiBrief) {
@@ -39,6 +36,7 @@ watch(() => route.params, (params) => {
 /** 组件卸载时重置状态 */
 onUnmounted(() => {
   apiTreeStore.reset()
+  tabStore.reset()
 })
 </script>
 
@@ -53,7 +51,7 @@ onUnmounted(() => {
         <div class="h-9 border-b border-border flex items-center bg-muted/30 overflow-hidden">
           <ScrollArea orientation="horizontal" class="flex-1">
             <div class="flex items-center h-full">
-              <TabItem v-for="tab in tabs" :key="tab.id" :tab="tab" />
+              <TabItem v-for="tab in tabStore.tabs" :key="tab.id" :tab="tab" />
             </div>
           </ScrollArea>
         </div>
