@@ -1,8 +1,10 @@
 <script lang="ts" setup>
+import type { StyleValue } from 'vue'
 import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
 import {
   ChevronRight,
   FilePlus,
+  FolderClosed,
   FolderOpen,
   FolderPlus,
   MoreHorizontal,
@@ -55,7 +57,7 @@ const apiTreeStore = useApiTreeStore()
 const currentLevel = computed(() => props.level ?? 0)
 
 /** 层级缩进 */
-const indentStyle = computed(() => ({
+const indentStyle = computed<StyleValue>(() => ({
   paddingLeft: `${currentLevel.value * 12 + 8}px`,
 }))
 
@@ -74,7 +76,7 @@ const isOpen = computed({
 
 /** 是否有子内容 */
 const hasChildren = computed(() =>
-  props.group.children.length > 0 || props.group.apis.length > 0,
+  props.group.children.length > 0 || props.group.apiCount > 0,
 )
 
 /** 是否选中 */
@@ -123,7 +125,6 @@ function handleClick() {
             :style="indentStyle"
             @click.stop="handleClick"
           >
-            <!-- 展开/折叠图标 -->
             <ChevronRight
               :class="cn(
                 'h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200',
@@ -132,22 +133,19 @@ function handleClick() {
               )"
             />
 
-            <!-- 文件夹图标 -->
             <FolderOpen
               v-if="isOpen"
               class="h-4 w-4 shrink-0 text-amber-500"
             />
-            <FolderOpen
+            <FolderClosed
               v-else
-              class="h-4 w-4 shrink-0 text-amber-500/70"
+              class="h-4 w-4 shrink-0 text-amber-500"
             />
 
-            <!-- 分组名称 -->
             <span class="flex-1 truncate text-sm font-medium">
               {{ group.name }}
             </span>
 
-            <!-- API 数量角标 -->
             <span
               v-if="group.apiCount > 0"
               class="shrink-0 text-xs text-muted-foreground tabular-nums"
@@ -155,7 +153,6 @@ function handleClick() {
               {{ group.apiCount }}
             </span>
 
-            <!-- 更多操作按钮 -->
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
                 <Button
@@ -195,7 +192,6 @@ function handleClick() {
         </CollapsibleTrigger>
       </ContextMenuTrigger>
 
-      <!-- 右键菜单 -->
       <ContextMenuContent class="w-44">
         <ContextMenuItem @click="handleCreateApi">
           <FilePlus class="mr-2 h-4 w-4" />
@@ -221,9 +217,8 @@ function handleClick() {
       </ContextMenuContent>
     </ContextMenu>
 
-    <!-- 子内容 -->
     <CollapsibleContent>
-      <!-- 子分组 -->
+      <!-- 递归 -->
       <ApiTreeGroup
         v-for="child in group.children"
         :key="child.id"
@@ -238,7 +233,6 @@ function handleClick() {
         @delete-api="(api) => emits('deleteApi', api)"
       />
 
-      <!-- API 列表 -->
       <ApiTreeItem
         v-for="api in group.apis"
         :key="api.id"

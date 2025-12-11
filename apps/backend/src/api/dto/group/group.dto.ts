@@ -48,7 +48,24 @@ export class GroupNodeDto {
 }
 
 @Exclude()
-export class GroupNodeWithAPIDto extends GroupNodeDto {
+export class GroupNodeWithAPIDto {
+  @Expose()
+  id: string
+
+  @Expose()
+  name: string
+
+  @Expose()
+  sortOrder: number
+
+  @Expose()
+  @Type(() => GroupNodeWithAPIDto)
+  children: GroupNodeWithAPIDto[]
+
+  @Expose()
+  @Transform(({ value }) => (value !== undefined ? value : 0), { toPlainOnly: true })
+  apiCount: number
+
   @Expose()
   @Type(() => ApiBriefDto)
   apis: ApiBriefDto[]
