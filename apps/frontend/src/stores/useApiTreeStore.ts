@@ -17,7 +17,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   const isLoading = ref(false)
 
   /** 当前项目 ID */
-  const projectId = ref<string>('')
+  const projectId = ref('')
 
   /** 展开的分组 ID 集合 */
   const expandedKeys = ref<Set<ExpandedKey>>(new Set())

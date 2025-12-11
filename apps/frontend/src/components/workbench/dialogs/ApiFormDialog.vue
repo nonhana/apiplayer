@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { HTTP_METHODS, methodColors } from '@/constants/api'
 import { cn } from '@/lib/utils'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 
@@ -38,20 +39,6 @@ const isOpen = defineModel<boolean>('open', { required: true })
 
 const apiTreeStore = useApiTreeStore()
 
-/** HTTP 方法选项 */
-const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
-
-/** HTTP 方法对应的颜色 */
-const methodColors: Record<HttpMethod, string> = {
-  GET: 'text-emerald-600',
-  POST: 'text-amber-600',
-  PUT: 'text-blue-600',
-  PATCH: 'text-purple-600',
-  DELETE: 'text-rose-600',
-  HEAD: 'text-slate-600',
-  OPTIONS: 'text-cyan-600',
-}
-
 /** 表单数据 */
 const formData = ref({
   name: '',
@@ -60,7 +47,6 @@ const formData = ref({
   groupId: '',
 })
 
-/** 是否提交中 */
 const isSubmitting = ref(false)
 
 /** 可用分组列表（扁平化） */

@@ -4,7 +4,7 @@
 /**
  * 隐藏头部导航的路由名称
  */
-export const PUBLIC_ROUTES = ['Login', 'Register', 'Home', 'NotFound']
+export const PUBLIC_ROUTES = ['Login', 'Register', 'Home', 'NotFound', 'Workbench']
 
 /**
  * 项目可见性

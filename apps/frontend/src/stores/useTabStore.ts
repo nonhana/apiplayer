@@ -1,27 +1,6 @@
-import type { HttpMethod } from '@/types/api'
+import type { HttpMethod, Tab, TabType } from '@/types/api'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-
-/** 标签页类型 */
-export type TabType = 'api' | 'overview' | 'settings' | 'schema' | 'group'
-
-/** 标签页数据结构 */
-export interface Tab {
-  /** 唯一标识（API ID 或其他标识） */
-  id: string
-  /** 显示标题 */
-  title: string
-  /** 标签类型 */
-  type: TabType
-  /** HTTP 方法（仅 API 类型） */
-  method?: HttpMethod
-  /** 路径（仅 API 类型） */
-  path?: string
-  /** 是否有未保存的修改 */
-  dirty?: boolean
-  /** 附加数据 */
-  data?: unknown
-}
 
 /** 创建标签页的参数 */
 export interface CreateTabParams {
