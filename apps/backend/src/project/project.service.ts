@@ -328,7 +328,10 @@ export class ProjectService {
         orderBy: { lastVisitedAt: 'desc' },
       })
 
-      return recentlyProjects
+      return recentlyProjects.map(({ lastVisitedAt, project }) => ({
+        ...project,
+        lastVisitedAt,
+      }))
     }
     catch (error) {
       this.logger.error(`获取最近访问项目失败: ${error.message}`, error.stack)

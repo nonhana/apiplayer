@@ -19,8 +19,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
-import CreateTeamDialog from './dashboard/CreateTeamDialog.vue'
-import TeamSwitcher from './dashboard/TeamSwitcher.vue'
+import CreateTeamDialog from './CreateTeamDialog.vue'
+import TeamSwitcher from './TeamSwitcher.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
