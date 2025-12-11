@@ -1,14 +1,12 @@
 <script lang="ts" setup>
 import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
 import { ref } from 'vue'
-import { ApiTree } from './api-tree'
-import {
-  ApiFormDialog,
-  CloneApiDialog,
-  DeleteApiDialog,
-  DeleteGroupDialog,
-  GroupFormDialog,
-} from './dialogs'
+import ApiTree from './api-tree/ApiTree.vue'
+import ApiFormDialog from './dialogs/ApiFormDialog.vue'
+import CloneApiDialog from './dialogs/CloneApiDialog.vue'
+import DeleteApiDialog from './dialogs/DeleteApiDialog.vue'
+import DeleteGroupDialog from './dialogs/DeleteGroupDialog.vue'
+import GroupFormDialog from './dialogs/GroupFormDialog.vue'
 
 const emits = defineEmits<{
   (e: 'selectApi', api: ApiBrief): void

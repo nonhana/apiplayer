@@ -1,5 +1,0 @@
-export { default as ApiFormDialog } from './ApiFormDialog.vue'
-export { default as CloneApiDialog } from './CloneApiDialog.vue'
-export { default as DeleteApiDialog } from './DeleteApiDialog.vue'
-export { default as DeleteGroupDialog } from './DeleteGroupDialog.vue'
-export { default as GroupFormDialog } from './GroupFormDialog.vue'
