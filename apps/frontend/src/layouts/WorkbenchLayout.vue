@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ApiBrief } from '@/types/api'
-import { onUnmounted, watch } from 'vue'
+import { onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ApiSidebar from '@/components/workbench/ApiSidebar.vue'
@@ -38,6 +38,33 @@ onUnmounted(() => {
   apiTreeStore.reset()
   tabStore.reset()
 })
+
+/** 拖的是哪个标签 */
+const dragSourceIndex = ref<number | null>(null)
+
+/** 拖到哪个标签 */
+const dragTargetIndex = ref<number | null>(null)
+
+/** 开始拖拽 */
+function handleDragStart(index: number) {
+  dragSourceIndex.value = index
+}
+
+/** 拖拽经过 */
+function handleDragOver(index: number) {
+  if (dragSourceIndex.value !== null && dragSourceIndex.value !== index) {
+    dragTargetIndex.value = index
+  }
+}
+
+/** 拖拽结束 */
+function handleDragEnd() {
+  if (dragSourceIndex.value !== null && dragTargetIndex.value !== null) {
+    tabStore.moveTab(dragSourceIndex.value, dragTargetIndex.value)
+  }
+  dragSourceIndex.value = null
+  dragTargetIndex.value = null
+}
 </script>
 
 <template>
@@ -51,7 +78,15 @@ onUnmounted(() => {
         <div class="h-9 border-b border-border flex items-center bg-muted/30 overflow-hidden">
           <ScrollArea orientation="horizontal" class="flex-1">
             <div class="flex items-center h-full">
-              <TabItem v-for="tab in tabStore.tabs" :key="tab.id" :tab="tab" />
+              <TabItem
+                v-for="(tab, index) in tabStore.tabs"
+                :key="tab.id"
+                :tab="tab"
+                :index="index"
+                @drag-start="handleDragStart"
+                @drag-over="handleDragOver"
+                @drag-end="handleDragEnd"
+              />
             </div>
           </ScrollArea>
         </div>

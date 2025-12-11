@@ -10,6 +10,7 @@ export interface CreateTabParams {
   method?: HttpMethod
   path?: string
   data?: unknown
+  pinned?: boolean
 }
 
 export const useTabStore = defineStore('tab', () => {
@@ -39,6 +40,7 @@ export const useTabStore = defineStore('tab', () => {
         method: params.method,
         path: params.path,
         dirty: false,
+        pinned: params.pinned ?? false,
         data: params.data,
       })
     }
@@ -93,6 +95,58 @@ export const useTabStore = defineStore('tab', () => {
         activeTabId.value = id
       }
     }
+  }
+
+  /** 关闭左侧标签页 */
+  function removeLeftTabs(id: string) {
+    const index = tabs.value.findIndex(t => t.id === id)
+    if (index !== -1) {
+      tabs.value = tabs.value.slice(index)
+      // 如果激活的标签被关闭了，切换到当前标签
+      if (!tabs.value.find(t => t.id === activeTabId.value)) {
+        activeTabId.value = id
+      }
+    }
+  }
+
+  /** 关闭已保存的标签页（没有未保存修改的） */
+  function removeSavedTabs() {
+    const dirtyTabs = tabs.value.filter(t => t.dirty)
+    tabs.value = dirtyTabs
+    // 如果当前激活的标签被关了，切换到第一个
+    if (!tabs.value.find(t => t.id === activeTabId.value)) {
+      activeTabId.value = tabs.value[0]?.id ?? ''
+    }
+  }
+
+  /** 固定/取消固定标签页 */
+  function togglePinTab(id: string) {
+    const tab = tabs.value.find(t => t.id === id)
+    if (tab) {
+      tab.pinned = !tab.pinned
+      // 固定的标签移动到前面
+      if (tab.pinned) {
+        const index = tabs.value.indexOf(tab)
+        const pinnedCount = tabs.value.filter(t => t.pinned && t.id !== id).length
+        if (index > pinnedCount) {
+          tabs.value.splice(index, 1)
+          tabs.value.splice(pinnedCount, 0, tab)
+        }
+      }
+    }
+  }
+
+  /** 移动标签页到指定位置 */
+  function moveTab(fromIndex: number, toIndex: number) {
+    if (fromIndex === toIndex)
+      return
+    if (fromIndex < 0 || fromIndex >= tabs.value.length)
+      return
+    if (toIndex < 0 || toIndex >= tabs.value.length)
+      return
+
+    const tab = tabs.value.splice(fromIndex, 1)[0]!
+    tabs.value.splice(toIndex, 0, tab)
   }
 
   /** 设置激活的标签页 */
@@ -155,6 +209,10 @@ export const useTabStore = defineStore('tab', () => {
     removeAllTabs,
     removeOtherTabs,
     removeRightTabs,
+    removeLeftTabs,
+    removeSavedTabs,
+    togglePinTab,
+    moveTab,
     setActiveTab,
     updateTabTitle,
     setTabDirty,
