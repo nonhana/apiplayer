@@ -17,11 +17,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 
-export type GroupFormMode = 'create' | 'rename'
-
 const props = defineProps<{
   /** 模式：create 创建 | rename 重命名 */
-  mode: GroupFormMode
+  mode: 'create' | 'rename'
   /** 父分组 ID（创建子分组时使用） */
   parentId?: string
   /** 要重命名的分组（重命名模式使用） */
