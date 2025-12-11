@@ -1,4 +1,4 @@
-import type { ApiBrief, GroupNodeWithApis, HttpMethod } from '@/types/api'
+import type { ApiBrief, CloneApiReq, GroupNodeWithApis, HttpMethod } from '@/types/api'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { apiApi, groupApi } from '@/api/api'
@@ -267,13 +267,13 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   }
 
   /** 克隆 API */
-  async function cloneApi(apiId: string, targetGroupId: string) {
+  async function cloneApi(apiId: string, req: CloneApiReq) {
     if (!projectId.value)
       return null
 
-    const api = await apiApi.cloneApi(projectId.value, apiId, { targetGroupId })
+    const api = await apiApi.cloneApi(projectId.value, apiId, req)
     await refreshTree()
-    expandGroup(targetGroupId)
+    expandGroup(req.targetGroupId)
 
     return api
   }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
+import type { ApiBrief, GroupNodeWithApis, HttpMethod } from '@/types/api'
 import { Loader2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
@@ -14,6 +14,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -40,8 +41,20 @@ const apiTreeStore = useApiTreeStore()
 /** 目标分组 ID */
 const targetGroupId = ref('')
 
+/** 新 API 名称 */
+const newName = ref('')
+
+/** 新 API 路径 */
+const newPath = ref('')
+
+/** 新 API 方法 */
+const newMethod = ref<HttpMethod>('GET')
+
 /** 是否提交中 */
 const isSubmitting = ref(false)
+
+/** HTTP 方法列表 */
+const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS']
 
 /** 可用分组列表（扁平化） */
 const flatGroups = computed(() => {
@@ -58,8 +71,29 @@ const flatGroups = computed(() => {
   return result
 })
 
-/** 是否可以提交 */
-const canSubmit = computed(() => targetGroupId.value.length > 0)
+/** 是否可以提交（目标分组、名称、路径都要有效） */
+const canSubmit = computed(() =>
+  targetGroupId.value.length > 0
+  && newName.value.trim().length > 0
+  && newPath.value.trim().length > 0,
+)
+
+/** 生成默认的克隆名称 */
+function generateCloneName(originalName: string): string {
+  return `${originalName} (副本)`
+}
+
+/** 生成默认的克隆路径 */
+function generateClonePath(originalPath: string): string {
+  // 如果路径已有后缀数字，递增它；否则加 -copy
+  const match = originalPath.match(/^(.+)-copy(\d*)$/)
+  if (match) {
+    const base = match[1]
+    const num = match[2] ? Number.parseInt(match[2], 10) + 1 : 2
+    return `${base}-copy${num}`
+  }
+  return `${originalPath}-copy`
+}
 
 /** 监听对话框打开，重置表单 */
 watch(isOpen, (open) => {
@@ -67,6 +101,11 @@ watch(isOpen, (open) => {
     // 默认选择当前 API 所在分组
     const group = apiTreeStore.findGroupByApiId(apiTreeStore.tree, props.api.id)
     targetGroupId.value = group?.id ?? flatGroups.value[0]?.id ?? ''
+
+    // 预填充克隆信息
+    newName.value = generateCloneName(props.api.name)
+    newPath.value = generateClonePath(props.api.path)
+    newMethod.value = props.api.method
   }
 })
 
@@ -78,7 +117,12 @@ async function handleSubmit() {
   isSubmitting.value = true
 
   try {
-    await apiTreeStore.cloneApi(props.api.id, targetGroupId.value)
+    await apiTreeStore.cloneApi(props.api.id, {
+      targetGroupId: targetGroupId.value,
+      name: newName.value.trim(),
+      path: newPath.value.trim(),
+      method: newMethod.value,
+    })
     toast.success('接口克隆成功')
     isOpen.value = false
     emits('success')
@@ -99,11 +143,11 @@ function getGroupDisplayName(group: { name: string, level: number }) {
 
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-md">
+    <DialogContent class="sm:max-w-lg">
       <DialogHeader>
         <DialogTitle>克隆接口</DialogTitle>
         <DialogDescription>
-          选择目标分组，将接口复制到该分组下。
+          将接口复制到目标分组，可自定义新接口的名称、路径和方法。
         </DialogDescription>
       </DialogHeader>
 
@@ -144,6 +188,53 @@ function getGroupDisplayName(group: { name: string, level: number }) {
             </SelectContent>
           </Select>
         </div>
+
+        <!-- 新接口名称 -->
+        <div class="space-y-2">
+          <Label for="new-name">接口名称</Label>
+          <Input
+            id="new-name"
+            v-model="newName"
+            placeholder="输入新接口名称"
+            :disabled="isSubmitting"
+          />
+        </div>
+
+        <!-- 新接口路径和方法 -->
+        <div class="grid grid-cols-[100px_1fr] gap-2">
+          <div class="space-y-2">
+            <Label for="new-method">方法</Label>
+            <Select v-model="newMethod" :disabled="isSubmitting">
+              <SelectTrigger id="new-method">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="method in HTTP_METHODS"
+                  :key="method"
+                  :value="method"
+                >
+                  {{ method }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div class="space-y-2">
+            <Label for="new-path">路径</Label>
+            <Input
+              id="new-path"
+              v-model="newPath"
+              placeholder="输入新接口路径"
+              class="font-mono"
+              :disabled="isSubmitting"
+            />
+          </div>
+        </div>
+
+        <!-- 提示信息 -->
+        <p class="text-xs text-muted-foreground">
+          同一项目中，相同路径和方法的接口不能重复。
+        </p>
       </div>
 
       <DialogFooter>
