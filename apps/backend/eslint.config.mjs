@@ -6,6 +6,7 @@ export default antfu({
   jsonc: true,
   markdown: true,
   yaml: true,
+  pnpm: false,
   rules: {
     'no-console': 'off',
     'ts/consistent-type-imports': 'off',
