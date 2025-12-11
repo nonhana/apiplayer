@@ -308,6 +308,18 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     await refreshTree()
   }
 
+  /** 移动 API 到其他分组 */
+  async function moveApi(apiId: string, targetGroupId: string, sortOrder?: number) {
+    if (!projectId.value)
+      return
+
+    await apiApi.moveApi(projectId.value, apiId, { targetGroupId, sortOrder })
+    await refreshTree()
+
+    // 展开目标分组
+    expandGroup(targetGroupId)
+  }
+
   /** 乐观更新 - 添加 API 到分组 */
   function addApiToGroup(groupId: string, api: ApiBrief) {
     const group = findGroupInTree(tree.value, groupId)
@@ -370,6 +382,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     deleteApi,
     cloneApi,
     moveGroup,
+    moveApi,
     sortGroups,
     sortApis,
     addApiToGroup,

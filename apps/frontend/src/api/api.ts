@@ -8,6 +8,7 @@ import type {
   GetGroupTreeWithApisReq,
   GroupBrief,
   GroupNodeWithApis,
+  MoveApiReq,
   MoveGroupReq,
   SortItemsReq,
   UpdateApiReq,
@@ -75,4 +76,10 @@ export const apiApi = {
   /** 批量更新 API 排序 */
   sortApis: (projectId: string, data: SortItemsReq) =>
     http.post(`api/${projectId}/apis/sort`, { json: data }).json<void>(),
+
+  /** 移动 API 到其他分组 */
+  moveApi: (projectId: string, apiId: string, data: MoveApiReq) =>
+    http.patch(`api/${projectId}/apis/${apiId}`, {
+      json: { baseInfo: { groupId: data.targetGroupId, sortOrder: data.sortOrder } },
+    }).json<ApiBrief>(),
 }

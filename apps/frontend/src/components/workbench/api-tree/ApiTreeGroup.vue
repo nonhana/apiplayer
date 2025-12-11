@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { StyleValue } from 'vue'
+import type { DropPosition } from '@/composables/useApiTreeDrag'
 import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
 import {
   ChevronRight,
@@ -11,7 +12,7 @@ import {
   Pencil,
   Trash2,
 } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Collapsible,
@@ -34,11 +35,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
+import { useSharedApiTreeDrag } from '../../../composables/useApiTreeDrag'
 import ApiTreeItem from './ApiTreeItem.vue'
 
 const props = defineProps<{
   group: GroupNodeWithApis
   level?: number
+  parentId?: string
 }>()
 
 const emits = defineEmits<{
@@ -52,6 +55,19 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
+const drag = useSharedApiTreeDrag()
+
+/** 分组行元素引用 */
+const groupRowRef = useTemplateRef('groupRowRef')
+
+/** 是否正在拖拽当前项 */
+const isDragging = ref(false)
+
+/** 是否是拖拽目标 */
+const isDragOver = ref(false)
+
+/** 拖拽目标位置 */
+const dropPosition = ref<DropPosition | null>(null)
 
 /** 当前层级 */
 const currentLevel = computed(() => props.level ?? 0)
@@ -109,6 +125,87 @@ function handleDelete() {
 function handleClick() {
   apiTreeStore.selectNode(props.group.id, 'group')
 }
+
+// ========== 拖拽事件处理 ==========
+
+/** 开始拖拽 */
+function handleDragStart(e: DragEvent) {
+  isDragging.value = true
+  e.dataTransfer!.effectAllowed = 'move'
+  e.dataTransfer!.setData('text/plain', props.group.id)
+
+  drag.startDrag({
+    id: props.group.id,
+    type: 'group',
+    parentId: props.parentId,
+    data: props.group,
+  })
+}
+
+/** 拖拽结束 */
+function handleDragEnd() {
+  isDragging.value = false
+  isDragOver.value = false
+  dropPosition.value = null
+  drag.endDrag()
+}
+
+/** 拖拽经过 */
+function handleDragOver(e: DragEvent) {
+  e.preventDefault()
+
+  // 如果没有正在拖拽的项，忽略
+  if (!drag.isDragging.value || !drag.dragItem.value)
+    return
+
+  // 不能拖拽到自己
+  if (drag.dragItem.value.id === props.group.id)
+    return
+
+  // 分组只能接受分组的拖拽（如果是 API 拖拽，则只能 inside）
+  // 或者当 API 拖拽到分组时，允许放进去
+  e.dataTransfer!.dropEffect = 'move'
+
+  if (groupRowRef.value) {
+    const position = drag.calculateDropPosition(e, groupRowRef.value, 'group')
+    const target = {
+      id: props.group.id,
+      type: 'group' as const,
+      parentId: props.parentId,
+      position,
+    }
+
+    if (drag.isValidDrop(target)) {
+      isDragOver.value = true
+      dropPosition.value = position
+      drag.setDropTarget(target)
+    }
+    else {
+      isDragOver.value = false
+      dropPosition.value = null
+      drag.setDropTarget(null)
+    }
+  }
+}
+
+/** 拖拽离开 */
+function handleDragLeave() {
+  isDragOver.value = false
+  dropPosition.value = null
+}
+
+/** 放置 */
+async function handleDrop(e: DragEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+
+  if (isDragOver.value) {
+    await drag.executeDrop()
+  }
+
+  isDragOver.value = false
+  dropPosition.value = null
+}
 </script>
 
 <template>
@@ -117,13 +214,24 @@ function handleClick() {
       <ContextMenuTrigger as-child>
         <CollapsibleTrigger as-child>
           <div
+            ref="groupRowRef"
             :class="cn(
-              'group flex items-center gap-1 py-1.5 pr-2 cursor-pointer transition-colors duration-150 rounded-sm',
+              'group relative flex items-center gap-1 py-1.5 pr-2 cursor-pointer transition-colors duration-150 rounded-sm',
               'hover:bg-accent/50',
               isSelected && 'bg-accent',
+              isDragging && 'opacity-50',
+              isDragOver && dropPosition === 'inside' && 'ring-2 ring-primary ring-inset bg-primary/10',
+              isDragOver && dropPosition === 'before' && 'border-t-2 border-t-primary',
+              isDragOver && dropPosition === 'after' && 'border-b-2 border-b-primary',
             )"
             :style="indentStyle"
+            draggable="true"
             @click.stop="handleClick"
+            @dragstart="handleDragStart"
+            @dragend="handleDragEnd"
+            @dragover="handleDragOver"
+            @dragleave="handleDragLeave"
+            @drop="handleDrop"
           >
             <ChevronRight
               :class="cn(
@@ -218,12 +326,13 @@ function handleClick() {
     </ContextMenu>
 
     <CollapsibleContent>
-      <!-- 递归 -->
+      <!-- 递归渲染子分组 -->
       <ApiTreeGroup
         v-for="child in group.children"
         :key="child.id"
         :group="child"
         :level="currentLevel + 1"
+        :parent-id="group.id"
         @create-group="(parentId) => emits('createGroup', parentId)"
         @create-api="(groupId) => emits('createApi', groupId)"
         @rename-group="(g) => emits('renameGroup', g)"
@@ -233,11 +342,13 @@ function handleClick() {
         @delete-api="(api) => emits('deleteApi', api)"
       />
 
+      <!-- 渲染 API 列表 -->
       <ApiTreeItem
         v-for="api in group.apis"
         :key="api.id"
         :api="api"
         :level="currentLevel + 1"
+        :group-id="group.id"
         @select="(a) => emits('selectApi', a)"
         @clone="(a) => emits('cloneApi', a)"
         @delete="(a) => emits('deleteApi', a)"

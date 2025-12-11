@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { StyleValue } from 'vue'
+import type { DropPosition } from '@/composables/useApiTreeDrag'
 import type { ApiBrief } from '@/types/api'
 import { Copy, MoreHorizontal, Trash2 } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useSharedApiTreeDrag } from '@/composables/useApiTreeDrag'
 import { methodBadgeColors } from '@/constants/api'
 import { cn } from '@/lib/utils'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
@@ -26,6 +28,7 @@ import { useApiTreeStore } from '@/stores/useApiTreeStore'
 const props = defineProps<{
   api: ApiBrief
   level?: number
+  groupId: string
 }>()
 
 const emits = defineEmits<{
@@ -35,6 +38,19 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
+const drag = useSharedApiTreeDrag()
+
+/** API 行元素引用 */
+const apiRowRef = useTemplateRef('apiRowRef')
+
+/** 是否正在拖拽当前项 */
+const isDragging = ref(false)
+
+/** 是否是拖拽目标 */
+const isDragOver = ref(false)
+
+/** 拖拽目标位置 */
+const dropPosition = ref<DropPosition | null>(null)
 
 /** 层级缩进 */
 const indentStyle = computed<StyleValue>(() => ({
@@ -62,19 +78,112 @@ function handleClone() {
 function handleDelete() {
   emits('delete', props.api)
 }
+
+// ========== 拖拽事件处理 ==========
+
+/** 开始拖拽 */
+function handleDragStart(e: DragEvent) {
+  isDragging.value = true
+  e.dataTransfer!.effectAllowed = 'move'
+  e.dataTransfer!.setData('text/plain', props.api.id)
+
+  drag.startDrag({
+    id: props.api.id,
+    type: 'api',
+    parentId: props.groupId,
+    data: props.api,
+  })
+}
+
+/** 拖拽结束 */
+function handleDragEnd() {
+  isDragging.value = false
+  isDragOver.value = false
+  dropPosition.value = null
+  drag.endDrag()
+}
+
+/** 拖拽经过 */
+function handleDragOver(e: DragEvent) {
+  e.preventDefault()
+
+  // 如果没有正在拖拽的项，忽略
+  if (!drag.isDragging.value || !drag.dragItem.value)
+    return
+
+  // 不能拖拽到自己
+  if (drag.dragItem.value.id === props.api.id)
+    return
+
+  // API 只能接受 API 的拖拽（分组不能拖到 API 上）
+  if (drag.dragItem.value.type !== 'api')
+    return
+
+  e.dataTransfer!.dropEffect = 'move'
+
+  if (apiRowRef.value) {
+    const position = drag.calculateDropPosition(e, apiRowRef.value, 'api')
+    const target = {
+      id: props.api.id,
+      type: 'api' as const,
+      parentId: props.groupId,
+      position,
+    }
+
+    if (drag.isValidDrop(target)) {
+      isDragOver.value = true
+      dropPosition.value = position
+      drag.setDropTarget(target)
+    }
+    else {
+      isDragOver.value = false
+      dropPosition.value = null
+      drag.setDropTarget(null)
+    }
+  }
+}
+
+/** 拖拽离开 */
+function handleDragLeave() {
+  isDragOver.value = false
+  dropPosition.value = null
+}
+
+/** 放置 */
+async function handleDrop(e: DragEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+
+  if (isDragOver.value) {
+    await drag.executeDrop()
+  }
+
+  isDragOver.value = false
+  dropPosition.value = null
+}
 </script>
 
 <template>
   <ContextMenu>
     <ContextMenuTrigger as-child>
       <div
+        ref="apiRowRef"
         :class="cn(
-          'group flex items-center gap-2 py-1.5 pr-2 cursor-pointer transition-colors duration-150 rounded-sm',
+          'group relative flex items-center gap-2 py-1.5 pr-2 cursor-pointer transition-colors duration-150 rounded-sm',
           'hover:bg-accent/50',
           isSelected && 'bg-accent',
+          isDragging && 'opacity-50',
+          isDragOver && dropPosition === 'before' && 'border-t-2 border-t-primary',
+          isDragOver && dropPosition === 'after' && 'border-b-2 border-b-primary',
         )"
         :style="indentStyle"
+        draggable="true"
         @click="handleClick"
+        @dragstart="handleDragStart"
+        @dragend="handleDragEnd"
+        @dragover="handleDragOver"
+        @dragleave="handleDragLeave"
+        @drop="handleDrop"
       >
         <Badge
           variant="outline"
