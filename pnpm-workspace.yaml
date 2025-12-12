@@ -1,13 +1,7 @@
-catalogMode: prefer
-cleanupUnusedCatalogs: true
-shellEmulator: true
-trustPolicy: no-downgrade
-trustPolicyExclude:
-  - undici-types@6.21.0
-  - chokidar@4.0.3
-
 packages:
   - apps/*
+
+catalogMode: prefer
 
 catalogs:
   backend:
@@ -53,7 +47,6 @@ catalogs:
     tsdown: ^0.17.3
     winston: ^3.19.0
     winston-daily-rotate-file: ^5.0.0
-
   frontend:
     '@tailwindcss/vite': ^4.1.18
     '@tanstack/vue-table': ^8.21.3
@@ -61,6 +54,7 @@ catalogs:
     '@vitejs/plugin-vue': ^6.0.3
     '@vue/tsconfig': ^0.8.1
     '@vueuse/core': ^14.1.0
+    '@vueuse/router': ^14.1.0
     class-variance-authority: ^0.7.1
     clsx: ^2.1.1
     cropperjs: ^2.1.0
@@ -84,13 +78,14 @@ catalogs:
     vue-sonner: ^2.0.9
     vue-tsc: ^3.1.8
     zod: ^3
-
   public:
     '@antfu/eslint-config': ^6.6.1
     '@types/node': ^25.0.1
     eslint: ^9.39.1
     tsx: ^4.21.0
     typescript: ^5.9.3
+
+cleanupUnusedCatalogs: true
 
 onlyBuiltDependencies:
   - '@nestjs/core'
@@ -102,3 +97,11 @@ onlyBuiltDependencies:
   - esbuild
   - prisma
   - vue-demi
+
+shellEmulator: true
+
+trustPolicy: no-downgrade
+
+trustPolicyExclude:
+  - undici-types@6.21.0
+  - chokidar@4.0.3

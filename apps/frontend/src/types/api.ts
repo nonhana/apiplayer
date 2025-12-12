@@ -27,6 +27,78 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 
 /** API 状态 */
 export type ApiStatus = 'DRAFT' | 'PUBLISHED' | 'DEPRECATED' | 'DELETED'
 
+/** 参数类型 */
+export type ParamType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'file'
+
+/** API 参数定义（请求头/路径参数/查询参数通用） */
+export interface ApiParam {
+  /** 参数名 */
+  name: string
+  /** 参数类型 */
+  type: ParamType
+  /** 是否必填 */
+  required?: boolean
+  /** 参数描述 */
+  description?: string
+  /** 默认值 */
+  defaultValue?: string
+  /** 示例值 */
+  example?: string
+  /** 枚举值（可选） */
+  enum?: string[]
+  /** 最小长度 */
+  minLength?: number
+  /** 最大长度 */
+  maxLength?: number
+  /** 格式（如 email, uri, date-time 等） */
+  format?: string
+}
+
+/** 请求体类型 */
+export type RequestBodyType = 'none' | 'json' | 'form-data' | 'x-www-form-urlencoded' | 'binary' | 'raw'
+
+/** 请求体定义 */
+export interface ApiRequestBody {
+  /** 内容类型 */
+  type: RequestBodyType
+  /** JSON Schema（用于 json 类型） */
+  jsonSchema?: Record<string, unknown>
+  /** 表单字段（用于 form-data / x-www-form-urlencoded） */
+  formFields?: ApiParam[]
+  /** 原始内容类型（用于 raw） */
+  rawContentType?: string
+  /** 示例数据 */
+  example?: unknown
+  /** 描述 */
+  description?: string
+}
+
+/** 响应定义 */
+export interface ApiResponse {
+  /** 响应名称 */
+  name: string
+  /** HTTP 状态码 */
+  httpStatus: number
+  /** 响应体 Schema */
+  body?: Record<string, unknown>
+  /** 响应描述 */
+  description?: string
+  /** 响应头 */
+  headers?: ApiParam[]
+  /** 示例数据 */
+  example?: unknown
+}
+
+/** Mock 配置 */
+export interface ApiMockConfig {
+  /** 是否启用 Mock */
+  enabled?: boolean
+  /** Mock 响应延迟（毫秒） */
+  delay?: number
+  /** 自定义 Mock 规则 */
+  rules?: Record<string, unknown>
+}
+
 /** API 简要信息（用于列表展示） */
 export interface ApiBrief {
   id: string
@@ -46,13 +118,13 @@ export interface ApiDetail extends ApiBrief {
   updatedAt: string
   description?: string
   status: ApiStatus
-  requestHeaders: Record<string, unknown>[]
-  pathParams: Record<string, unknown>[]
-  queryParams: Record<string, unknown>[]
-  requestBody?: Record<string, unknown>
-  responses: Record<string, unknown>[]
+  requestHeaders: ApiParam[]
+  pathParams: ApiParam[]
+  queryParams: ApiParam[]
+  requestBody?: ApiRequestBody
+  responses: ApiResponse[]
   examples: Record<string, unknown>
-  mockConfig?: Record<string, unknown>
+  mockConfig?: ApiMockConfig
 }
 
 /** 分组简要信息 */

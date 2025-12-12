@@ -15,6 +15,7 @@
     "@tanstack/vue-table": "catalog:frontend",
     "@vee-validate/zod": "catalog:frontend",
     "@vueuse/core": "catalog:frontend",
+    "@vueuse/router": "catalog:frontend",
     "class-variance-authority": "catalog:frontend",
     "clsx": "catalog:frontend",
     "cropperjs": "catalog:frontend",

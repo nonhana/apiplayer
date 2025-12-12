@@ -1,0 +1,152 @@
+<script lang="ts" setup>
+import type { ApiDetail } from '@/types/api'
+import { AlertCircle, FileText, Loader2, Play, Settings2 } from 'lucide-vue-next'
+import { computed, ref, watch } from 'vue'
+import { apiApi } from '@/api/api'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useApiTreeStore } from '@/stores/useApiTreeStore'
+import ApiDocView from './ApiDocView.vue'
+
+const props = defineProps<{
+  /** API ID */
+  apiId: string
+}>()
+
+const apiTreeStore = useApiTreeStore()
+
+/** API 详情数据 */
+const apiDetail = ref<ApiDetail | null>(null)
+
+/** 加载状态 */
+const isLoading = ref(false)
+
+/** 加载错误 */
+const loadError = ref<string | null>(null)
+
+/** 当前激活的 Tab */
+const activeTab = ref('doc')
+
+/** 是否已加载 */
+const isLoaded = computed(() => apiDetail.value !== null)
+
+/** Tab 配置 */
+const tabItems = [
+  { value: 'doc', label: '文档', icon: FileText },
+  { value: 'run', label: '运行', icon: Play, disabled: true },
+  { value: 'settings', label: '设置', icon: Settings2, disabled: true },
+]
+
+/** 获取 API 详情 */
+async function fetchApiDetail() {
+  if (!props.apiId || !apiTreeStore.projectId)
+    return
+
+  isLoading.value = true
+  loadError.value = null
+
+  try {
+    const data = await apiApi.getApiDetail(apiTreeStore.projectId, props.apiId)
+    apiDetail.value = data
+  }
+  catch (err) {
+    console.error('获取 API 详情失败:', err)
+    loadError.value = '获取接口详情失败，请稍后重试'
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+/** 监听 API ID 变化，重新获取数据 */
+watch(
+  () => props.apiId,
+  () => {
+    fetchApiDetail()
+  },
+  { immediate: true },
+)
+
+/** 监听项目 ID 变化 */
+watch(
+  () => apiTreeStore.projectId,
+  () => {
+    if (apiTreeStore.projectId && props.apiId) {
+      fetchApiDetail()
+    }
+  },
+)
+</script>
+
+<template>
+  <div class="h-full flex flex-col bg-background">
+    <!-- 加载状态 -->
+    <div
+      v-if="isLoading"
+      class="flex-1 flex items-center justify-center"
+    >
+      <div class="flex flex-col items-center gap-3 text-muted-foreground">
+        <Loader2 class="h-8 w-8 animate-spin" />
+        <span class="text-sm">加载中...</span>
+      </div>
+    </div>
+
+    <!-- 错误状态 -->
+    <div
+      v-else-if="loadError"
+      class="flex-1 flex items-center justify-center"
+    >
+      <div class="flex flex-col items-center gap-3 text-destructive">
+        <AlertCircle class="h-8 w-8" />
+        <span class="text-sm">{{ loadError }}</span>
+      </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <Tabs
+      v-else-if="isLoaded && apiDetail"
+      v-model="activeTab"
+      class="flex-1 flex flex-col overflow-hidden"
+    >
+      <!-- Tab 切换 -->
+      <div class="border-b px-4 bg-muted/20">
+        <TabsList class="h-10 bg-transparent p-0 gap-1">
+          <TabsTrigger
+            v-for="tab in tabItems"
+            :key="tab.value"
+            :value="tab.value"
+            :disabled="tab.disabled"
+            class="gap-1.5 px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-t-md rounded-b-none border-b-2 border-transparent data-[state=active]:border-primary"
+          >
+            <component :is="tab.icon" class="h-4 w-4" />
+            {{ tab.label }}
+          </TabsTrigger>
+        </TabsList>
+      </div>
+
+      <!-- Tab 内容 -->
+      <TabsContent value="doc" class="flex-1 mt-0 overflow-hidden">
+        <ApiDocView :api="apiDetail" />
+      </TabsContent>
+
+      <TabsContent value="run" class="flex-1 mt-0 overflow-hidden">
+        <div class="h-full flex items-center justify-center text-muted-foreground">
+          <span>运行功能开发中...</span>
+        </div>
+      </TabsContent>
+
+      <TabsContent value="settings" class="flex-1 mt-0 overflow-hidden">
+        <div class="h-full flex items-center justify-center text-muted-foreground">
+          <span>设置功能开发中...</span>
+        </div>
+      </TabsContent>
+    </Tabs>
+
+    <!-- 空状态 -->
+    <div
+      v-else
+      class="flex-1 flex items-center justify-center text-muted-foreground"
+    >
+      <span class="text-sm">无法加载接口信息</span>
+    </div>
+  </div>
+</template>

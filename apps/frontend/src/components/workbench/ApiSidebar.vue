@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
+import { useRouteParams } from '@vueuse/router'
 import { ref } from 'vue'
+import { useTabStore } from '@/stores/useTabStore'
 import ApiTree from './api-tree/ApiTree.vue'
 import ApiFormDialog from './dialogs/ApiFormDialog.vue'
 import CloneApiDialog from './dialogs/CloneApiDialog.vue'
@@ -8,9 +10,8 @@ import DeleteApiDialog from './dialogs/DeleteApiDialog.vue'
 import DeleteGroupDialog from './dialogs/DeleteGroupDialog.vue'
 import GroupFormDialog from './dialogs/GroupFormDialog.vue'
 
-const emits = defineEmits<{
-  (e: 'selectApi', api: ApiBrief): void
-}>()
+const tabStore = useTabStore()
+const apiId = useRouteParams<string>('apiId')
 
 const isGroupDialogOpen = ref(false)
 const groupDialogMode = ref<'create' | 'rename'>('create')
@@ -54,7 +55,13 @@ function handleCreateApi(groupId?: string) {
 }
 
 function handleSelectApi(api: ApiBrief) {
-  emits('selectApi', api)
+  tabStore.addTab({
+    id: api.id,
+    type: 'api',
+    title: api.name,
+    method: api.method,
+    path: api.path,
+  })
 }
 
 function handleCloneApi(api: ApiBrief) {
