@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ProjectDetail, ProjectEnv } from '@/types/project'
+import type { ProjectDetail } from '@/types/project'
 import { ArrowLeft, Settings } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -111,17 +111,6 @@ function handleLogout() {
   router.push('/auth/login')
 }
 
-/** 环境类型对应的标签 */
-function getEnvTypeLabel(type: ProjectEnv['type']) {
-  const labels: Record<ProjectEnv['type'], string> = {
-    DEV: '开发',
-    TEST: '测试',
-    STAGING: '预发',
-    PROD: '生产',
-  }
-  return labels[type]
-}
-
 onMounted(() => {
   fetchProject()
 })
@@ -129,7 +118,6 @@ onMounted(() => {
 
 <template>
   <header class="h-12 border-b border-border flex items-center px-4 bg-background shrink-0">
-    <!-- 左侧：返回 + 项目信息 -->
     <div class="flex items-center gap-3">
       <Button
         variant="ghost"
@@ -155,9 +143,8 @@ onMounted(() => {
 
       <span class="text-muted-foreground">/</span>
 
-      <!-- 环境选择器 -->
       <Select v-model="currentEnvId" :disabled="environments.length === 0">
-        <SelectTrigger class="h-7 w-auto min-w-[100px] text-xs border-dashed">
+        <SelectTrigger class="h-7 w-auto min-w-30 text-xs border-dashed">
           <SelectValue placeholder="选择环境">
             <span v-if="currentEnv">
               {{ currentEnv.name }}
@@ -172,9 +159,6 @@ onMounted(() => {
           >
             <div class="flex items-center gap-2">
               <span>{{ env.name }}</span>
-              <span class="text-[10px] text-muted-foreground">
-                ({{ getEnvTypeLabel(env.type) }})
-              </span>
             </div>
           </SelectItem>
         </SelectContent>
@@ -183,7 +167,6 @@ onMounted(() => {
 
     <div class="flex-1" />
 
-    <!-- 右侧：设置 + 用户菜单 -->
     <div class="flex items-center gap-2">
       <Button
         variant="ghost"

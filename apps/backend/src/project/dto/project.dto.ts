@@ -77,7 +77,7 @@ export class ProjectDetailDto extends ProjectItemDto {
 
   @Expose()
   @Type(() => ProjectEnvDto)
-  @Transform(({ obj }) => obj.members, { toClassOnly: true })
+  @Transform(({ obj }) => obj.environments, { toClassOnly: true })
   environments: ProjectEnvDto[]
 }
 
