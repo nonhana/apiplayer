@@ -83,7 +83,7 @@ catalogs:
     vue-router: ^4.6.4
     vue-sonner: ^2.0.9
     vue-tsc: ^3.1.8
-    zod: ^4.1.13
+    zod: ^3
 
   public:
     '@antfu/eslint-config': ^6.6.1

@@ -218,8 +218,8 @@ catalogs:
       specifier: ^3.1.8
       version: 3.1.8
     zod:
-      specifier: ^4.1.13
-      version: 4.1.13
+      specifier: ^3
+      version: 3.25.76
   public:
     '@antfu/eslint-config':
       specifier: ^6.6.1
@@ -397,7 +397,7 @@ importers:
         version: 8.21.3(vue@3.5.25(typescript@5.9.3))
       '@vee-validate/zod':
         specifier: catalog:frontend
-        version: 4.15.1(vue@3.5.25(typescript@5.9.3))(zod@4.1.13)
+        version: 4.15.1(vue@3.5.25(typescript@5.9.3))(zod@3.25.76)
       '@vueuse/core':
         specifier: catalog:frontend
         version: 14.1.0(vue@3.5.25(typescript@5.9.3))
@@ -460,7 +460,7 @@ importers:
         version: 2.0.9
       zod:
         specifier: catalog:frontend
-        version: 4.1.13
+        version: 3.25.76
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: catalog:frontend
@@ -5997,8 +5997,8 @@ packages:
   zeptomatch@2.0.2:
     resolution: {integrity: sha512-H33jtSKf8Ijtb5BW6wua3G5DhnFjbFML36eFu+VdOoVY4HD9e7ggjqdM6639B+L87rjnR6Y+XeRzBXZdy52B/g==}
 
-  zod@4.1.13:
-    resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -8568,7 +8568,7 @@ snapshots:
 
   '@unocss/eslint-plugin@66.5.9(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
-      '@typescript-eslint/utils': 8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
+      '@typescript-eslint/utils': 8.49.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
       '@unocss/config': 66.5.9
       '@unocss/core': 66.5.9
       '@unocss/rule-utils': 66.5.9
@@ -8586,11 +8586,11 @@ snapshots:
       magic-string: 0.30.21
     optional: true
 
-  '@vee-validate/zod@4.15.1(vue@3.5.25(typescript@5.9.3))(zod@4.1.13)':
+  '@vee-validate/zod@4.15.1(vue@3.5.25(typescript@5.9.3))(zod@3.25.76)':
     dependencies:
       type-fest: 4.41.0
       vee-validate: 4.15.1(vue@3.5.25(typescript@5.9.3))
-      zod: 4.1.13
+      zod: 3.25.76
     transitivePeerDependencies:
       - vue
 
@@ -12135,6 +12135,6 @@ snapshots:
     dependencies:
       grammex: 3.1.11
 
-  zod@4.1.13: {}
+  zod@3.25.76: {}
 
   zwitch@2.0.4: {}
