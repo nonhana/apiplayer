@@ -1,15 +1,15 @@
 {
   "name": "apiplayer",
   "private": true,
-  "packageManager": "pnpm@10.24.0",
+  "packageManager": "pnpm@10.25.0",
   "workspaces": [
     "apps/*"
   ],
   "devDependencies": {
-    "@antfu/eslint-config": "^6.4.1",
-    "@types/node": "^22.19.1",
-    "eslint": "^9.39.1",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "@antfu/eslint-config": "catalog:public",
+    "@types/node": "catalog:public",
+    "eslint": "catalog:public",
+    "tsx": "catalog:public",
+    "typescript": "catalog:public"
   }
 }

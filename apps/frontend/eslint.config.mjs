@@ -7,5 +7,4 @@ export default antfu({
   jsonc: true,
   markdown: true,
   yaml: true,
-  pnpm: false,
 })
