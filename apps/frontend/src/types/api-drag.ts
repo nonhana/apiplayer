@@ -20,10 +20,18 @@ export type DragItem = {
   }
 )
 
-/** 放置目标信息 */
-export interface DropItem {
+/** 普通放置目标（分组或 API） */
+export interface DropItemNormal {
   id: string
   type: DragItemType
   parentId?: string
   position: DropPosition
 }
+
+/** 根级别放置目标 */
+export interface DropItemRoot {
+  type: 'root'
+}
+
+/** 放置目标信息 */
+export type DropItem = DropItemNormal | DropItemRoot

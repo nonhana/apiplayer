@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { StyleValue } from 'vue'
 import type { ApiBrief } from '@/types/api'
-import type { DropItem, DropPosition } from '@/types/api-drag'
+import type { DropItemNormal, DropPosition } from '@/types/api-drag'
 import { Copy, MoreHorizontal, Trash2 } from 'lucide-vue-next'
 import { computed, ref, useTemplateRef } from 'vue'
 import { Badge } from '@/components/ui/badge'
@@ -113,7 +113,7 @@ function handleDragOver(e: DragEvent) {
 
   if (apiRowRef.value) {
     const position = dragger.getDropPos(e, apiRowRef.value, 'api')
-    const target: DropItem = {
+    const target: DropItemNormal = {
       id: props.api.id,
       type: 'api',
       parentId: props.groupId,

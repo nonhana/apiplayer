@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { StyleValue } from 'vue'
 import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
-import type { DropItem, DropPosition } from '@/types/api-drag'
+import type { DropItemNormal, DropPosition } from '@/types/api-drag'
 import {
   ChevronRight,
   FilePlus,
@@ -161,7 +161,7 @@ function handleDragOver(e: DragEvent) {
 
   if (groupItemRef.value) {
     const position = dragger.getDropPos(e, groupItemRef.value, 'group')
-    const target: DropItem = {
+    const target: DropItemNormal = {
       id: props.group.id,
       type: 'group',
       parentId: props.parentId,

@@ -54,7 +54,21 @@ export function useApiTreeDrag(
 
   /** 处理 group 的拖拽放置 */
   async function handleGroupDrop() {
-    if (!drag.value || !drop.value || drop.value.type !== 'group')
+    if (!drag.value || !drop.value)
+      return
+
+    // 移动到根级别
+    if (drop.value.type === 'root') {
+      // 计算根级别的最后一个 sortOrder
+      const rootGroups = apiTreeStore.tree
+      const maxSortOrder = rootGroups.length > 0
+        ? Math.max(...rootGroups.map(g => g.sortOrder)) + 1
+        : 0
+      await apiTreeStore.moveGroup(drag.value.id, null, maxSortOrder)
+      return
+    }
+
+    if (drop.value.type !== 'group')
       return
 
     if (drop.value.position === 'inside') {
@@ -171,6 +185,11 @@ export function useApiTreeDrag(
     if (!drag.value)
       return false
 
+    if (target.type === 'root') {
+      // 只有根 group 的子 group 才能移动到根级别
+      return drag.value.type === 'group' && !!drag.value.parentId
+    }
+
     // 拖拽到自己直接无效
     if (drag.value.id === target.id)
       return false
@@ -205,6 +224,11 @@ export function useApiTreeDrag(
     }
 
     return true
+  }
+
+  /** 判断是否可以移动到 root */
+  function canMoveToRoot() {
+    return drag.value?.type === 'group' && !!drag.value.parentId
   }
 
   /** 执行拖拽放置操作 */
@@ -276,5 +300,6 @@ export function useApiTreeDrag(
     isValidDrop,
     executeDrop,
     getDropPos,
+    canMoveToRoot,
   }
 }
