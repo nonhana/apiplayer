@@ -72,13 +72,13 @@ watch(searchInput, (val) => {
               variant="ghost"
               size="icon"
               class="h-7 w-7"
-              @click="apiTreeStore.expandAll()"
+              @click="apiTreeStore.collapseAll()"
             >
-              <ChevronsUpDown class="h-3.5 w-3.5" />
+              <ChevronsDownUp class="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
-            全部展开
+            全部折叠
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -90,13 +90,13 @@ watch(searchInput, (val) => {
               variant="ghost"
               size="icon"
               class="h-7 w-7"
-              @click="apiTreeStore.collapseAll()"
+              @click="apiTreeStore.expandAll()"
             >
-              <ChevronsDownUp class="h-3.5 w-3.5" />
+              <ChevronsUpDown class="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
-            全部折叠
+            全部展开
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

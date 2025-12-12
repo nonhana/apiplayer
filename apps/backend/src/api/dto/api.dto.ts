@@ -14,6 +14,9 @@ export class ApiBriefDto {
 
   @Expose()
   path: string
+
+  @Expose()
+  sortOrder: number
 }
 
 @Exclude()

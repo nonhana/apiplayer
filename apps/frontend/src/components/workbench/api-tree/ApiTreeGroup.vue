@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { StyleValue } from 'vue'
-import type { DropPosition } from '@/composables/useApiTreeDrag'
 import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
+import type { DropItem, DropPosition } from '@/types/api-drag'
 import {
   ChevronRight,
   FilePlus,
@@ -33,9 +33,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useApiTreeDrag } from '@/composables/useApiTreeDrag'
 import { cn } from '@/lib/utils'
+import { useApiDragStore } from '@/stores/useApiDragStore'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
-import { useSharedApiTreeDrag } from '../../../composables/useApiTreeDrag'
 import ApiTreeItem from './ApiTreeItem.vue'
 
 const props = defineProps<{
@@ -55,10 +56,10 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
-const drag = useSharedApiTreeDrag()
+const apiDragStore = useApiDragStore()
+const dragger = useApiTreeDrag(apiDragStore, apiTreeStore)
 
-/** 分组行元素引用 */
-const groupRowRef = useTemplateRef('groupRowRef')
+const groupItemRef = useTemplateRef('groupItemRef')
 
 /** 是否正在拖拽当前项 */
 const isDragging = ref(false)
@@ -134,7 +135,7 @@ function handleDragStart(e: DragEvent) {
   e.dataTransfer!.effectAllowed = 'move'
   e.dataTransfer!.setData('text/plain', props.group.id)
 
-  drag.startDrag({
+  apiDragStore.startDrag({
     id: props.group.id,
     type: 'group',
     parentId: props.parentId,
@@ -147,43 +148,35 @@ function handleDragEnd() {
   isDragging.value = false
   isDragOver.value = false
   dropPosition.value = null
-  drag.endDrag()
+  apiDragStore.endDrag()
 }
 
 /** 拖拽经过 */
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
 
-  // 如果没有正在拖拽的项，忽略
-  if (!drag.isDragging.value || !drag.dragItem.value)
-    return
-
-  // 不能拖拽到自己
-  if (drag.dragItem.value.id === props.group.id)
-    return
-
   // 分组只能接受分组的拖拽（如果是 API 拖拽，则只能 inside）
   // 或者当 API 拖拽到分组时，允许放进去
   e.dataTransfer!.dropEffect = 'move'
 
-  if (groupRowRef.value) {
-    const position = drag.calculateDropPosition(e, groupRowRef.value, 'group')
-    const target = {
+  if (groupItemRef.value) {
+    const position = dragger.getDropPos(e, groupItemRef.value, 'group')
+    const target: DropItem = {
       id: props.group.id,
-      type: 'group' as const,
+      type: 'group',
       parentId: props.parentId,
       position,
     }
 
-    if (drag.isValidDrop(target)) {
+    if (dragger.isValidDrop(target)) {
       isDragOver.value = true
       dropPosition.value = position
-      drag.setDropTarget(target)
+      apiDragStore.setDropTarget(target)
     }
     else {
       isDragOver.value = false
       dropPosition.value = null
-      drag.setDropTarget(null)
+      apiDragStore.setDropTarget(null)
     }
   }
 }
@@ -200,7 +193,7 @@ async function handleDrop(e: DragEvent) {
   e.stopPropagation()
 
   if (isDragOver.value) {
-    await drag.executeDrop()
+    await dragger.executeDrop()
   }
 
   isDragOver.value = false
@@ -214,7 +207,7 @@ async function handleDrop(e: DragEvent) {
       <ContextMenuTrigger as-child>
         <CollapsibleTrigger as-child>
           <div
-            ref="groupRowRef"
+            ref="groupItemRef"
             :class="cn(
               'group relative flex items-center gap-1 py-1.5 pr-2 cursor-pointer transition-colors duration-150 rounded-sm',
               'hover:bg-accent/50',

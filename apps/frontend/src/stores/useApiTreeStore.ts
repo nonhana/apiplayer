@@ -3,9 +3,6 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { apiApi, groupApi } from '@/api/api'
 
-/** 展开状态的键类型 */
-type ExpandedKey = string
-
 /** API 树状态管理 */
 export const useApiTreeStore = defineStore('apiTree', () => {
   // ========== 状态 ==========
@@ -20,7 +17,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   const projectId = ref('')
 
   /** 展开的分组 ID 集合 */
-  const expandedKeys = ref<Set<ExpandedKey>>(new Set())
+  const expandedKeys = ref<Set<string>>(new Set())
 
   /** 搜索关键词 */
   const searchQuery = ref('')
@@ -309,7 +306,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   }
 
   /** 移动 API 到其他分组 */
-  async function moveApi(apiId: string, targetGroupId: string, sortOrder?: number) {
+  async function moveApi(apiId: string, targetGroupId: string, sortOrder: number) {
     if (!projectId.value)
       return
 
@@ -392,3 +389,5 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     reset,
   }
 })
+
+export type ApiTreeStore = ReturnType<typeof useApiTreeStore>

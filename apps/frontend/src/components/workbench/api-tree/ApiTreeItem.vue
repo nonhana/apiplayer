@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { StyleValue } from 'vue'
-import type { DropPosition } from '@/composables/useApiTreeDrag'
 import type { ApiBrief } from '@/types/api'
+import type { DropItem, DropPosition } from '@/types/api-drag'
 import { Copy, MoreHorizontal, Trash2 } from 'lucide-vue-next'
 import { computed, ref, useTemplateRef } from 'vue'
 import { Badge } from '@/components/ui/badge'
@@ -20,9 +20,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useSharedApiTreeDrag } from '@/composables/useApiTreeDrag'
+import { useApiTreeDrag } from '@/composables/useApiTreeDrag'
 import { methodBadgeColors } from '@/constants/api'
 import { cn } from '@/lib/utils'
+import { useApiDragStore } from '@/stores/useApiDragStore'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 
 const props = defineProps<{
@@ -38,7 +39,8 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
-const drag = useSharedApiTreeDrag()
+const apiDragStore = useApiDragStore()
+const dragger = useApiTreeDrag(apiDragStore, apiTreeStore)
 
 /** API 行元素引用 */
 const apiRowRef = useTemplateRef('apiRowRef')
@@ -87,7 +89,7 @@ function handleDragStart(e: DragEvent) {
   e.dataTransfer!.effectAllowed = 'move'
   e.dataTransfer!.setData('text/plain', props.api.id)
 
-  drag.startDrag({
+  apiDragStore.startDrag({
     id: props.api.id,
     type: 'api',
     parentId: props.groupId,
@@ -100,45 +102,33 @@ function handleDragEnd() {
   isDragging.value = false
   isDragOver.value = false
   dropPosition.value = null
-  drag.endDrag()
+  apiDragStore.endDrag()
 }
 
 /** 拖拽经过 */
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
 
-  // 如果没有正在拖拽的项，忽略
-  if (!drag.isDragging.value || !drag.dragItem.value)
-    return
-
-  // 不能拖拽到自己
-  if (drag.dragItem.value.id === props.api.id)
-    return
-
-  // API 只能接受 API 的拖拽（分组不能拖到 API 上）
-  if (drag.dragItem.value.type !== 'api')
-    return
-
   e.dataTransfer!.dropEffect = 'move'
 
   if (apiRowRef.value) {
-    const position = drag.calculateDropPosition(e, apiRowRef.value, 'api')
-    const target = {
+    const position = dragger.getDropPos(e, apiRowRef.value, 'api')
+    const target: DropItem = {
       id: props.api.id,
-      type: 'api' as const,
+      type: 'api',
       parentId: props.groupId,
       position,
     }
 
-    if (drag.isValidDrop(target)) {
+    if (dragger.isValidDrop(target)) {
       isDragOver.value = true
       dropPosition.value = position
-      drag.setDropTarget(target)
+      apiDragStore.setDropTarget(target)
     }
     else {
       isDragOver.value = false
       dropPosition.value = null
-      drag.setDropTarget(null)
+      apiDragStore.setDropTarget(null)
     }
   }
 }
@@ -155,7 +145,7 @@ async function handleDrop(e: DragEvent) {
   e.stopPropagation()
 
   if (isDragOver.value) {
-    await drag.executeDrop()
+    await dragger.executeDrop()
   }
 
   isDragOver.value = false

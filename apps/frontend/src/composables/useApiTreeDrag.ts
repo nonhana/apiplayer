@@ -1,132 +1,47 @@
-import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
-import { ref } from 'vue'
-import { useApiTreeStore } from '@/stores/useApiTreeStore'
+import type { ApiDragStore } from '@/stores/useApiDragStore'
+import type { ApiTreeStore } from '@/stores/useApiTreeStore'
+import type { GroupNodeWithApis } from '@/types/api'
+import type { DragItemType, DropItem, DropPosition } from '@/types/api-drag'
+import { computed } from 'vue'
 
-/** 拖拽项的类型 */
-export type DragItemType = 'group' | 'api'
+// 拖拽核心规则：
+// 对于 Group：
+// - 不能放置到 API 内部
+// - 不能拖拽到 API 的上方或下方（分组之间排序，不能跟 API 混排）
+// - 不能把分组拖拽到自己的子分组内
+// 对于 API：
+// - 不能放置到 API 内部（API 没有子节点）
+// - 不能放到分组上只能是 inside（进入分组）
+// - 可以在同一分组内的 API 之间排序
+// - 但不能放到分组的上方或下方与分组排序
 
-/** 放置位置类型：上方、下方、内部（作为子项） */
-export type DropPosition = 'before' | 'after' | 'inside'
+// DI 的形式注入 Store
+export function useApiTreeDrag(
+  apiDragStore: ApiDragStore,
+  apiTreeStore: ApiTreeStore,
+) {
+  const drag = computed(() => apiDragStore.dragItem)
+  const drop = computed(() => apiDragStore.dropItem)
 
-/** 拖拽项信息 */
-export interface DragItem {
-  id: string
-  type: DragItemType
-  parentId?: string
-  data: GroupNodeWithApis | ApiBrief
-}
-
-/** 放置目标信息 */
-export interface DropTarget {
-  id: string
-  type: DragItemType
-  parentId?: string
-  position: DropPosition
-}
-
-// ========== 模块级别的共享状态 ==========
-
-/** 当前正在拖拽的项 */
-const dragItem = ref<DragItem | null>(null)
-
-/** 当前放置目标 */
-const dropTarget = ref<DropTarget | null>(null)
-
-/** 是否正在执行拖拽操作 */
-const isDragging = ref(false)
-
-/** 拖拽状态管理 composable */
-export function useApiTreeDrag() {
-  const apiTreeStore = useApiTreeStore()
-
-  /** 开始拖拽 */
-  function startDrag(item: DragItem) {
-    dragItem.value = item
-    isDragging.value = true
-  }
-
-  /** 结束拖拽 */
-  function endDrag() {
-    dragItem.value = null
-    dropTarget.value = null
-    isDragging.value = false
-  }
-
-  /** 设置放置目标 */
-  function setDropTarget(target: DropTarget | null) {
-    dropTarget.value = target
-  }
-
-  /**
-   * 验证拖拽操作是否有效
-   * @returns 是否允许放置
-   */
-  function isValidDrop(target: DropTarget): boolean {
-    if (!dragItem.value)
-      return false
-
-    const drag = dragItem.value
-    const drop = target
-
-    // 不能拖拽到自己
-    if (drag.id === drop.id)
-      return false
-
-    // 分组拖拽规则
-    if (drag.type === 'group') {
-      // 分组不能放置到 API 内部
-      if (drop.type === 'api' && drop.position === 'inside')
-        return false
-
-      // 分组不能拖拽到 API 的上方或下方（分组之间排序，不能跟 API 混排）
-      if (drop.type === 'api')
-        return false
-
-      // 不能把分组拖拽到自己的子分组内
-      if (isDescendant(drag.id, drop.id))
-        return false
-    }
-
-    // API 拖拽规则
-    if (drag.type === 'api') {
-      // API 不能放置到 API 内部（API 没有子节点）
-      if (drop.type === 'api' && drop.position === 'inside')
-        return false
-
-      // API 放到分组上只能是 inside（进入分组）
-      if (drop.type === 'group' && drop.position !== 'inside') {
-        // API 可以在同一分组内的 API 之间排序
-        // 但不能放到分组的上方或下方与分组排序
-        return false
-      }
-    }
-
-    return true
-  }
-
-  /**
-   * 检查 parentId 是否是 childId 的后代（即 parentId 在 childId 的子树中）
-   */
-  function isDescendant(parentId: string, childId: string): boolean {
-    /** 递归检查节点是否包含指定 ID */
-    const containsGroup = (nodes: GroupNodeWithApis[], id: string): boolean => {
+  /** 检查拖拽项是否是放置目标的子项 */
+  function isChildGroup(dragId: string, dropId: string) {
+    const isContainGroup = (nodes: GroupNodeWithApis[], id: string): boolean => {
       for (const node of nodes) {
         if (node.id === id)
           return true
-        if (containsGroup(node.children, id))
+        if (isContainGroup(node.children, id))
           return true
       }
       return false
     }
 
-    /** 在树中查找目标节点并检查其子树 */
-    const checkDescendant = (nodes: GroupNodeWithApis[], targetId: string): boolean => {
+    const checkChildGroup = (nodes: GroupNodeWithApis[], id: string): boolean => {
       for (const node of nodes) {
-        if (node.id === targetId) {
-          return containsGroup(node.children, parentId)
+        if (node.id === id) {
+          return isContainGroup(node.children, dragId)
         }
         if (node.children.length > 0) {
-          const found = checkDescendant(node.children, targetId)
+          const found = checkChildGroup(node.children, id)
           if (found)
             return true
         }
@@ -134,56 +49,28 @@ export function useApiTreeDrag() {
       return false
     }
 
-    return checkDescendant(apiTreeStore.tree, childId)
+    return checkChildGroup(apiTreeStore.tree, dropId)
   }
 
-  /**
-   * 执行拖拽放置操作
-   */
-  async function executeDrop() {
-    if (!dragItem.value || !dropTarget.value)
+  /** 处理 group 的拖拽放置 */
+  async function handleGroupDrop() {
+    if (!drag.value || !drop.value || drop.value.type !== 'group')
       return
 
-    const drag = dragItem.value
-    const drop = dropTarget.value
-
-    if (!isValidDrop(drop))
-      return
-
-    try {
-      if (drag.type === 'group') {
-        await handleGroupDrop(drag, drop)
-      }
-      else {
-        await handleApiDrop(drag, drop)
-      }
-    }
-    finally {
-      endDrag()
-    }
-  }
-
-  /**
-   * 处理分组的拖拽放置
-   */
-  async function handleGroupDrop(drag: DragItem, drop: DropTarget) {
-    if (drop.type !== 'group')
-      return
-
-    if (drop.position === 'inside') {
+    if (drop.value.position === 'inside') {
       // 移动分组到目标分组内部
-      await apiTreeStore.moveGroup(drag.id, drop.id)
+      await apiTreeStore.moveGroup(drag.value.id, drop.value.id)
     }
     else {
       // 在同级分组之间排序
-      const siblings = getSiblingGroups(drop.parentId)
-      const newOrder = calculateNewSortOrder(siblings, drop.id, drop.position, drag.id)
+      const siblings = getSiblingGroups(drop.value.parentId)
+      const newOrder = calcOrderList(siblings, drop.value.id, drop.value.position, drag.value.id)
 
       // 如果父级发生变化，需要先移动再排序
-      if (drag.parentId !== drop.parentId) {
+      if (drag.value.parentId !== drop.value.parentId) {
         // 计算目标位置的 sortOrder
-        const targetSortOrder = calculateNewSortOrderForInsert(siblings, drop.id, drop.position)
-        await apiTreeStore.moveGroup(drag.id, drop.parentId ?? null, targetSortOrder)
+        const targetSortOrder = calcInsertOrder(siblings, drop.value.id, drop.value.position)
+        await apiTreeStore.moveGroup(drag.value.id, drop.value.parentId ?? null, targetSortOrder)
       }
       else {
         // 同级分组批量更新排序
@@ -192,38 +79,35 @@ export function useApiTreeDrag() {
     }
   }
 
-  /**
-   * 处理 API 的拖拽放置
-   */
-  async function handleApiDrop(drag: DragItem, drop: DropTarget) {
-    if (drop.type === 'group') {
-      // 移动 API 到目标分组
-      await apiTreeStore.moveApi(drag.id, drop.id)
+  /** 处理 api 的拖拽放置 */
+  async function handleApiDrop() {
+    if (!drag.value || !drop.value)
+      return
+
+    if (drop.value.type === 'group') {
+      // 如果是直接放到 group，默认放到顶部符合用户直觉
+      await apiTreeStore.moveApi(drag.value.id, drop.value.id, 0)
     }
-    else if (drop.type === 'api') {
+    else if (drop.value.type === 'api') {
       // 在同一分组内的 API 之间排序
-      if (drag.parentId === drop.parentId && drag.parentId) {
-        const siblings = getSiblingApis(drag.parentId)
-        const newOrder = calculateNewSortOrder(siblings, drop.id, drop.position, drag.id)
+      if (drag.value.parentId === drop.value.parentId && drag.value.parentId) {
+        const siblings = getSiblingApis(drag.value.parentId)
+        const newOrder = calcOrderList(siblings, drop.value.id, drop.value.position, drag.value.id)
         await apiTreeStore.sortApis(newOrder)
       }
-      else if (drop.parentId) {
+      else if (drop.value.parentId) {
         // 移动到其他分组并排序
-        const siblings = getSiblingApis(drop.parentId)
-        const newOrder = calculateNewSortOrderForInsert(siblings, drop.id, drop.position)
-        await apiTreeStore.moveApi(drag.id, drop.parentId, newOrder)
+        const siblings = getSiblingApis(drop.value.parentId)
+        const newOrder = calcInsertOrder(siblings, drop.value.id, drop.value.position)
+        await apiTreeStore.moveApi(drag.value.id, drop.value.parentId, newOrder)
       }
     }
   }
 
-  /**
-   * 获取同级分组
-   */
+  /** 获取同级 groups */
   function getSiblingGroups(parentId?: string): { id: string, sortOrder: number }[] {
-    if (!parentId) {
-      // 根级别分组
+    if (!parentId)
       return apiTreeStore.tree.map(g => ({ id: g.id, sortOrder: g.sortOrder }))
-    }
 
     const parent = apiTreeStore.findGroupInTree(apiTreeStore.tree, parentId)
     if (!parent)
@@ -232,25 +116,20 @@ export function useApiTreeDrag() {
     return parent.children.map(g => ({ id: g.id, sortOrder: g.sortOrder }))
   }
 
-  /**
-   * 获取同级 API
-   */
+  /** 获取同级 apis */
   function getSiblingApis(groupId: string): { id: string, sortOrder: number }[] {
     const group = apiTreeStore.findGroupInTree(apiTreeStore.tree, groupId)
     if (!group)
       return []
 
-    // API 没有 sortOrder，需要根据索引生成
-    return group.apis.map((api, index) => ({ id: api.id, sortOrder: index }))
+    return group.apis.map(api => ({ id: api.id, sortOrder: api.sortOrder }))
   }
 
-  /**
-   * 计算新的排序顺序
-   */
-  function calculateNewSortOrder(
+  /** 计算新的排序顺序 */
+  function calcOrderList(
     siblings: { id: string, sortOrder: number }[],
     targetId: string,
-    position: DropPosition,
+    pos: DropPosition,
     dragId: string,
   ): { id: string, sortOrder: number }[] {
     // 过滤掉拖拽项
@@ -262,7 +141,7 @@ export function useApiTreeDrag() {
       return siblings
 
     // 计算插入位置
-    const insertIndex = position === 'before' ? targetIndex : targetIndex + 1
+    const insertIndex = pos === 'before' ? targetIndex : targetIndex + 1
 
     // 插入拖拽项
     filtered.splice(insertIndex, 0, { id: dragId, sortOrder: 0 })
@@ -274,42 +153,99 @@ export function useApiTreeDrag() {
     }))
   }
 
-  /**
-   * 计算插入到新分组的排序顺序
-   */
-  function calculateNewSortOrderForInsert(
+  /** 计算插入到新分组的排序顺序 */
+  function calcInsertOrder(
     siblings: { id: string, sortOrder: number }[],
     targetId: string,
-    position: DropPosition,
+    pos: DropPosition,
   ): number {
     const targetIndex = siblings.findIndex(s => s.id === targetId)
     if (targetIndex === -1)
       return siblings.length
 
-    return position === 'before' ? targetIndex : targetIndex + 1
+    return pos === 'before' ? targetIndex : targetIndex + 1
+  }
+
+  /** 是否允许放置到当前目标 */
+  function isValidDrop(target: DropItem) {
+    if (!drag.value)
+      return false
+
+    // 拖拽到自己直接无效
+    if (drag.value.id === target.id)
+      return false
+
+    // 分组拖拽规则
+    if (drag.value.type === 'group') {
+      // 分组不能放置到 API 内部
+      if (target.type === 'api' && target.position === 'inside')
+        return false
+
+      // 分组不能拖拽到 API 的上方或下方（分组之间排序，不能跟 API 混排）
+      if (target.type === 'api')
+        return false
+
+      // 不能把分组拖拽到自己的子分组内
+      if (isChildGroup(drag.value.id, target.id))
+        return false
+    }
+
+    // API 拖拽规则
+    if (drag.value.type === 'api') {
+      // API 不能放置到 API 内部（API 没有子节点）
+      if (target.type === 'api' && target.position === 'inside')
+        return false
+
+      // API 放到分组上只能是 inside（进入分组）
+      if (target.type === 'group' && target.position !== 'inside') {
+        // API 可以在同一分组内的 API 之间排序
+        // 但不能放到分组的上方或下方与分组排序
+        return false
+      }
+    }
+
+    return true
+  }
+
+  /** 执行拖拽放置操作 */
+  async function executeDrop() {
+    if (!drag.value || !drop.value || !isValidDrop(drop.value))
+      return
+
+    try {
+      if (drag.value.type === 'group') {
+        await handleGroupDrop()
+      }
+      else {
+        await handleApiDrop()
+      }
+    }
+    finally {
+      apiDragStore.endDrag()
+    }
   }
 
   /**
    * 计算鼠标相对位置，确定放置位置
    * @param e 拖拽事件
-   * @param element 目标元素
+   * @param el 目标元素
    * @param itemType 目标项类型
    * @returns 放置位置
    */
-  function calculateDropPosition(
+  function getDropPos(
     e: DragEvent,
-    element: HTMLElement,
+    el: HTMLElement,
     itemType: DragItemType,
   ): DropPosition {
-    const rect = element.getBoundingClientRect()
+    const rect = el.getBoundingClientRect()
     const y = e.clientY - rect.top
     const height = rect.height
 
     // 根据拖拽项和目标项类型决定可用的放置位置
-    if (!dragItem.value)
+    if (!drag.value)
       return 'inside'
 
-    const dragType = dragItem.value.type
+    const dragType = drag.value.type
 
     // API 拖拽到分组：只能放进去
     if (dragType === 'api' && itemType === 'group') {
@@ -337,23 +273,8 @@ export function useApiTreeDrag() {
   }
 
   return {
-    // 状态（模块级别共享）
-    dragItem,
-    dropTarget,
-    isDragging,
-
-    // 方法
-    startDrag,
-    endDrag,
-    setDropTarget,
     isValidDrop,
     executeDrop,
-    calculateDropPosition,
+    getDropPos,
   }
 }
-
-/**
- * 共享的拖拽 composable
- * 状态在模块级别共享，所有组件实例访问同一份状态
- */
-export const useSharedApiTreeDrag = useApiTreeDrag

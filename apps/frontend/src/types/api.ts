@@ -33,6 +33,7 @@ export interface ApiBrief {
   name: string
   method: HttpMethod
   path: string
+  sortOrder: number
 }
 
 /** API 详情信息 */

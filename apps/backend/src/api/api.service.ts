@@ -235,6 +235,7 @@ export class ApiService {
           await tx.aPI.update({
             where: { id: apiId },
             data: {
+              ...(dto.baseInfo.groupId && { groupId: dto.baseInfo.groupId }),
               ...(dto.baseInfo.name && { name: dto.baseInfo.name }),
               ...(dto.baseInfo.method && { method: dto.baseInfo.method }),
               ...(dto.baseInfo.path && { path: dto.baseInfo.path }),
