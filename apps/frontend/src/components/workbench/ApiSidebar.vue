@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
 import { ref } from 'vue'
+import { useResizePanel } from '@/composables/useResizePanel'
 import { useTabStore } from '@/stores/useTabStore'
 import ApiTree from './api-tree/ApiTree.vue'
 import ApiFormDialog from './dialogs/ApiFormDialog.vue'
@@ -10,6 +11,16 @@ import DeleteGroupDialog from './dialogs/DeleteGroupDialog.vue'
 import GroupFormDialog from './dialogs/GroupFormDialog.vue'
 
 const tabStore = useTabStore()
+
+// 侧边栏可调整宽度
+const { panelStyle, isResizing, startResize } = useResizePanel({
+  storageKey: 'api-sidebar-width',
+  defaultWidth: 256,
+  minWidth: 200,
+  maxWidth: 480,
+  direction: 'right',
+
+})
 
 const isGroupDialogOpen = ref(false)
 const groupDialogMode = ref<'create' | 'rename'>('create')
@@ -74,7 +85,11 @@ function handleDeleteApi(api: ApiBrief) {
 </script>
 
 <template>
-  <aside class="w-64 border-r border-border flex flex-col shrink-0 bg-muted/20">
+  <aside
+    class="relative flex flex-col shrink-0 bg-muted/20"
+    :class="{ 'select-none': isResizing }"
+    :style="panelStyle"
+  >
     <ApiTree
       @create-group="handleCreateGroup"
       @create-api="handleCreateApi"
@@ -83,6 +98,12 @@ function handleDeleteApi(api: ApiBrief) {
       @select-api="handleSelectApi"
       @clone-api="handleCloneApi"
       @delete-api="handleDeleteApi"
+    />
+
+    <div
+      class="resize-handle"
+      :class="{ 'resize-handle--active': isResizing }"
+      @mousedown="startResize"
     />
 
     <GroupFormDialog
@@ -113,3 +134,46 @@ function handleDeleteApi(api: ApiBrief) {
     />
   </aside>
 </template>
+
+<style scoped>
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  background: transparent;
+  transition: background-color 0.15s ease;
+  z-index: 10;
+}
+
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: var(--border);
+  transition: all 0.15s ease;
+}
+
+.resize-handle:hover::after,
+.resize-handle--active::after {
+  width: 3px;
+  right: 0;
+  background: var(--primary);
+  opacity: 0.8;
+}
+
+.resize-handle:hover,
+.resize-handle--active {
+  background: var(--primary);
+  opacity: 0.1;
+}
+
+.resize-handle--active::after {
+  opacity: 1;
+}
+</style>

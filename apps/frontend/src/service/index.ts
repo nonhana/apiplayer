@@ -19,6 +19,7 @@ const hooks: Hooks = {
       }
 
       if (parsed.code !== 0 && parsed.code !== 200) {
+        // 10012 为 cookie 失效
         if (parsed.code === 401 && parsed.errorCode === 10012) {
           const userStore = useUserStore()
           userStore.logout()
