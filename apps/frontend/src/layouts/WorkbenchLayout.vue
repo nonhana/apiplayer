@@ -1,20 +1,19 @@
 <script lang="ts" setup>
+import { useRouteParams } from '@vueuse/router'
 import { onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import ApiSidebar from '@/components/workbench/ApiSidebar.vue'
 import WorkbenchHeader from '@/components/workbench/WorkbenchHeader.vue'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useTabStore } from '@/stores/useTabStore'
 
-const route = useRoute()
 const tabStore = useTabStore()
 const apiTreeStore = useApiTreeStore()
+const projectId = useRouteParams<string>('projectId')
 
 /** 监听路由变化，更新当前项目 */
-watch(() => route.params, (params) => {
-  const projectId = params.projectId
-  if (projectId) {
-    apiTreeStore.setProjectId(projectId as string)
+watch(projectId, (newV) => {
+  if (newV) {
+    apiTreeStore.setProjectId(newV)
   }
 }, { immediate: true })
 

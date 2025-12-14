@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
-import { useRouteParams } from '@vueuse/router'
 import { ref } from 'vue'
 import { useTabStore } from '@/stores/useTabStore'
 import ApiTree from './api-tree/ApiTree.vue'
@@ -11,7 +10,6 @@ import DeleteGroupDialog from './dialogs/DeleteGroupDialog.vue'
 import GroupFormDialog from './dialogs/GroupFormDialog.vue'
 
 const tabStore = useTabStore()
-const apiId = useRouteParams<string>('apiId')
 
 const isGroupDialogOpen = ref(false)
 const groupDialogMode = ref<'create' | 'rename'>('create')

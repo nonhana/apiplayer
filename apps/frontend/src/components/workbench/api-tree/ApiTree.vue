@@ -48,7 +48,7 @@ const isRootDragOver = ref(false)
 const projectId = computed(() => route.params.projectId as string)
 
 /** 是否加载中 */
-const isLoading = computed(() => apiTreeStore.isLoading)
+const isLoading = computed(() => apiTreeStore.loadingStatus === 'loading')
 
 /** 过滤后的树数据 */
 const treeData = computed(() => apiTreeStore.filteredTree)

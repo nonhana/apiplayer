@@ -7,7 +7,7 @@ import {
   RefreshCw,
   Search,
 } from 'lucide-vue-next'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -24,6 +24,8 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
+
+const isLoading = computed(() => apiTreeStore.loadingStatus === 'loading')
 
 /** 本地搜索输入 */
 const searchInput = ref('')
@@ -53,10 +55,10 @@ watch(searchInput, (val) => {
               variant="ghost"
               size="icon"
               class="h-7 w-7"
-              :disabled="apiTreeStore.isLoading"
+              :disabled="isLoading"
               @click="apiTreeStore.refreshTree()"
             >
-              <RefreshCw class="h-3.5 w-3.5" :class="[apiTreeStore.isLoading && 'animate-spin']" />
+              <RefreshCw class="h-3.5 w-3.5" :class="[isLoading && 'animate-spin']" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">

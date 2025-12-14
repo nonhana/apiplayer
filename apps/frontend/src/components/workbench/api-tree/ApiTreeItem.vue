@@ -2,8 +2,10 @@
 import type { StyleValue } from 'vue'
 import type { ApiBrief } from '@/types/api'
 import type { DropItemNormal, DropPosition } from '@/types/api-drag'
+import { useRouteParams } from '@vueuse/router'
 import { Copy, MoreHorizontal, Trash2 } from 'lucide-vue-next'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -41,6 +43,8 @@ const emits = defineEmits<{
 const apiTreeStore = useApiTreeStore()
 const apiDragStore = useApiDragStore()
 const dragger = useApiTreeDrag(apiDragStore, apiTreeStore)
+const apiId = useRouteParams<string | undefined>('apiId')
+const router = useRouter()
 
 /** API 行元素引用 */
 const apiRowRef = useTemplateRef('apiRowRef')
@@ -67,9 +71,21 @@ const isSelected = computed(() =>
 
 /** 点击选中 */
 function handleClick() {
-  apiTreeStore.selectNode(props.api.id, 'api')
-  emits('select', props.api)
+  if (!apiId.value) {
+    router.push({ name: 'ApiDetail', params: { apiId: props.api.id } })
+  }
+  else {
+    apiId.value = props.api.id
+  }
 }
+
+// 当 route 上的 apiId 变化时，若等于当前 api.id，则自动触发选中
+watch(apiId, (newV) => {
+  if (newV === props.api.id) {
+    apiTreeStore.selectNode(props.api.id, 'api')
+    emits('select', props.api)
+  }
+}, { immediate: true })
 
 /** 克隆 API */
 function handleClone() {

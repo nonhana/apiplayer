@@ -3,6 +3,8 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { apiApi, groupApi } from '@/api/api'
 
+type LoadingStatus = 'start' | 'loading' | 'end'
+
 /** API 树状态管理 */
 export const useApiTreeStore = defineStore('apiTree', () => {
   // ========== 状态 ==========
@@ -11,7 +13,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   const tree = ref<GroupNodeWithApis[]>([])
 
   /** 加载状态 */
-  const isLoading = ref(false)
+  const loadingStatus = ref<LoadingStatus>('start')
 
   /** 当前项目 ID */
   const projectId = ref('')
@@ -111,14 +113,14 @@ export const useApiTreeStore = defineStore('apiTree', () => {
       return
 
     projectId.value = targetProjectId
-    isLoading.value = true
+    loadingStatus.value = 'loading'
 
     try {
       const data = await groupApi.getGroupTreeWithApis(targetProjectId)
       tree.value = data
     }
     finally {
-      isLoading.value = false
+      loadingStatus.value = 'end'
     }
   }
 
@@ -335,10 +337,33 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     }
   }
 
+  /** 根据 apiId 从 tree 中获取特定的 API */
+  function getApiById(apiId: string): ApiBrief | null {
+    // 迭代式 DFS：使用栈遍历，避免递归调用栈开销，也不会栈溢出
+    const stack: GroupNodeWithApis[] = [...tree.value]
+
+    while (stack.length > 0) {
+      const node = stack.pop()!
+
+      // 在当前分组的 APIs 中查找
+      const target = node.apis.find(api => api.id === apiId)
+      if (target) {
+        return target
+      }
+
+      // 将子分组压入栈中继续搜索
+      if (node.children.length > 0) {
+        stack.push(...node.children)
+      }
+    }
+
+    return null
+  }
+
   /** 重置状态 */
   function reset() {
     tree.value = []
-    isLoading.value = false
+    loadingStatus.value = 'start'
     expandedKeys.value.clear()
     searchQuery.value = ''
     selectedNodeId.value = null
@@ -348,7 +373,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   return {
     // 状态
     tree,
-    isLoading,
+    loadingStatus,
     projectId,
     expandedKeys,
     searchQuery,
@@ -386,6 +411,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     removeApiFromGroup,
     findGroupInTree,
     findGroupByApiId,
+    getApiById,
     reset,
   }
 })

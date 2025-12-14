@@ -1,7 +1,14 @@
+catalogMode: prefer
+cleanupUnusedCatalogs: true
+shellEmulator: true
+
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - undici-types@6.21.0
+  - chokidar@4.0.3
+
 packages:
   - apps/*
-
-catalogMode: prefer
 
 catalogs:
   backend:
@@ -85,8 +92,6 @@ catalogs:
     tsx: ^4.21.0
     typescript: ^5.9.3
 
-cleanupUnusedCatalogs: true
-
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@prisma/client'
@@ -97,11 +102,3 @@ onlyBuiltDependencies:
   - esbuild
   - prisma
   - vue-demi
-
-shellEmulator: true
-
-trustPolicy: no-downgrade
-
-trustPolicyExclude:
-  - undici-types@6.21.0
-  - chokidar@4.0.3

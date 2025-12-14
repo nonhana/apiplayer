@@ -1,15 +1,41 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouteParams } from '@vueuse/router'
+import { computed, ref, watch } from 'vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ApiEditor from '@/components/workbench/api-editor/ApiEditor.vue'
+import ApiNotFound from '@/components/workbench/ApiNotFound.vue'
 import TabItem from '@/components/workbench/TabItem.vue'
+import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useTabStore } from '@/stores/useTabStore'
 
-const route = useRoute()
 const tabStore = useTabStore()
+const apiTreeStore = useApiTreeStore()
+const apiId = useRouteParams<string>('apiId')
 
-const apiId = computed(() => route.params.apiId as string)
+/** 当前路由的 apiId 是否是有效的 */
+const isValidApiId = ref(true)
+
+watch([() => apiTreeStore.loadingStatus, apiId], ([loadStatus, currentApiId]) => {
+  if (loadStatus !== 'end' || !currentApiId)
+    return
+  const curAPI = apiTreeStore.getApiById(apiId.value)
+  isValidApiId.value = !!curAPI
+})
+
+/** 刷新 API 树并重新检查 */
+async function handleRefresh() {
+  await apiTreeStore.refreshTree()
+  const curAPI = apiTreeStore.getApiById(apiId.value)
+  isValidApiId.value = !!curAPI
+}
+
+// 如果当前的 apiId 是无效的，那么清除激活的 tab
+watch(isValidApiId, (newV) => {
+  if (!newV) {
+    tabStore.setActiveTab('')
+    apiTreeStore.clearSelection()
+  }
+})
 
 /** 拖的是哪个标签 */
 const dragSourceIndex = ref<number | null>(null)
@@ -79,9 +105,16 @@ const showApiEditor = computed(() =>
     </div>
 
     <div class="flex-1 overflow-hidden relative">
+      <!-- API 找不到时的提示 -->
+      <ApiNotFound
+        v-if="!isValidApiId && apiTreeStore.loadingStatus === 'end'"
+        :api-id="apiId"
+        @refresh="handleRefresh"
+      />
+
       <!-- API 编辑器 -->
       <ApiEditor
-        v-if="showApiEditor && activeTab"
+        v-else-if="showApiEditor && activeTab"
         :key="apiId"
         :api-id="apiId"
       />

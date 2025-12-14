@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Tab } from '@/types/api'
+import { useRouteParams } from '@vueuse/router'
 import {
   Copy,
   Pin,
@@ -7,7 +8,8 @@ import {
   X,
   XCircle,
 } from 'lucide-vue-next'
-import { computed, ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -35,6 +37,8 @@ const emit = defineEmits<{
 }>()
 
 const tabStore = useTabStore()
+const apiId = useRouteParams<string>('apiId')
+const router = useRouter()
 
 /** Tab 元素引用 */
 const tabRef = useTemplateRef('tabRef')
@@ -75,6 +79,22 @@ async function copyPath() {
     await navigator.clipboard.writeText(props.tab.path)
   }
 }
+
+function handleClick() {
+  if (!apiId.value) {
+    router.push({ name: 'ApiDetail', params: { apiId: props.tab.id } })
+  }
+  else {
+    apiId.value = props.tab.id
+  }
+}
+
+// 当 route 上的 apiId 变化时，若等于当前 api.id，则自动触发选中
+watch(apiId, (newV) => {
+  if (newV === props.tab.id) {
+    tabStore.setActiveTab(props.tab.id)
+  }
+}, { immediate: true })
 
 function handleDragStart(e: DragEvent) {
   isDragging.value = true
@@ -141,7 +161,7 @@ function handleCloseClick(e: MouseEvent) {
           isDragOver && dragOverSide === 'right' && 'border-r-2 border-r-primary',
         )"
         draggable="true"
-        @click="tabStore.setActiveTab(tab.id)"
+        @click="handleClick"
         @dragstart="handleDragStart"
         @dragend="handleDragEnd"
         @dragover="handleDragOver"

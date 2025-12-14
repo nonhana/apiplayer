@@ -55,7 +55,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/workbench/WorkbenchView.vue'),
       },
       {
-        path: '/:apiId',
+        path: ':apiId',
         name: 'ApiDetail',
         component: () => import('@/views/workbench/ApiDetailView.vue'),
       },
