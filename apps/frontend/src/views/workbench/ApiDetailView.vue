@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useRouteParams } from '@vueuse/router'
 import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ApiEditor from '@/components/workbench/api-editor/ApiEditor.vue'
 import ApiNotFound from '@/components/workbench/ApiNotFound.vue'
@@ -11,12 +12,15 @@ import { useTabStore } from '@/stores/useTabStore'
 const tabStore = useTabStore()
 const apiTreeStore = useApiTreeStore()
 const apiId = useRouteParams<string>('apiId')
+const router = useRouter()
+
+const apiLoadingStatus = computed(() => apiTreeStore.loadingStatus)
 
 /** 当前路由的 apiId 是否是有效的 */
 const isValidApiId = ref(true)
 
-watch([() => apiTreeStore.loadingStatus, apiId], ([loadStatus, currentApiId]) => {
-  if (loadStatus !== 'end' || !currentApiId)
+watch([apiLoadingStatus, apiId], ([loadStatus, curApiId]) => {
+  if (loadStatus !== 'end' || !curApiId)
     return
   const curAPI = apiTreeStore.getApiById(apiId.value)
   isValidApiId.value = !!curAPI
@@ -84,6 +88,16 @@ const activeTab = computed(() => tabStore.activeTab)
 const showApiEditor = computed(() =>
   activeTab.value !== null && activeTab.value.type === 'api',
 )
+
+const curTabs = computed(() => tabStore.tabs)
+
+// 清空 tabs 后重置 API 选中状态
+watch(curTabs, (newV) => {
+  if (!newV.length) {
+    router.push({ name: 'Workbench' })
+    apiTreeStore.clearSelection()
+  }
+})
 </script>
 
 <template>
@@ -92,7 +106,7 @@ const showApiEditor = computed(() =>
       <ScrollArea orientation="horizontal" class="flex-1">
         <div class="flex items-center h-full">
           <TabItem
-            v-for="(tab, index) in tabStore.tabs"
+            v-for="(tab, index) in curTabs"
             :key="tab.id"
             :tab="tab"
             :index="index"
@@ -107,7 +121,7 @@ const showApiEditor = computed(() =>
     <div class="flex-1 overflow-hidden relative">
       <!-- API 找不到时的提示 -->
       <ApiNotFound
-        v-if="!isValidApiId && apiTreeStore.loadingStatus === 'end'"
+        v-if="!isValidApiId && apiLoadingStatus === 'end'"
         :api-id="apiId"
         @refresh="handleRefresh"
       />

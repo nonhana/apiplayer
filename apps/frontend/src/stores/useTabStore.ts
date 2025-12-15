@@ -30,19 +30,23 @@ export const useTabStore = defineStore('tab', () => {
 
   /** 添加标签页 */
   function addTab(params: CreateTabParams) {
-    const existing = tabs.value.find(t => t.id === params.id)
+    const hasTab = tabs.value.some(t => t.id === params.id)
 
-    if (!existing) {
-      tabs.value.push({
-        id: params.id,
-        title: params.title,
-        type: params.type,
-        method: params.method,
-        path: params.path,
-        dirty: false,
-        pinned: params.pinned ?? false,
-        data: params.data,
-      })
+    if (!hasTab) {
+      // immutable
+      tabs.value = [
+        ...tabs.value,
+        {
+          id: params.id,
+          title: params.title,
+          type: params.type,
+          method: params.method,
+          path: params.path,
+          dirty: false,
+          pinned: params.pinned ?? false,
+          data: params.data,
+        },
+      ]
     }
 
     activeTabId.value = params.id
@@ -54,7 +58,8 @@ export const useTabStore = defineStore('tab', () => {
     if (index === -1)
       return
 
-    tabs.value.splice(index, 1)
+    // immutable
+    tabs.value = tabs.value.filter(t => t.id !== id)
 
     // 如果关闭的是当前激活的标签页，切换到相邻的标签
     if (activeTabId.value === id) {
