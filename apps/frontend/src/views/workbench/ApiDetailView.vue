@@ -23,8 +23,14 @@ const apiLoadingStatus = computed(() => apiTreeStore.loadingStatus)
 watch([apiLoadingStatus, apiId], ([loadStatus, curApiId]) => {
   if (loadStatus !== 'end' || !curApiId)
     return
-  const curAPI = apiTreeStore.getApiById(apiId.value)
+
+  const curAPI = apiTreeStore.getApiById(curApiId)
   isValidApiId.value = !!curAPI
+
+  if (curAPI) {
+    const groupPath = apiTreeStore.findGroupPathByApiId(curApiId)
+    apiTreeStore.expandGroupPath(groupPath)
+  }
 })
 
 // 如果当前的 apiId 是无效的，清除 tab 和 apiItem 选中态

@@ -99,6 +99,37 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     return null
   }
 
+  /** 根据 apiId 查找其所在 group 的路径 */
+  function findGroupPathByApiId(apiId: string): string[] {
+    const path: string[] = []
+
+    function search(nodes: GroupNodeWithApis[]): boolean {
+      for (const node of nodes) {
+        // 检查当前分组是否包含目标 API
+        if (node.apis.some(api => api.id === apiId)) {
+          path.push(node.id)
+          return true
+        }
+        // 递归搜索子分组
+        if (search(node.children)) {
+          path.unshift(node.id) // 将父分组添加到路径前面
+          return true
+        }
+      }
+      return false
+    }
+
+    search(tree.value)
+    return path
+  }
+
+  /** 批量展开指定路径上的所有分组 */
+  function expandGroupPath(pathGroupIds: string[]) {
+    for (const id of pathGroupIds) {
+      expandedKeys.value.add(id)
+    }
+  }
+
   // ========== 操作方法 ==========
 
   /** 设置项目 ID */
@@ -411,6 +442,8 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     removeApiFromGroup,
     findGroupInTree,
     findGroupByApiId,
+    findGroupPathByApiId,
+    expandGroupPath,
     getApiById,
     reset,
   }
