@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import type { ApiDetail } from '@/types/api'
-import { AlertCircle, FileText, Loader2, Play, Settings2 } from 'lucide-vue-next'
+import { AlertCircle, FileText, Loader2, Pencil, Play, Settings2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { apiApi } from '@/api/api'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import ApiDocView from './ApiDocView.vue'
+import ApiEditView from './ApiEditView.vue'
 
 const props = defineProps<{
   /** API ID */
@@ -32,6 +33,7 @@ const isLoaded = computed(() => apiDetail.value !== null)
 /** Tab 配置 */
 const tabItems = [
   { value: 'doc', label: '文档', icon: FileText },
+  { value: 'edit', label: '编辑', icon: Pencil },
   { value: 'run', label: '运行', icon: Play, disabled: true },
   { value: 'settings', label: '设置', icon: Settings2, disabled: true },
 ]
@@ -75,6 +77,12 @@ watch(
     }
   },
 )
+
+/** 处理 API 更新成功 */
+function handleApiUpdated(updatedApi: ApiDetail) {
+  // 更新本地数据
+  apiDetail.value = updatedApi
+}
 </script>
 
 <template>
@@ -126,6 +134,13 @@ watch(
       <!-- Tab 内容 -->
       <TabsContent value="doc" class="flex-1 mt-0 overflow-hidden">
         <ApiDocView :api="apiDetail" />
+      </TabsContent>
+
+      <TabsContent value="edit" class="flex-1 mt-0 overflow-hidden">
+        <ApiEditView
+          :api="apiDetail"
+          @updated="handleApiUpdated"
+        />
       </TabsContent>
 
       <TabsContent value="run" class="flex-1 mt-0 overflow-hidden">
