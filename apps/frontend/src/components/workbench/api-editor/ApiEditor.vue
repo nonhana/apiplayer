@@ -116,14 +116,14 @@ function handleApiUpdated(updatedApi: ApiDetail) {
       class="flex-1 flex flex-col overflow-hidden"
     >
       <!-- Tab 切换 -->
-      <div class="border-b px-4 bg-muted/20">
+      <div class="border-b px-4 py-2 bg-muted/20">
         <TabsList class="h-10 bg-transparent p-0 gap-1">
           <TabsTrigger
             v-for="tab in tabItems"
             :key="tab.value"
             :value="tab.value"
             :disabled="tab.disabled"
-            class="gap-1.5 px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-t-md rounded-b-none border-b-2 border-transparent data-[state=active]:border-primary"
+            class="gap-1.5 px-3 data-[state=active]:text-primary"
           >
             <component :is="tab.icon" class="h-4 w-4" />
             {{ tab.label }}

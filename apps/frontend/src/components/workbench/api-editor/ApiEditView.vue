@@ -1,9 +1,5 @@
 <script lang="ts" setup>
 import type { BasicInfo, ParamsData } from './editor'
-/**
- * API 编辑视图
- * 整合所有编辑组件，实现完整的 API 信息编辑功能
- */
 import type { ApiDetail, ApiParam, ApiRequestBody, ApiResponse, UpdateApiReq } from '@/types/api'
 import { FileText, Hash, Loader2, MessageSquare, Save, Settings } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -252,13 +248,13 @@ const tabItems = [
     <!-- 编辑区域 -->
     <Tabs v-model="activeTab" class="flex-1 flex flex-col overflow-hidden">
       <!-- Tab 导航 -->
-      <div class="border-b px-4 bg-background">
+      <div class="border-b px-4 py-2 bg-background">
         <TabsList class="h-10 bg-transparent p-0 gap-1">
           <TabsTrigger
             v-for="tab in tabItems"
             :key="tab.value"
             :value="tab.value"
-            class="gap-1.5 px-3 data-[state=active]:bg-muted data-[state=active]:shadow-sm rounded-t-md rounded-b-none border-b-2 border-transparent data-[state=active]:border-primary"
+            class="gap-1.5 px-3 data-[state=active]:text-primary"
           >
             <component :is="tab.icon" class="h-4 w-4" />
             {{ tab.label }}

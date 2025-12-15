@@ -1,6 +1,3 @@
-/**
- * API 编辑器组件导出
- */
 export { default as BasicInfoEditor } from './BasicInfoEditor.vue'
 export type { BasicInfo } from './BasicInfoEditor.vue'
 export { default as EditableParamTable } from './EditableParamTable.vue'
