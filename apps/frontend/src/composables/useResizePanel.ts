@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import type { StyleValue } from 'vue'
 import { useEventListener, useStorage } from '@vueuse/core'
 import { computed, ref } from 'vue'
 
@@ -15,24 +15,7 @@ export interface ResizePanelOptions {
   direction?: 'left' | 'right'
 }
 
-export interface ResizePanelReturn {
-  /** 当前面板宽度 */
-  width: Ref<number>
-  /** 是否正在拖拽 */
-  isResizing: Ref<boolean>
-  /** 开始拖拽 */
-  startResize: (e: MouseEvent) => void
-  /** 面板样式 */
-  panelStyle: Ref<{ width: string }>
-  /** 重置为默认宽度 */
-  resetWidth: () => void
-}
-
-/**
- * 可调整大小的面板 composable
- * 提供类似 VSCode 侧边栏的拖拽调整宽度体验
- */
-export function useResizePanel(options: ResizePanelOptions = {}): ResizePanelReturn {
+export function useResizePanel(options: ResizePanelOptions = {}) {
   const {
     storageKey,
     defaultWidth = 256,
@@ -41,7 +24,6 @@ export function useResizePanel(options: ResizePanelOptions = {}): ResizePanelRet
     direction = 'right',
   } = options
 
-  // 使用 localStorage 持久化宽度配置
   const width = storageKey
     ? useStorage(storageKey, defaultWidth)
     : ref(defaultWidth)
@@ -88,7 +70,7 @@ export function useResizePanel(options: ResizePanelOptions = {}): ResizePanelRet
   useEventListener(document, 'mouseup', onMouseUp)
 
   /** 面板样式 */
-  const panelStyle = computed(() => ({
+  const panelStyle = computed<StyleValue>(() => ({
     width: `${width.value}px`,
   }))
 

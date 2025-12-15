@@ -12,7 +12,6 @@ import GroupFormDialog from './dialogs/GroupFormDialog.vue'
 
 const tabStore = useTabStore()
 
-// 侧边栏可调整宽度
 const { panelStyle, isResizing, startResize } = useResizePanel({
   storageKey: 'api-sidebar-width',
   defaultWidth: 256,
@@ -159,21 +158,12 @@ function handleDeleteApi(api: ApiBrief) {
   transition: all 0.15s ease;
 }
 
-.resize-handle:hover::after,
-.resize-handle--active::after {
+.resize-handle:hover::after {
   width: 3px;
-  right: 0;
-  background: var(--primary);
-  opacity: 0.8;
-}
-
-.resize-handle:hover,
-.resize-handle--active {
-  background: var(--primary);
-  opacity: 0.1;
+  background: var(--border);
 }
 
 .resize-handle--active::after {
-  opacity: 1;
+  background: var(--primary) !important;
 }
 </style>
