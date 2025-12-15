@@ -48,17 +48,17 @@ const metaItems = computed<MetaItem[]>(() => [
   {
     icon: User,
     label: '创建者',
-    value: props.api.creatorId,
+    value: props.api.creator.name,
   },
   {
     icon: User,
     label: '负责人',
-    value: props.api.ownerId || '未设置',
+    value: props.api.owner?.name || '未设置',
   },
   {
     icon: User,
     label: '最近编辑',
-    value: props.api.editorId || '未设置',
+    value: props.api.editor.name || '未设置',
   },
 ])
 </script>

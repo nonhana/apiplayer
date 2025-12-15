@@ -1,5 +1,6 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
 import { PaginationDto } from '@/common/dto/pagination.dto'
+import { UserBriefInfoDto } from '@/common/dto/user.dto'
 
 @Exclude()
 export class ApiBriefDto {
@@ -25,13 +26,16 @@ export class ApiDetailDto extends ApiBriefDto {
   tags: string[]
 
   @Expose()
-  ownerId: string
+  @Type(() => UserBriefInfoDto)
+  owner: UserBriefInfoDto
 
   @Expose()
-  editorId: string
+  @Type(() => UserBriefInfoDto)
+  editor: UserBriefInfoDto
 
   @Expose()
-  creatorId: string
+  @Type(() => UserBriefInfoDto)
+  creator: UserBriefInfoDto
 
   @Expose()
   createdAt: Date

@@ -191,6 +191,9 @@ export class ApiService {
         include: {
           group: true,
           currentVersion: { include: { snapshot: true } },
+          owner: true,
+          editor: true,
+          creator: true,
         },
       })
 

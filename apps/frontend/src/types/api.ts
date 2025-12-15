@@ -1,3 +1,5 @@
+import type { UserBriefInfo } from './user'
+
 /** 标签页类型 */
 export type TabType = 'api' | 'overview' | 'settings' | 'schema' | 'group'
 
@@ -111,7 +113,9 @@ export interface ApiBrief {
 /** API 详情信息 */
 export interface ApiDetail extends ApiBrief {
   tags: string[]
-  ownerId: string
+  owner: UserBriefInfo | null
+  editor: UserBriefInfo
+  creator: UserBriefInfo
   editorId: string
   creatorId: string
   createdAt: string
