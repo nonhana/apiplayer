@@ -7,7 +7,6 @@ import {
   Loader2,
 } from 'lucide-vue-next'
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useApiTreeDrag } from '@/composables/useApiTreeDrag'
@@ -27,7 +26,6 @@ const emits = defineEmits<{
   (e: 'deleteApi', api: ApiBrief): void
 }>()
 
-const route = useRoute()
 const apiTreeStore = useApiTreeStore()
 const apiDragStore = useApiDragStore()
 const dragger = useApiTreeDrag(apiDragStore, apiTreeStore)
@@ -45,7 +43,7 @@ const showRootDropZone = computed(() => dragger.canMoveToRoot())
 const isRootDragOver = ref(false)
 
 /** 项目 ID */
-const projectId = computed(() => route.params.projectId as string)
+const projectId = computed(() => apiTreeStore.projectId)
 
 /** 是否加载中 */
 const isLoading = computed(() => apiTreeStore.loadingStatus === 'loading')

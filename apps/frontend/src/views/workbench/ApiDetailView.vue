@@ -11,13 +11,14 @@ import { useTabStore } from '@/stores/useTabStore'
 
 const tabStore = useTabStore()
 const apiTreeStore = useApiTreeStore()
-const apiId = useRouteParams<string>('apiId')
-const router = useRouter()
 
-const apiLoadingStatus = computed(() => apiTreeStore.loadingStatus)
+const router = useRouter()
+const apiId = useRouteParams<string>('apiId')
 
 /** 当前路由的 apiId 是否是有效的 */
 const isValidApiId = ref(true)
+
+const apiLoadingStatus = computed(() => apiTreeStore.loadingStatus)
 
 watch([apiLoadingStatus, apiId], ([loadStatus, curApiId]) => {
   if (loadStatus !== 'end' || !curApiId)
@@ -26,20 +27,41 @@ watch([apiLoadingStatus, apiId], ([loadStatus, curApiId]) => {
   isValidApiId.value = !!curAPI
 })
 
-/** 刷新 API 树并重新检查 */
-async function handleRefresh() {
-  await apiTreeStore.refreshTree()
-  const curAPI = apiTreeStore.getApiById(apiId.value)
-  isValidApiId.value = !!curAPI
-}
-
-// 如果当前的 apiId 是无效的，那么清除激活的 tab
+// 如果当前的 apiId 是无效的，清除 tab 和 apiItem 选中态
 watch(isValidApiId, (newV) => {
   if (!newV) {
     tabStore.setActiveTab('')
     apiTreeStore.clearSelection()
   }
 })
+
+/** 刷新 API 树并重新检查 */
+async function handleRefresh() {
+  await apiTreeStore.refreshTree()
+  // TODO: 当 API 数量多、嵌套深，getApiById 会成为性能瓶颈
+  const curAPI = apiTreeStore.getApiById(apiId.value)
+  isValidApiId.value = !!curAPI
+}
+
+/** 当前激活的 Tab */
+const activeTab = computed(() => tabStore.activeTab)
+
+watch(activeTab, (newV) => {
+  // 正常数据流：route.params.apiId -> activeTab
+  // 存在特殊方式，单独修改 activeTab
+  if (newV) {
+    apiId.value = newV.id
+  }
+  else {
+    router.push({ name: 'Workbench' })
+    apiTreeStore.clearSelection()
+  }
+})
+
+/** 是否显示 API 编辑器 */
+const showApiEditor = computed(() =>
+  activeTab.value !== null && activeTab.value.type === 'api',
+)
 
 /** 拖的是哪个标签 */
 const dragSourceIndex = ref<number | null>(null)
@@ -80,24 +102,6 @@ function handleDragEnd() {
   dragSourceIndex.value = null
   dragTarget.value = null
 }
-
-/** 当前激活的 Tab */
-const activeTab = computed(() => tabStore.activeTab)
-
-/** 是否显示 API 编辑器 */
-const showApiEditor = computed(() =>
-  activeTab.value !== null && activeTab.value.type === 'api',
-)
-
-const curTabs = computed(() => tabStore.tabs)
-
-// 清空 tabs 后重置 API 选中状态
-watch(curTabs, (newV) => {
-  if (!newV.length) {
-    router.push({ name: 'Workbench' })
-    apiTreeStore.clearSelection()
-  }
-})
 </script>
 
 <template>
@@ -106,7 +110,7 @@ watch(curTabs, (newV) => {
       <ScrollArea orientation="horizontal" class="flex-1">
         <div class="flex items-center h-full">
           <TabItem
-            v-for="(tab, index) in curTabs"
+            v-for="(tab, index) in tabStore.tabs"
             :key="tab.id"
             :tab="tab"
             :index="index"
@@ -128,7 +132,7 @@ watch(curTabs, (newV) => {
 
       <!-- API 编辑器 -->
       <ApiEditor
-        v-else-if="showApiEditor && activeTab"
+        v-else-if="showApiEditor"
         :key="apiId"
         :api-id="apiId"
       />
