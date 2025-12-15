@@ -1,9 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
-import { FastifyRequest } from 'fastify'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthService } from '@/auth/auth.service'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
+import { CookieService } from '@/cookie/cookie.service'
 
 /**
  * 认证守卫
@@ -16,6 +17,7 @@ export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     private readonly authService: AuthService,
+    private readonly cookieService: CookieService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -30,6 +32,7 @@ export class AuthGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<FastifyRequest>()
+    const response = context.switchToHttp().getResponse<FastifyReply>()
 
     try {
       // 从 Cookie 中获取 Session ID
@@ -42,15 +45,20 @@ export class AuthGuard implements CanActivate {
       this.logger.log(`Session ID: ${sessionId}`)
 
       // 验证Session并获取用户信息
-      const user = await this.authService.validateSession(sessionId)
+      const result = await this.authService.validateSession(sessionId)
 
-      if (!user) {
+      if (!result) {
         throw new UnauthorizedException('Session已过期或无效，请重新登录')
       }
 
       // 将用户信息和Session ID 附加到请求对象上
-      request.user = user
+      request.user = result.user
       request.sessionId = sessionId
+
+      // 无感刷新：每次认证成功后续期 Cookie
+      if (result.idleTimeout) {
+        this.cookieService.renewSessionCookie(response, sessionId, result.idleTimeout)
+      }
 
       return true
     }

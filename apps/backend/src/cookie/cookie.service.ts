@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { FastifyReply } from 'fastify'
+import { DEFAULT_COOKIE_MAX_AGE } from '@/constants/cookie'
+
+/** Cookie 配置选项 */
+export interface CookieOptions {
+  /** Cookie 过期时间（秒） */
+  maxAge?: number
+}
 
 @Injectable()
 export class CookieService {
@@ -11,12 +18,36 @@ export class CookieService {
   }
 
   /** 设置安全的 Session Cookie */
-  setSecureSessionCookie(response: FastifyReply, sessionId: string): void {
+  setSecureSessionCookie(
+    response: FastifyReply,
+    sessionId: string,
+    options: CookieOptions = {},
+  ): void {
+    const maxAge = options.maxAge ?? DEFAULT_COOKIE_MAX_AGE
+
     response.cookie('sid', sessionId, {
       httpOnly: true,
       secure: this.isProduction,
       sameSite: 'lax',
       path: '/',
+      maxAge: maxAge * 1000,
+    })
+  }
+
+  /** 续期 Session Cookie（无感刷新） */
+  renewSessionCookie(
+    response: FastifyReply,
+    sessionId: string,
+    ttlSeconds?: number,
+  ): void {
+    const maxAge = ttlSeconds ?? DEFAULT_COOKIE_MAX_AGE
+
+    response.cookie('sid', sessionId, {
+      httpOnly: true,
+      secure: this.isProduction,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: maxAge * 1000,
     })
   }
 

@@ -10,6 +10,6 @@ import { AuthService } from './auth.service'
   imports: [SessionModule, PrismaModule, CookieModule],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard],
-  exports: [AuthService, AuthGuard],
+  exports: [AuthService, AuthGuard, CookieModule],
 })
 export class AuthModule {}

@@ -7,14 +7,15 @@ export interface SessionData {
   userId: string
   createdAt: number
   lastAccessed: number
+  idleTimeout: number
   userAgent?: string
   ipAddress?: string
 }
 
 export interface SessionOptions {
-  /** 空闲超时时间（秒），默认30分钟 */
+  /** 空闲超时时间（秒），默认 7 天 */
   idleTimeout?: number
-  /** 绝对超时时间（秒），默认8小时 */
+  /** 绝对超时时间（秒），默认 30 天 */
   absoluteTimeout?: number
   /** Session ID 长度（字节），默认32字节 */
   sessionIdLength?: number
@@ -24,8 +25,8 @@ export interface SessionOptions {
 export class SessionService {
   private readonly logger = new Logger(SessionService.name)
   private readonly defaultOptions: Required<SessionOptions> = {
-    idleTimeout: 30 * 60, // 30分钟
-    absoluteTimeout: 8 * 60 * 60, // 8小时
+    idleTimeout: 7 * 24 * 60 * 60, // 7 天
+    absoluteTimeout: 30 * 24 * 60 * 60, // 30 天
     sessionIdLength: 32, // 32字节 = 256位
   }
 
@@ -62,6 +63,7 @@ export class SessionService {
       userId,
       createdAt: now,
       lastAccessed: now,
+      idleTimeout: mergedOptions.idleTimeout,
       userAgent: metadata?.userAgent,
       ipAddress: metadata?.ipAddress,
     }
@@ -101,6 +103,7 @@ export class SessionService {
         userId: data.userId,
         createdAt: Number(data.createdAt),
         lastAccessed: Number(data.lastAccessed),
+        idleTimeout: Number(data.idleTimeout) || this.defaultOptions.idleTimeout,
         userAgent: data.userAgent,
         ipAddress: data.ipAddress,
       }
@@ -112,44 +115,43 @@ export class SessionService {
   }
 
   /** 刷新Session（更新最后访问时间并重置过期时间） */
-  async refreshSession(
-    sessionId: string,
-    options: SessionOptions = {},
-  ): Promise<boolean> {
+  async refreshSession(sessionId: string) {
     try {
       const sessionKey = this.getSessionKey(sessionId)
-      const mergedOptions = { ...this.defaultOptions, ...options }
 
-      // 检查Session是否存在
-      const exists = await this.redisClient.exists(sessionKey)
-      if (!exists) {
-        return false
+      // 获取 Session 数据
+      const data = await this.redisClient.hgetall(sessionKey)
+      if (!data || Object.keys(data).length === 0) {
+        return { success: false }
       }
 
+      const idleTimeout = Number(data.idleTimeout) || this.defaultOptions.idleTimeout
+      const absoluteTimeout = this.defaultOptions.absoluteTimeout
+
       // 检查绝对超时
-      const createdAt = await this.redisClient.hget(sessionKey, 'createdAt')
+      const createdAt = Number(data.createdAt)
       if (createdAt) {
         const now = Date.now()
-        const sessionAge = (now - Number(createdAt)) / 1000
+        const sessionAge = (now - createdAt) / 1000
 
-        if (sessionAge > mergedOptions.absoluteTimeout) {
+        if (sessionAge > absoluteTimeout) {
           await this.destroySession(sessionId)
           this.logger.log(`Session ${sessionId} 已达到绝对超时时间，已删除`)
-          return false
+          return { success: false }
         }
       }
 
       // 更新最后访问时间并重置过期时间
       const multi = this.redisClient.multi()
       multi.hset(sessionKey, 'lastAccessed', Date.now())
-      multi.expire(sessionKey, mergedOptions.idleTimeout)
+      multi.expire(sessionKey, idleTimeout)
       await multi.exec()
 
-      return true
+      return { success: true, idleTimeout }
     }
     catch (error) {
       this.logger.error('刷新Session失败:', error)
-      return false
+      return { success: false }
     }
   }
 

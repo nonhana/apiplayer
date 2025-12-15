@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common'
 import { compare, hash } from 'bcrypt'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
+import { DEFAULT_COOKIE_MAX_AGE, REMEMBER_ME_COOKIE_MAX_AGE } from '@/constants/cookie'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SessionService } from '@/session/session.service'
 import { CheckAvailabilityReqDto, LoginReqDto, RegisterReqDto } from './dto'
@@ -51,10 +52,9 @@ export class AuthService {
         throw new HanaException('密码错误', ErrorCode.INVALID_PASSWORD, 401)
       }
 
-      // 创建Session
-      const sessionOptions = rememberMe
-        ? { idleTimeout: 30 * 24 * 60 * 60 } // 记住我：30天
-        : undefined // 使用默认配置
+      // 创建Session，根据 rememberMe 设置不同的过期时间
+      const idleTimeout = rememberMe ? REMEMBER_ME_COOKIE_MAX_AGE : DEFAULT_COOKIE_MAX_AGE
+      const sessionOptions = { idleTimeout }
 
       const sessionId = await this.sessionService.createSession(
         user.id,
@@ -70,7 +70,7 @@ export class AuthService {
 
       this.logger.log(`用户 ${user.email} 登录成功`)
 
-      return { user, sessionId }
+      return { user, sessionId, idleTimeout }
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -114,9 +114,9 @@ export class AuthService {
   async validateSession(sessionId: string) {
     try {
       // 刷新Session（更新最后访问时间）
-      const isValid = await this.sessionService.refreshSession(sessionId)
+      const refreshResult = await this.sessionService.refreshSession(sessionId)
 
-      if (!isValid)
+      if (!refreshResult.success)
         return null
 
       // 获取Session数据
@@ -134,7 +134,10 @@ export class AuthService {
         return null
       }
 
-      return user
+      return {
+        user,
+        idleTimeout: refreshResult.idleTimeout,
+      }
     }
     catch (error) {
       this.logger.error('验证Session失败:', error)
