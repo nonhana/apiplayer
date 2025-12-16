@@ -56,10 +56,16 @@ const isOpen = defineModel<boolean>('open', { required: true })
 const isTeamMode = computed(() => props.type === 'team')
 
 // 表单状态
+const selectedUserIds = ref<string[]>([])
 const selectedUsers = ref<UserSearchItem[]>([])
 const selectedRoleId = ref('')
 const nickname = ref('')
 const isSubmitting = ref(false)
+
+/** 处理用户选择变化 */
+function handleUsersChange(users: UserSearchItem[]) {
+  selectedUsers.value = users
+}
 
 // 角色列表
 const roles = ref<RoleItem[]>([])
@@ -158,6 +164,7 @@ async function handleSubmit() {
 
 /** 重置表单 */
 function resetForm() {
+  selectedUserIds.value = []
   selectedUsers.value = []
   selectedRoleId.value = defaultRoleId.value
   nickname.value = ''
@@ -192,10 +199,11 @@ watch(isOpen, async (open) => {
             选择用户 <span class="text-destructive">*</span>
           </label>
           <UserSearchSelect
-            v-model="selectedUsers"
+            v-model="selectedUserIds"
             :exclude-user-ids="existingMemberIds"
             placeholder="搜索用户名、邮箱或昵称..."
             :disabled="isSubmitting"
+            @change="handleUsersChange"
           />
         </div>
 

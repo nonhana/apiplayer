@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { Component } from 'vue'
 import type { ApiDetail } from '@/types/api'
 import { AlertCircle, FileText, Loader2, Pencil, Play, Settings2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -9,9 +10,22 @@ import ApiDocView from './ApiDocView.vue'
 import ApiEditView from './ApiEditView.vue'
 
 const props = defineProps<{
-  /** API ID */
   apiId: string
 }>()
+
+type TabType = 'doc' | 'edit' | 'run' | 'settings'
+interface TabItem {
+  value: TabType
+  label: string
+  icon: Component
+  disabled?: boolean
+}
+const tabItems: TabItem[] = [
+  { value: 'doc', label: '文档', icon: FileText },
+  { value: 'edit', label: '编辑', icon: Pencil },
+  { value: 'run', label: '运行', icon: Play, disabled: true },
+  { value: 'settings', label: '设置', icon: Settings2, disabled: true },
+]
 
 const apiTreeStore = useApiTreeStore()
 
@@ -25,18 +39,10 @@ const isLoading = ref(false)
 const loadError = ref<string | null>(null)
 
 /** 当前激活的 Tab */
-const activeTab = ref('doc')
+const activeTab = ref<TabType>('doc')
 
 /** 是否已加载 */
 const isLoaded = computed(() => apiDetail.value !== null)
-
-/** Tab 配置 */
-const tabItems = [
-  { value: 'doc', label: '文档', icon: FileText },
-  { value: 'edit', label: '编辑', icon: Pencil },
-  { value: 'run', label: '运行', icon: Play, disabled: true },
-  { value: 'settings', label: '设置', icon: Settings2, disabled: true },
-]
 
 /** 获取 API 详情 */
 async function fetchApiDetail() {
@@ -80,7 +86,6 @@ watch(
 
 /** 处理 API 更新成功 */
 function handleApiUpdated(updatedApi: ApiDetail) {
-  // 更新本地数据
   apiDetail.value = updatedApi
 }
 </script>

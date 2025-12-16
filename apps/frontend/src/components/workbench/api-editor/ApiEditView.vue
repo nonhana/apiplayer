@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { BasicInfo, ParamsData } from './editor'
+import type { ApiBaseInfoForm, ApiReqData } from './editor/types'
 import type { ApiDetail, ApiParam, ApiRequestBody, ApiResponse, UpdateApiReq } from '@/types/api'
 import { FileText, Hash, Loader2, MessageSquare, Save, Settings } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -11,20 +11,16 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useTabStore } from '@/stores/useTabStore'
-import {
-  BasicInfoEditor,
-  ParamsEditor,
-  RequestBodyEditor,
-  ResponsesEditor,
-} from './editor'
+import BasicInfoEditor from './editor/BasicInfoEditor.vue'
+import ParamsEditor from './editor/ParamsEditor.vue'
+import RequestBodyEditor from './editor/RequestBodyEditor.vue'
+import ResponsesEditor from './editor/ResponsesEditor.vue'
 
 const props = defineProps<{
-  /** API 详情数据 */
   api: ApiDetail
 }>()
 
 const emit = defineEmits<{
-  /** API 更新成功 */
   (e: 'updated', api: ApiDetail): void
 }>()
 
@@ -38,20 +34,21 @@ const activeTab = ref('basic')
 const isSaving = ref(false)
 
 /** 基本信息 */
-const basicInfo = ref<BasicInfo>({
+const basicInfo = ref<ApiBaseInfoForm>({
   name: '',
   method: 'GET',
   path: '',
   status: 'DRAFT',
   description: '',
   tags: [],
+  ownerId: '',
 })
 
 /** 请求参数 */
-const paramsData = ref<ParamsData>({
+const paramsData = ref<ApiReqData>({
   pathParams: [],
   queryParams: [],
-  headers: [],
+  requestHeaders: [],
 })
 
 /** 请求体 */
@@ -72,12 +69,13 @@ function initFromApi(api: ApiDetail) {
     status: api.status,
     description: api.description ?? '',
     tags: api.tags ?? [],
+    ownerId: api.owner?.id ?? '',
   }
 
   paramsData.value = {
     pathParams: (api.pathParams ?? []) as ApiParam[],
     queryParams: (api.queryParams ?? []) as ApiParam[],
-    headers: (api.requestHeaders ?? []) as ApiParam[],
+    requestHeaders: (api.requestHeaders ?? []) as ApiParam[],
   }
 
   requestBody.value = api.requestBody ?? null
@@ -136,11 +134,12 @@ function buildUpdateRequest(): UpdateApiReq {
     status: basicInfo.value.status,
     description: basicInfo.value.description || undefined,
     tags: basicInfo.value.tags,
+    ownerId: basicInfo.value.ownerId,
   }
 
   // 核心信息
   req.coreInfo = {
-    requestHeaders: paramsData.value.headers as Record<string, unknown>[],
+    requestHeaders: paramsData.value.requestHeaders as Record<string, unknown>[],
     pathParams: paramsData.value.pathParams as Record<string, unknown>[],
     queryParams: paramsData.value.queryParams as Record<string, unknown>[],
     requestBody: requestBody.value as Record<string, unknown> | undefined,
@@ -189,7 +188,7 @@ async function handleSave() {
     emit('updated', {
       ...props.api,
       ...basicInfo.value,
-      requestHeaders: paramsData.value.headers,
+      requestHeaders: paramsData.value.requestHeaders,
       pathParams: paramsData.value.pathParams,
       queryParams: paramsData.value.queryParams,
       requestBody: requestBody.value ?? undefined,
@@ -264,7 +263,7 @@ const tabItems = [
 
       <!-- Tab 内容 -->
       <ScrollArea class="flex-1">
-        <div class="max-w-4xl mx-auto p-6">
+        <div class="w-full p-6">
           <!-- 基本信息 -->
           <TabsContent value="basic" class="mt-0">
             <BasicInfoEditor

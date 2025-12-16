@@ -14,6 +14,7 @@ export const methodColors = {
   OPTIONS: 'text-cyan-600',
 } as const
 
+/** HTTP 请求方法对应的样式 */
 export const methodBadgeColors = {
   GET: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
   POST: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
@@ -55,6 +56,17 @@ export const paramTypeLabels: Record<ParamType, string> = {
   array: 'array',
   object: 'object',
   file: 'file',
+} as const
+
+/** 参数类型颜色 */
+export const paramTypeColors: Record<ParamType, string> = {
+  string: 'text-emerald-600',
+  number: 'text-blue-600',
+  integer: 'text-blue-600',
+  boolean: 'text-purple-600',
+  array: 'text-amber-600',
+  object: 'text-rose-600',
+  file: 'text-cyan-600',
 } as const
 
 /** 请求体类型选项 */

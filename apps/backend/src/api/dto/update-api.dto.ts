@@ -76,18 +76,21 @@ export class UpdateApiCoreInfoDto {
   @IsOptional()
   @IsArray({ message: '请求头必须是数组' })
   @IsObject({ each: true, message: '每个请求头 Item，必须是对象' })
+  @Type(() => Object)
   requestHeaders?: Record<string, any>[]
 
   /** 路径参数 */
   @IsOptional()
   @IsArray({ message: '路径参数必须是数组' })
   @IsObject({ each: true, message: '每个路径参数 Item，必须是对象' })
+  @Type(() => Object)
   pathParams?: Record<string, any>[]
 
   /** 查询参数 */
   @IsOptional()
   @IsArray({ message: '查询参数必须是数组' })
   @IsObject({ each: true, message: '每个查询参数 Item，必须是对象' })
+  @Type(() => Object)
   queryParams?: Record<string, any>[]
 
   /** 请求体 */
@@ -99,6 +102,7 @@ export class UpdateApiCoreInfoDto {
   @IsOptional()
   @IsArray({ message: '响应列表必须是数组' })
   @IsObject({ each: true, message: '每个响应 Item，必须是对象' })
+  @Type(() => Object)
   responses?: Record<string, any>[]
 
   /** 示例数据 */

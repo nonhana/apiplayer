@@ -1,10 +1,8 @@
 <script lang="ts" setup>
-/**
- * API 基本信息编辑组件
- * 包含：名称、请求方法、路径、状态、描述、标签
- */
+import type { ApiBaseInfoForm } from './types'
 import type { ApiStatus, HttpMethod } from '@/types/api'
 import { computed, ref, watch } from 'vue'
+import UserSearchSelect from '@/components/dashboard/UserSearchSelect.vue'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -25,19 +23,9 @@ import {
 import { cn } from '@/lib/utils'
 import TagsInput from './TagsInput.vue'
 
-/** 基本信息数据结构 */
-export interface BasicInfo {
-  name: string
-  method: HttpMethod
-  path: string
-  status: ApiStatus
-  description: string
-  tags: string[]
-}
-
 const props = withDefaults(defineProps<{
   /** 基本信息数据 */
-  info: BasicInfo
+  info: ApiBaseInfoForm
   /** 是否禁用 */
   disabled?: boolean
 }>(), {
@@ -45,17 +33,18 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  (e: 'update:info', info: BasicInfo): void
+  (e: 'update:info', info: ApiBaseInfoForm): void
 }>()
 
 /** 内部数据 */
-const internalInfo = ref<BasicInfo>({
+const internalInfo = ref<ApiBaseInfoForm>({
   name: '',
   method: 'GET',
   path: '',
   status: 'DRAFT',
   description: '',
   tags: [],
+  ownerId: '',
 })
 
 /** 同步外部数据 */
@@ -73,7 +62,7 @@ function emitChange() {
 }
 
 /** 更新字段 */
-function updateField<K extends keyof BasicInfo>(key: K, value: BasicInfo[K]) {
+function updateField<K extends keyof ApiBaseInfoForm>(key: K, value: ApiBaseInfoForm[K]) {
   if (props.disabled)
     return
 
@@ -94,7 +83,6 @@ const currentStatusClass = computed(() => {
 
 <template>
   <div class="space-y-6">
-    <!-- 第一行：名称 -->
     <div class="space-y-2">
       <Label for="api-name">
         接口名称 <span class="text-destructive">*</span>
@@ -109,7 +97,6 @@ const currentStatusClass = computed(() => {
       />
     </div>
 
-    <!-- 第二行：方法 + 路径 -->
     <div class="flex gap-3">
       <div class="w-[130px] space-y-2">
         <Label for="api-method">
@@ -152,32 +139,42 @@ const currentStatusClass = computed(() => {
       </div>
     </div>
 
-    <!-- 第三行：状态 -->
-    <div class="w-[200px] space-y-2">
-      <Label for="api-status">接口状态</Label>
-      <Select
-        :model-value="internalInfo.status"
-        :disabled="disabled"
-        @update:model-value="updateField('status', $event as ApiStatus)"
-      >
-        <SelectTrigger id="api-status" :class="currentStatusClass">
-          <SelectValue>{{ statusLabels[internalInfo.status] }}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem
-            v-for="status in API_STATUSES"
-            :key="status"
-            :value="status"
-          >
-            <span :class="statusColors[status]">
-              {{ statusLabels[status] }}
-            </span>
-          </SelectItem>
-        </SelectContent>
-      </Select>
+    <div class="flex gap-3">
+      <div class="w-[200px] space-y-2">
+        <Label for="api-status">接口状态</Label>
+        <Select
+          :model-value="internalInfo.status"
+          :disabled="disabled"
+          @update:model-value="updateField('status', $event as ApiStatus)"
+        >
+          <SelectTrigger id="api-status" :class="currentStatusClass">
+            <SelectValue>{{ statusLabels[internalInfo.status] }}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem
+              v-for="status in API_STATUSES"
+              :key="status"
+              :value="status"
+            >
+              <span :class="statusColors[status]">
+                {{ statusLabels[status] }}
+              </span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div class="flex-1 space-y-2">
+        <Label for="api-owner">负责人</Label>
+        <UserSearchSelect
+          :model-value="internalInfo.ownerId"
+          :multiple="false"
+          :disabled="disabled"
+          @update:model-value="updateField('ownerId', $event as string)"
+        />
+      </div>
     </div>
 
-    <!-- 第四行：描述 -->
     <div class="space-y-2">
       <Label for="api-description">接口描述</Label>
       <Textarea
@@ -191,7 +188,6 @@ const currentStatusClass = computed(() => {
       />
     </div>
 
-    <!-- 第五行：标签 -->
     <div class="space-y-2">
       <Label>标签</Label>
       <TagsInput

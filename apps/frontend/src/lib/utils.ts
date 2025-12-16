@@ -32,3 +32,8 @@ export function getUserFallbackIcon(name: string) {
     return (parts[0]?.charAt(0) ?? 'U').toUpperCase()
   return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'U'
 }
+
+/** 生成唯一 key */
+export function generateKey() {
+  return `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+}

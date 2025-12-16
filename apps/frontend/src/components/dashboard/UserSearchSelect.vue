@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { UserSearchItem } from '@/types/user'
 import { useDebounceFn } from '@vueuse/core'
-import { Check, Loader2 } from 'lucide-vue-next'
+import { Check, Loader2, X } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
+import { toast } from 'vue-sonner'
 import { userApi } from '@/api/user'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -18,22 +19,113 @@ import {
 import { getUserFallbackIcon } from '@/lib/utils'
 import UserBadge from '../UserBadge.vue'
 
-const props = defineProps<{
+/**
+ * - 多选：string[]（用户 ID 数组）
+ * - 单选：string | undefined（单个用户 ID）
+ */
+type ModelValue = string | string[] | undefined
+
+const props = withDefaults(defineProps<{
   /** 需要排除的用户 ID 列表（比如已是成员的用户） */
   excludeUserIds?: string[]
   /** 占位符文本 */
   placeholder?: string
   /** 是否禁用 */
   disabled?: boolean
+  /** 最多选择用户数量 */
+  max?: number
+  /** 是否开启多选，默认 true */
+  multiple?: boolean
+  /** 已选用户信息（用于回显） */
+  selectedUserInfo?: UserSearchItem | UserSearchItem[]
+}>(), {
+  placeholder: '搜索用户...',
+  multiple: true,
+})
+
+const emit = defineEmits<{
+  (e: 'change', users: UserSearchItem[]): void
 }>()
 
-/** 选中的用户列表 */
-const selectedUsers = defineModel<UserSearchItem[]>('modelValue', { default: [] })
+const modelValue = defineModel<ModelValue>('modelValue')
 
 const isOpen = ref(false)
 const searchQuery = ref('')
 const searchResults = ref<UserSearchItem[]>([])
 const isSearching = ref(false)
+
+const userCache = ref<Map<string, UserSearchItem>>(new Map())
+
+function initUserCache() {
+  if (!props.selectedUserInfo)
+    return
+
+  const users = Array.isArray(props.selectedUserInfo)
+    ? props.selectedUserInfo
+    : [props.selectedUserInfo]
+
+  users.forEach(user => userCache.value.set(user.id, user))
+}
+
+// 监听 selectedUserInfo 变化，更新缓存
+watch(
+  () => props.selectedUserInfo,
+  () => initUserCache(),
+  { immediate: true, deep: true },
+)
+
+/** 将搜索结果加入缓存 */
+watch(searchResults, (results) => {
+  results.forEach(user => userCache.value.set(user.id, user))
+})
+
+const selectedIds = computed<string[]>(() => {
+  if (props.multiple) {
+    return (modelValue.value as string[] | undefined) ?? []
+  }
+  const val = modelValue.value as string | undefined
+  return val ? [val] : []
+})
+
+const selectedUsers = computed<UserSearchItem[]>(() => {
+  return selectedIds.value
+    .map(id => userCache.value.get(id))
+    .filter((u): u is UserSearchItem => !!u)
+})
+
+type ComboboxValue = UserSearchItem[] | UserSearchItem | undefined
+
+function isUserSearchItem(val: unknown): val is UserSearchItem {
+  return val !== null && typeof val === 'object' && 'id' in val && 'email' in val
+}
+
+function normalizeToArray(val: ComboboxValue): UserSearchItem[] {
+  if (Array.isArray(val))
+    return val
+  if (isUserSearchItem(val))
+    return [val]
+  return []
+}
+
+const internalSelected = computed<ComboboxValue>({
+  get: () => props.multiple ? selectedUsers.value : selectedUsers.value[0],
+  set: (newV) => {
+    const users = normalizeToArray(newV)
+
+    // 更新缓存
+    users.forEach(user => userCache.value.set(user.id, user))
+
+    // 更新 modelValue
+    if (props.multiple) {
+      modelValue.value = users.map(u => u.id)
+    }
+    else {
+      modelValue.value = users[0]?.id
+    }
+
+    emit('change', users)
+  },
+})
 
 /** 过滤掉已排除的用户（不过滤已选择的，因为 Combobox 会自动处理） */
 const filteredResults = computed(() => {
@@ -69,19 +161,32 @@ watch(searchQuery, (query) => {
 })
 
 /** 获取用户的显示标签（用于 Combobox 的 displayValue） */
-function getUserDisplayLabel(user: UserSearchItem) {
-  return user.name
+function getUserDisplayLabel(user?: UserSearchItem) {
+  return user?.name ?? ''
 }
 
 /** 移除已经选择的用户 */
 function removeSelectedUser(userId: string) {
-  selectedUsers.value = selectedUsers.value.filter(u => u.id !== userId)
+  if (props.multiple) {
+    modelValue.value = selectedIds.value.filter(id => id !== userId)
+  }
+  else {
+    modelValue.value = undefined
+  }
+  emit('change', selectedUsers.value.filter(u => u.id !== userId))
 }
+
+watch(selectedIds, (newVal) => {
+  if (props.multiple && props.max !== undefined && newVal.length > props.max) {
+    toast.error(`最多只能选择 ${props.max} 个用户`)
+    modelValue.value = newVal.slice(0, props.max)
+  }
+})
 </script>
 
 <template>
   <div class="space-y-2">
-    <div v-if="selectedUsers.length > 0" class="flex flex-wrap gap-1.5">
+    <div v-if="selectedUsers.length > 0 && multiple" class="flex flex-wrap gap-1.5">
       <UserBadge
         v-for="user in selectedUsers"
         :key="user.id"
@@ -93,9 +198,9 @@ function removeSelectedUser(userId: string) {
 
     <!-- Combobox 搜索选择器 -->
     <Combobox
-      v-model="selectedUsers"
+      v-model="internalSelected"
       v-model:open="isOpen"
-      multiple
+      :multiple="multiple"
       ignore-filter
       :disabled="disabled"
       reset-search-term-on-blur
@@ -104,10 +209,15 @@ function removeSelectedUser(userId: string) {
         <div class="relative">
           <ComboboxInput
             v-model="searchQuery"
-            :placeholder="placeholder ?? '搜索用户...'"
+            :placeholder="placeholder"
             :display-value="getUserDisplayLabel"
             class="w-full"
             auto-focus
+          />
+          <X
+            v-if="selectedUsers.length > 0 && !multiple && !isSearching"
+            class="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground cursor-pointer"
+            @click="removeSelectedUser(selectedUsers[0]!.id)"
           />
           <Loader2
             v-if="isSearching"

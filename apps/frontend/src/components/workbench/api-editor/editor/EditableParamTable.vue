@@ -20,8 +20,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { PARAM_TYPES } from '@/constants/api'
-import { cn } from '@/lib/utils'
+import { PARAM_TYPES, paramTypeColors } from '@/constants/api'
+import { cn, generateKey } from '@/lib/utils'
+import ParamTableValueForm from './ParamTableValueForm.vue'
 
 /** 内部使用的参数项（带唯一 key） */
 interface ParamItem extends ApiParam {
@@ -62,14 +63,8 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  /** 参数变化 */
   (e: 'update:params', params: ApiParam[]): void
 }>()
-
-/** 生成唯一 key */
-function generateKey() {
-  return `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
-}
 
 /** 内部参数列表（带 _key） */
 const internalParams = ref<ParamItem[]>([])
@@ -94,17 +89,6 @@ watch(
   },
   { immediate: true, deep: true },
 )
-
-/** 参数类型颜色 */
-const typeColors: Record<ParamType, string> = {
-  string: 'text-emerald-600',
-  number: 'text-blue-600',
-  integer: 'text-blue-600',
-  boolean: 'text-purple-600',
-  array: 'text-amber-600',
-  object: 'text-rose-600',
-  file: 'text-cyan-600',
-}
 
 /** 表格列数 */
 const columnCount = computed(() => {
@@ -176,25 +160,25 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
         <TableHeader>
           <TableRow class="bg-muted/50">
             <TableHead v-if="draggable" class="w-[40px]" />
-            <TableHead class="w-[160px] font-semibold">
+            <TableHead class="w-[160px]">
               参数名
             </TableHead>
-            <TableHead v-if="showType" class="w-[100px] font-semibold">
+            <TableHead v-if="showType" class="w-[100px]">
               类型
             </TableHead>
-            <TableHead v-if="showRequired" class="w-[60px] font-semibold text-center">
+            <TableHead v-if="showRequired" class="w-[60px] text-center">
               必填
             </TableHead>
-            <TableHead v-if="showDefault" class="w-[120px] font-semibold">
+            <TableHead v-if="showDefault" class="w-[160px]">
               默认值
             </TableHead>
-            <TableHead v-if="showExample" class="w-[120px] font-semibold">
+            <TableHead v-if="showExample" class="w-[160px]">
               示例值
             </TableHead>
             <TableHead v-if="showDescription" class="font-semibold">
               说明
             </TableHead>
-            <TableHead class="w-[60px] font-semibold text-center">
+            <TableHead class="w-[60px] text-center">
               操作
             </TableHead>
           </TableRow>
@@ -233,7 +217,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                 >
                   <SelectTrigger class="h-8 text-xs">
                     <SelectValue placeholder="类型">
-                      <span :class="cn('font-mono', typeColors[param.type])">
+                      <span :class="cn('font-mono', paramTypeColors[param.type])">
                         {{ param.type }}
                       </span>
                     </SelectValue>
@@ -244,7 +228,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                       :key="type"
                       :value="type"
                     >
-                      <span :class="cn('font-mono', typeColors[type])">
+                      <span :class="cn('font-mono', paramTypeColors[type])">
                         {{ type }}
                       </span>
                     </SelectItem>
@@ -265,23 +249,21 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
 
               <!-- 默认值 -->
               <TableCell v-if="showDefault">
-                <Input
+                <ParamTableValueForm
+                  :type="param.type"
                   :model-value="param.defaultValue ?? ''"
-                  placeholder="-"
                   :disabled="disabled"
-                  class="h-8 text-xs font-mono"
-                  @update:model-value="handleUpdate(index, 'defaultValue', String($event))"
+                  @update:model-value="handleUpdate(index, 'defaultValue', $event)"
                 />
               </TableCell>
 
               <!-- 示例值 -->
               <TableCell v-if="showExample">
-                <Input
+                <ParamTableValueForm
+                  :type="param.type"
                   :model-value="param.example ?? ''"
-                  placeholder="-"
                   :disabled="disabled"
-                  class="h-8 text-xs font-mono"
-                  @update:model-value="handleUpdate(index, 'example', String($event))"
+                  @update:model-value="handleUpdate(index, 'example', $event)"
                 />
               </TableCell>
 

@@ -1,9 +1,5 @@
 <script lang="ts" setup>
-/**
- * 请求参数编辑组件
- * 包含：Path 参数、Query 参数、请求头
- * 采用 Tab 切换的形式
- */
+import type { ApiReqData } from './types'
 import type { ApiParam } from '@/types/api'
 import { FileText, Hash, LinkIcon } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -11,16 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import EditableParamTable from './EditableParamTable.vue'
 
-/** 参数数据结构 */
-export interface ParamsData {
-  pathParams: ApiParam[]
-  queryParams: ApiParam[]
-  headers: ApiParam[]
-}
-
 const props = withDefaults(defineProps<{
   /** 参数数据 */
-  params: ParamsData
+  params: ApiReqData
   /** 是否禁用 */
   disabled?: boolean
 }>(), {
@@ -28,17 +17,17 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  (e: 'update:params', params: ParamsData): void
+  (e: 'update:params', params: ApiReqData): void
 }>()
 
 /** 当前激活的 Tab */
 const activeTab = ref('query')
 
 /** 内部数据 */
-const internalParams = ref<ParamsData>({
+const internalParams = ref<ApiReqData>({
   pathParams: [],
   queryParams: [],
-  headers: [],
+  requestHeaders: [],
 })
 
 /** 同步外部数据 */
@@ -48,7 +37,7 @@ watch(
     internalParams.value = {
       pathParams: [...(newParams.pathParams ?? [])],
       queryParams: [...(newParams.queryParams ?? [])],
-      headers: [...(newParams.headers ?? [])],
+      requestHeaders: [...(newParams.requestHeaders ?? [])],
     }
   },
   { immediate: true, deep: true },
@@ -73,7 +62,7 @@ function handleQueryParamsChange(params: ApiParam[]) {
 
 /** 更新请求头 */
 function handleHeadersChange(params: ApiParam[]) {
-  internalParams.value.headers = params
+  internalParams.value.requestHeaders = params
   emitChange()
 }
 
@@ -95,7 +84,7 @@ const tabItems = computed(() => [
     value: 'headers',
     label: '请求头',
     icon: FileText,
-    count: internalParams.value.headers.length,
+    count: internalParams.value.requestHeaders.length,
   },
 ])
 </script>
@@ -157,7 +146,7 @@ const tabItems = computed(() => [
       <!-- 请求头 -->
       <TabsContent value="headers" class="mt-4">
         <EditableParamTable
-          :params="internalParams.headers"
+          :params="internalParams.requestHeaders"
           :disabled="disabled"
           :show-type="false"
           :show-required="false"

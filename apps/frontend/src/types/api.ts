@@ -116,8 +116,6 @@ export interface ApiDetail extends ApiBrief {
   owner: UserBriefInfo | null
   editor: UserBriefInfo
   creator: UserBriefInfo
-  editorId: string
-  creatorId: string
   createdAt: string
   updatedAt: string
   description?: string
@@ -230,33 +228,42 @@ export interface CreateApiReq {
   ownerId?: string
 }
 
+/** 更新 API 基本信息 */
+export interface UpdateApiBaseInfo {
+  name?: string
+  method?: HttpMethod
+  path?: string
+  description?: string
+  tags?: string[]
+  status?: ApiStatus
+  sortOrder?: number
+  ownerId?: string
+}
+
+/** 更新 API 核心信息 */
+export interface UpdateApiCoreInfo {
+  requestHeaders?: Record<string, unknown>[]
+  pathParams?: Record<string, unknown>[]
+  queryParams?: Record<string, unknown>[]
+  requestBody?: Record<string, unknown>
+  responses?: Record<string, unknown>[]
+  examples?: Record<string, unknown>
+  mockConfig?: Record<string, unknown>
+}
+
+/** 更新 API 版本信息 */
+export interface UpdateApiVersionInfo {
+  version?: string
+  summary?: string
+  changelog?: string
+  changes?: string[]
+}
+
 /** 更新 API 请求 */
 export interface UpdateApiReq {
-  baseInfo?: {
-    name?: string
-    method?: HttpMethod
-    path?: string
-    description?: string
-    tags?: string[]
-    status?: ApiStatus
-    sortOrder?: number
-    ownerId?: string
-  }
-  coreInfo?: {
-    requestHeaders?: Record<string, unknown>[]
-    pathParams?: Record<string, unknown>[]
-    queryParams?: Record<string, unknown>[]
-    requestBody?: Record<string, unknown>
-    responses?: Record<string, unknown>[]
-    examples?: Record<string, unknown>
-    mockConfig?: Record<string, unknown>
-  }
-  versionInfo?: {
-    version?: string
-    summary?: string
-    changelog?: string
-    changes?: string[]
-  }
+  baseInfo?: UpdateApiBaseInfo
+  coreInfo?: UpdateApiCoreInfo
+  versionInfo?: UpdateApiVersionInfo
 }
 
 /** 克隆 API 请求 */

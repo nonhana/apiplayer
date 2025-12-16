@@ -85,22 +85,22 @@ function formatConstraints(param: ApiParam): string[] {
     <Table>
       <TableHeader>
         <TableRow class="bg-muted/50">
-          <TableHead class="w-[180px] font-semibold">
+          <TableHead class="w-[180px] text-center">
             参数名
           </TableHead>
-          <TableHead v-if="showType" class="w-[100px] font-semibold">
+          <TableHead v-if="showType" class="w-[100px] text-center">
             类型
           </TableHead>
-          <TableHead v-if="showRequired" class="w-[80px] font-semibold text-center">
+          <TableHead v-if="showRequired" class="w-[100px] text-center">
             必填
           </TableHead>
-          <TableHead v-if="showDefault" class="w-[120px] font-semibold">
+          <TableHead v-if="showDefault" class="w-[160px] text-center">
             默认值
           </TableHead>
-          <TableHead v-if="showExample" class="w-[150px] font-semibold">
+          <TableHead v-if="showExample" class="w-[160px] text-center">
             示例
           </TableHead>
-          <TableHead class="font-semibold">
+          <TableHead class="text-center">
             说明
           </TableHead>
         </TableRow>
@@ -113,7 +113,7 @@ function formatConstraints(param: ApiParam): string[] {
             class="group"
           >
             <TableCell class="font-mono text-sm">
-              <div class="flex items-center gap-1.5">
+              <div class="flex-center gap-1.5">
                 <span class="font-medium">{{ param.name }}</span>
                 <TooltipProvider v-if="formatConstraints(param).length > 0">
                   <Tooltip>
@@ -131,7 +131,7 @@ function formatConstraints(param: ApiParam): string[] {
                 </TooltipProvider>
               </div>
             </TableCell>
-            <TableCell v-if="showType">
+            <TableCell v-if="showType" class="text-center">
               <span :class="cn('font-mono text-xs', getTypeColor(param.type))">
                 {{ param.type }}
               </span>
@@ -146,7 +146,7 @@ function formatConstraints(param: ApiParam): string[] {
               </Badge>
               <span v-else class="text-muted-foreground text-xs">可选</span>
             </TableCell>
-            <TableCell v-if="showDefault">
+            <TableCell v-if="showDefault" class="text-center">
               <code
                 v-if="param.defaultValue !== undefined"
                 class="text-xs bg-muted px-1.5 py-0.5 rounded font-mono"
@@ -155,16 +155,16 @@ function formatConstraints(param: ApiParam): string[] {
               </code>
               <span v-else class="text-muted-foreground text-xs">-</span>
             </TableCell>
-            <TableCell v-if="showExample">
+            <TableCell v-if="showExample" class="text-center">
               <code
                 v-if="param.example"
-                class="text-xs bg-muted px-1.5 py-0.5 rounded font-mono truncate max-w-[140px] inline-block"
+                class="text-xs bg-muted px-1.5 py-0.5 rounded font-mono"
               >
                 {{ param.example }}
               </code>
               <span v-else class="text-muted-foreground text-xs">-</span>
             </TableCell>
-            <TableCell>
+            <TableCell class="text-center">
               <span class="text-sm text-muted-foreground">
                 {{ param.description ?? '-' }}
               </span>

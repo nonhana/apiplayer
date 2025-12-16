@@ -42,7 +42,7 @@ const responses = computed<ApiResponse[]>(() => {
 
 <template>
   <ScrollArea class="h-full">
-    <div class="max-w-5xl mx-auto p-6 space-y-8">
+    <div class="w-full p-6 space-y-8">
       <!-- 主内容区域：左右布局 -->
       <div class="flex gap-6">
         <!-- 左侧：主要内容 -->
