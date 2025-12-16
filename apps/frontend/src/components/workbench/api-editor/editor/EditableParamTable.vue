@@ -2,6 +2,7 @@
 import type { ApiParam, ParamType } from '@/types/api'
 import { GripVertical, Plus, Trash2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
+import SuggestionInput from '@/components/common/SuggestionInput.vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -23,7 +24,6 @@ import {
 import { PARAM_TYPES, paramTypeColors } from '@/constants/api'
 import { cn, generateKey } from '@/lib/utils'
 import ParamTableValueForm from './ParamTableValueForm.vue'
-import SuggestionInput from './SuggestionInput.vue'
 
 /** 内部使用的参数项（带唯一 key） */
 interface ParamItem extends ApiParam {
