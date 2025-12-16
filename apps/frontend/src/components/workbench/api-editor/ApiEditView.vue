@@ -276,6 +276,7 @@ const tabItems = [
           <TabsContent value="params" class="mt-0">
             <ParamsEditor
               :params="paramsData"
+              :path="basicInfo.path"
               @update:params="paramsData = $event"
             />
           </TabsContent>

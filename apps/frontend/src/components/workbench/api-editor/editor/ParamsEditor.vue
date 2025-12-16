@@ -5,14 +5,19 @@ import { FileText, Hash, LinkIcon } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { extractPathParamNames } from '@/lib/utils'
 import EditableParamTable from './EditableParamTable.vue'
+import PathParamTable from './PathParamTable.vue'
 
 const props = withDefaults(defineProps<{
   /** 参数数据 */
   params: ApiReqData
+  /** API 路径（用于自动提取路径参数） */
+  path?: string
   /** 是否禁用 */
   disabled?: boolean
 }>(), {
+  path: '',
   disabled: false,
 })
 
@@ -43,12 +48,58 @@ watch(
   { immediate: true, deep: true },
 )
 
+/**
+ * 监听 path 变化，自动同步路径参数
+ * 数据流：path -> 提取 {xxx} -> 保留已有参数的配置 -> 更新
+ */
+watch(
+  () => props.path,
+  (newPath) => {
+    // 从路径中提取参数名
+    const extractedNames = extractPathParamNames(newPath ?? '')
+
+    // 获取现有参数的映射（用于保留用户已编辑的配置）
+    const existingParamsMap = new Map<string, ApiParam>()
+    for (const param of internalParams.value.pathParams) {
+      existingParamsMap.set(param.name, param)
+    }
+
+    // 根据提取的参数名生成新的参数列表
+    const newPathParams: ApiParam[] = extractedNames.map((name) => {
+      const existing = existingParamsMap.get(name)
+      if (existing) {
+        // 保留已有参数的配置
+        return { ...existing, required: true }
+      }
+      // 创建新参数（默认配置）
+      return {
+        name,
+        type: 'string',
+        required: true,
+        description: '',
+        example: '',
+      }
+    })
+
+    // 检查是否有变化（避免不必要的更新）
+    const hasChanged
+      = newPathParams.length !== internalParams.value.pathParams.length
+        || newPathParams.some((p, i) => p.name !== internalParams.value.pathParams[i]?.name)
+
+    if (hasChanged) {
+      internalParams.value.pathParams = newPathParams
+      emitChange()
+    }
+  },
+  { immediate: true },
+)
+
 /** 通知变化 */
 function emitChange() {
   emit('update:params', { ...internalParams.value })
 }
 
-/** 更新 Path 参数 */
+/** 更新 Path 参数（仅更新类型、示例值、说明等，不改变参数名和数量） */
 function handlePathParamsChange(params: ApiParam[]) {
   internalParams.value.pathParams = params
   emitChange()
@@ -130,14 +181,12 @@ const tabItems = computed(() => [
             <code class="px-1 py-0.5 bg-muted rounded text-xs font-mono">/users/{id}</code>
             中的
             <code class="px-1 py-0.5 bg-muted rounded text-xs font-mono">id</code>
-            ）
+            ），请在接口路径中修改
           </p>
-          <EditableParamTable
+          <PathParamTable
             :params="internalParams.pathParams"
             :disabled="disabled"
-            :show-default="false"
-            empty-text="暂无路径参数"
-            add-button-text="添加 Path 参数"
+            empty-text="暂无路径参数，请在接口路径中使用 {paramName} 格式定义"
             @update:params="handlePathParamsChange"
           />
         </div>
