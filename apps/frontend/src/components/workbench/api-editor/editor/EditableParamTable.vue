@@ -23,6 +23,7 @@ import {
 import { PARAM_TYPES, paramTypeColors } from '@/constants/api'
 import { cn, generateKey } from '@/lib/utils'
 import ParamTableValueForm from './ParamTableValueForm.vue'
+import SuggestionInput from './SuggestionInput.vue'
 
 /** 内部使用的参数项（带唯一 key） */
 interface ParamItem extends ApiParam {
@@ -50,6 +51,8 @@ const props = withDefaults(defineProps<{
   draggable?: boolean
   /** 是否禁用 */
   disabled?: boolean
+  /** 参数名建议列表（用于下拉选择，如 Header 参数名） */
+  nameSuggestions?: string[]
 }>(), {
   showType: true,
   showRequired: true,
@@ -60,6 +63,7 @@ const props = withDefaults(defineProps<{
   addButtonText: '添加参数',
   draggable: false,
   disabled: false,
+  nameSuggestions: () => [],
 })
 
 const emit = defineEmits<{
@@ -199,7 +203,18 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
 
               <!-- 参数名 -->
               <TableCell>
+                <SuggestionInput
+                  v-if="nameSuggestions.length > 0"
+                  :model-value="param.name"
+                  :suggestions="nameSuggestions"
+                  placeholder="参数名"
+                  :disabled="disabled"
+                  class="h-8 font-mono text-sm"
+                  @update:model-value="handleUpdate(index, 'name', $event)"
+                />
+                <!-- 普通输入框 -->
                 <Input
+                  v-else
                   :model-value="param.name"
                   placeholder="参数名"
                   :disabled="disabled"

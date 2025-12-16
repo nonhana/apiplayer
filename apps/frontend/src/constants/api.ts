@@ -107,3 +107,33 @@ export const httpStatusLabels: Record<number, string> = {
   502: 'Bad Gateway',
   503: 'Service Unavailable',
 } as const
+
+/** 常用请求头参数名 */
+export const HEADER_PARAMS = [
+  'Accept',
+  'Accept-Charset',
+  'Accept-Encoding',
+  'Accept-Language',
+  'Access-Control-Request-Headers',
+  'Access-Control-Request-Method',
+  'Authorization',
+  'Cache-Control',
+  'Connection',
+  'Content-Length',
+  'Content-Type',
+  'Cookie',
+  'Date',
+  'Host',
+  'If-Match',
+  'If-Modified-Since',
+  'If-None-Match',
+  'If-Unmodified-Since',
+  'Origin',
+  'Pragma',
+  'Range',
+  'Referer',
+  'User-Agent',
+  'X-Requested-With',
+  'X-Forwarded-For',
+  'X-API-Key',
+]

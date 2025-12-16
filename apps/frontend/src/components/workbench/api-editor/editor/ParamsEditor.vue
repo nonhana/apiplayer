@@ -5,6 +5,7 @@ import { FileText, Hash, LinkIcon } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { HEADER_PARAMS } from '@/constants/api'
 import { extractPathParamNames } from '@/lib/utils'
 import EditableParamTable from './EditableParamTable.vue'
 import PathParamTable from './PathParamTable.vue'
@@ -199,6 +200,7 @@ const tabItems = computed(() => [
           :disabled="disabled"
           :show-type="false"
           :show-required="false"
+          :name-suggestions="HEADER_PARAMS"
           empty-text="暂无请求头，点击添加"
           add-button-text="添加请求头"
           @update:params="handleHeadersChange"
