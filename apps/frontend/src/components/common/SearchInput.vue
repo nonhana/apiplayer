@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { Option } from '@/types'
 import { computed, ref, watch } from 'vue'
 import {
   Combobox,
@@ -13,8 +14,8 @@ import Input from '@/components/ui/input/Input.vue'
 const props = withDefaults(defineProps<{
   /** 当前值 */
   modelValue: string
-  /** 建议列表 */
-  suggestions: string[]
+  /** 选项列表 */
+  options: Option[]
   /** 占位符 */
   placeholder?: string
   /** 是否禁用 */
@@ -27,13 +28,13 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
+  (e: 'update:modelValue', value: string | number): void
 }>()
 
 /** 下拉框是否打开 */
 const open = ref(false)
 
-/** 搜索关键词（用于过滤建议列表） */
+/** 搜索关键词（用于过滤选项列表） */
 const searchTerm = ref('')
 
 /** 同步外部值到搜索框 */
@@ -45,12 +46,12 @@ watch(
   { immediate: true },
 )
 
-/** 过滤后的建议列表 */
-const filteredSuggestions = computed(() => {
+/** 过滤后的选项列表 */
+const filteredOptions = computed(() => {
   const term = searchTerm.value.toLowerCase()
   if (!term)
-    return props.suggestions
-  return props.suggestions.filter(s => s.toLowerCase().includes(term))
+    return props.options
+  return props.options.filter(s => s.label.toLowerCase().includes(term))
 })
 
 /** 处理输入变化 */
@@ -60,11 +61,16 @@ function handleInputChange(event: Event) {
   emit('update:modelValue', target.value)
 }
 
-/** 处理选择建议项 */
-function handleSelect(value: unknown) {
-  if (typeof value === 'string') {
-    searchTerm.value = value
-    emit('update:modelValue', value)
+/** 类型守卫，验证 item 是否为 Option */
+function isOption(item: unknown): item is Option {
+  return typeof item === 'object' && item !== null && 'label' in item && 'value' in item
+}
+
+/** 处理选择选项项 */
+function handleSelect(item: unknown) {
+  if (isOption(item)) {
+    searchTerm.value = item.label
+    emit('update:modelValue', item.value)
     open.value = false
   }
 }
@@ -92,7 +98,7 @@ function handleSelect(value: unknown) {
     </ComboboxAnchor>
 
     <ComboboxList
-      v-if="open && filteredSuggestions.length > 0"
+      v-if="open && filteredOptions.length > 0"
       class="max-h-[200px] overflow-y-auto p-1"
     >
       <ComboboxEmpty class="py-2 text-center text-sm text-muted-foreground">
@@ -100,12 +106,12 @@ function handleSelect(value: unknown) {
       </ComboboxEmpty>
 
       <ComboboxItem
-        v-for="suggestion in filteredSuggestions"
-        :key="suggestion"
-        :value="suggestion"
+        v-for="option in filteredOptions"
+        :key="option.label"
+        :value="option"
         class="cursor-pointer"
       >
-        <span class="font-mono text-sm">{{ suggestion }}</span>
+        <span class="font-mono text-sm">{{ option.label }}</span>
       </ComboboxItem>
     </ComboboxList>
   </Combobox>

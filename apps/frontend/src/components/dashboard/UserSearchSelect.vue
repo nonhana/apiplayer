@@ -17,6 +17,7 @@ import {
   ComboboxViewport,
 } from '@/components/ui/combobox'
 import { getUserFallbackIcon } from '@/lib/utils'
+import Input from '../ui/input/Input.vue'
 import UserBadge from '../UserBadge.vue'
 
 /**
@@ -208,12 +209,16 @@ watch(selectedIds, (newVal) => {
       <ComboboxAnchor class="w-full">
         <div class="relative">
           <ComboboxInput
-            v-model="searchQuery"
-            :placeholder="placeholder"
-            :display-value="getUserDisplayLabel"
+            as-child
             class="w-full"
-            auto-focus
-          />
+          >
+            <Input
+              v-model="searchQuery"
+              :placeholder="placeholder"
+              :disabled="disabled"
+              @focus="isOpen = true"
+            />
+          </ComboboxInput>
           <X
             v-if="selectedUsers.length > 0 && !multiple && !isSearching"
             class="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground cursor-pointer"

@@ -1,8 +1,9 @@
 <script lang="ts" setup>
+import type { Option } from '@/types'
 import type { ApiParam, ParamType } from '@/types/api'
 import { GripVertical, Plus, Trash2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
-import SuggestionInput from '@/components/common/SuggestionInput.vue'
+import SearchInput from '@/components/common/SearchInput.vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -52,7 +53,7 @@ const props = withDefaults(defineProps<{
   /** 是否禁用 */
   disabled?: boolean
   /** 参数名建议列表（用于下拉选择，如 Header 参数名） */
-  nameSuggestions?: string[]
+  paramNameOptions?: Option[]
 }>(), {
   showType: true,
   showRequired: true,
@@ -63,7 +64,7 @@ const props = withDefaults(defineProps<{
   addButtonText: '添加参数',
   draggable: false,
   disabled: false,
-  nameSuggestions: () => [],
+  paramNameOptions: () => [],
 })
 
 const emit = defineEmits<{
@@ -203,14 +204,14 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
 
               <!-- 参数名 -->
               <TableCell>
-                <SuggestionInput
-                  v-if="nameSuggestions.length > 0"
+                <SearchInput
+                  v-if="paramNameOptions.length > 0"
                   :model-value="param.name"
-                  :suggestions="nameSuggestions"
+                  :options="paramNameOptions"
                   placeholder="参数名"
                   :disabled="disabled"
                   class="h-8 font-mono text-sm"
-                  @update:model-value="handleUpdate(index, 'name', $event)"
+                  @update:model-value="handleUpdate(index, 'name', String($event))"
                 />
                 <!-- 普通输入框 -->
                 <Input

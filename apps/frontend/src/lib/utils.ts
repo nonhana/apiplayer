@@ -66,3 +66,10 @@ export function extractPathParamNames(path: string): string[] {
 
   return params
 }
+
+export function buildOptionList(arr: string[]) {
+  return arr.map(item => ({
+    label: item,
+    value: item,
+  }))
+}
