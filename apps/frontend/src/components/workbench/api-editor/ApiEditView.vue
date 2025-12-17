@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ApiBaseInfoForm, ApiReqData } from './editor/types'
 import type { TabPageItem } from '@/types'
-import type { ApiDetail, ApiParam, ApiRequestBody, ApiResponse, UpdateApiReq } from '@/types/api'
+import type { ApiDetail, ApiParam, ApiRequestBody, ApiResponse, LocalApiRequestBody, UpdateApiReq } from '@/types/api'
 import { useRouteQuery } from '@vueuse/router'
 import { FileText, Hash, Loader2, MessageSquare, Save, Settings } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { nodeToSchema, schemaToNode } from '@/lib/json-schema'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useTabStore } from '@/stores/useTabStore'
 import BasicInfoEditor from './editor/BasicInfoEditor.vue'
@@ -60,13 +61,33 @@ const paramsData = ref<ApiReqData>({
 })
 
 /** 请求体 */
-const requestBody = ref<ApiRequestBody | null>(null)
+const requestBody = ref<LocalApiRequestBody | null>(null)
 
 /** 响应定义 */
 const responses = ref<ApiResponse[]>([])
 
 /** 原始数据（用于检测变化） */
 const originalData = ref<string>('')
+
+/** ApiRequestBody -> LocalApiRequestBody */
+function toLocalReqBody(body: ApiRequestBody): LocalApiRequestBody {
+  const { jsonSchema, ...rest } = body
+  const result: LocalApiRequestBody = { ...rest }
+  if (jsonSchema) {
+    result.jsonSchema = schemaToNode(jsonSchema)
+  }
+  return result
+}
+
+/** LocalApiRequestBody -> ApiRequestBody */
+function toApiReqBody(body: LocalApiRequestBody): ApiRequestBody {
+  const { jsonSchema, ...rest } = body
+  const result: ApiRequestBody = { ...rest }
+  if (jsonSchema) {
+    result.jsonSchema = nodeToSchema(jsonSchema)
+  }
+  return result
+}
 
 /** 从 API 详情初始化数据 */
 function initFromApi(api: ApiDetail) {
@@ -86,7 +107,7 @@ function initFromApi(api: ApiDetail) {
     requestHeaders: (api.requestHeaders ?? []) as ApiParam[],
   }
 
-  requestBody.value = api.requestBody ?? null
+  requestBody.value = api.requestBody ? toLocalReqBody(api.requestBody) : null
 
   responses.value = (api.responses ?? []) as ApiResponse[]
 
@@ -145,12 +166,15 @@ function buildUpdateRequest(): UpdateApiReq {
     ownerId: basicInfo.value.ownerId,
   }
 
+  // 处理请求体数据
+  const reqBody = requestBody.value ? toApiReqBody(requestBody.value) : undefined
+
   // 核心信息
   req.coreInfo = {
     requestHeaders: paramsData.value.requestHeaders as Record<string, unknown>[],
     pathParams: paramsData.value.pathParams as Record<string, unknown>[],
     queryParams: paramsData.value.queryParams as Record<string, unknown>[],
-    requestBody: requestBody.value as Record<string, unknown> | undefined,
+    requestBody: reqBody as Record<string, unknown> | undefined,
     responses: responses.value as Record<string, unknown>[],
   }
 
@@ -192,14 +216,14 @@ async function handleSave() {
 
     toast.success('保存成功')
 
-    // 通知父组件
+    // 通知父组件更新本地数据
     emit('updated', {
       ...props.api,
       ...basicInfo.value,
       requestHeaders: paramsData.value.requestHeaders,
       pathParams: paramsData.value.pathParams,
       queryParams: paramsData.value.queryParams,
-      requestBody: requestBody.value ?? undefined,
+      requestBody: requestBody.value ? toApiReqBody(requestBody.value) : undefined,
       responses: responses.value,
     })
   }

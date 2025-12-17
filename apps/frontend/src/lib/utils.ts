@@ -67,6 +67,7 @@ export function extractPathParamNames(path: string): string[] {
   return params
 }
 
+/** 构建选项列表 */
 export function buildOptionList(arr: string[]) {
   return arr.map(item => ({
     label: item,

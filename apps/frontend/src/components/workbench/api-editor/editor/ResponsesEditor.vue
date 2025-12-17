@@ -4,8 +4,11 @@
  * 支持多个响应码的定义，每个响应包含状态码、名称、描述、响应体
  */
 import type { ApiResponse } from '@/types/api'
+import type { LocalSchemaNode } from '@/types/json-schema'
 import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
+import JsonSchemaEditor from '@/components/common/JsonSchemaEditor.vue'
+import { genRootSchemaNode, nodeToSchema, schemaToNode } from '@/lib/json-schema'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,11 +28,12 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { HTTP_STATUS_CATEGORIES, httpStatusLabels } from '@/constants/api'
 import { cn } from '@/lib/utils'
-import JsonSchemaEditor from './JsonSchemaEditor.vue'
 
-/** 内部响应项（带唯一 key） */
-interface ResponseItem extends ApiResponse {
+/** 内部响应项（带唯一 key 和本地 schema） */
+interface ResponseItem extends Omit<ApiResponse, 'body'> {
   _key: string
+  /** 本地 schema 节点（用于编辑器） */
+  localSchema: LocalSchemaNode
 }
 
 const props = withDefaults(defineProps<{
@@ -60,10 +64,15 @@ const expandedKeys = ref<Set<string>>(new Set())
 watch(
   () => props.responses,
   (newResponses) => {
-    internalResponses.value = newResponses.map(r => ({
-      ...r,
-      _key: generateKey(),
-    }))
+    internalResponses.value = newResponses.map((r) => {
+      const { body, ...rest } = r
+      return {
+        ...rest,
+        _key: generateKey(),
+        // 将 body（JSON Schema）转换为本地节点
+        localSchema: schemaToNode(body as Record<string, unknown> | null),
+      }
+    })
     // 默认展开第一个
     if (internalResponses.value.length > 0 && expandedKeys.value.size === 0) {
       expandedKeys.value.add(internalResponses.value[0]!._key)
@@ -74,7 +83,11 @@ watch(
 
 /** 通知变化 */
 function emitChange() {
-  const responses = internalResponses.value.map(({ _key, ...rest }) => rest)
+  const responses: ApiResponse[] = internalResponses.value.map(({ _key, localSchema, ...rest }) => ({
+    ...rest,
+    // 将本地节点转换回 JSON Schema
+    body: nodeToSchema(localSchema),
+  }))
   emit('update:responses', responses)
 }
 
@@ -145,7 +158,7 @@ function handleAdd() {
     name: '成功响应',
     httpStatus: 200,
     description: '',
-    body: { type: 'object', properties: {} },
+    localSchema: genRootSchemaNode(),
   }
 
   internalResponses.value.push(newResponse)
@@ -177,14 +190,14 @@ function updateField<K extends keyof ApiResponse>(index: number, key: K, value: 
   }
 }
 
-/** 更新响应体 Schema */
-function updateBodySchema(index: number, schema: Record<string, unknown> | null) {
+/** 更新响应体 Schema（通过 v-model 自动触发） */
+function updateLocalSchema(index: number, schema: LocalSchemaNode) {
   if (props.disabled)
     return
 
   const response = internalResponses.value[index]
   if (response) {
-    response.body = schema ?? undefined
+    response.localSchema = schema
     emitChange()
   }
 }
@@ -300,9 +313,8 @@ function updateBodySchema(index: number, schema: Record<string, unknown> | null)
             <div class="space-y-2">
               <Label>响应体结构</Label>
               <JsonSchemaEditor
-                :schema="(response.body as Record<string, unknown>) ?? null"
-                :disabled="disabled"
-                @update:schema="updateBodySchema(index, $event)"
+                :model-value="response.localSchema"
+                @update:model-value="updateLocalSchema(index, $event)"
               />
             </div>
           </div>

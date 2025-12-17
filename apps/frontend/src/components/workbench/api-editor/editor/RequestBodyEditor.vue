@@ -1,22 +1,22 @@
 <script lang="ts" setup>
-/**
- * 请求体编辑组件
- * 支持多种请求体类型：none, json, form-data, x-www-form-urlencoded, binary, raw
- */
-import type { ApiParam, ApiRequestBody, RequestBodyType } from '@/types/api'
+import type { ApiParam, LocalApiRequestBody, RequestBodyType } from '@/types/api'
+import type { LocalSchemaNode } from '@/types/json-schema'
 import { FileCode, FileJson, FormInput, Upload } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
+import { toast } from 'vue-sonner'
+import JsonSchemaEditor from '@/components/common/JsonSchemaEditor.vue'
 import { Badge } from '@/components/ui/badge'
+import Button from '@/components/ui/button/Button.vue'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
 import { REQUEST_BODY_TYPES, requestBodyTypeLabels } from '@/constants/api'
+import { genRootSchemaNode } from '@/lib/json-schema'
 import EditableParamTable from './EditableParamTable.vue'
-import JsonSchemaEditor from './JsonSchemaEditor.vue'
 
 const props = withDefaults(defineProps<{
   /** 请求体数据 */
-  body: ApiRequestBody | null
+  body: LocalApiRequestBody | null
   /** 是否禁用 */
   disabled?: boolean
 }>(), {
@@ -24,11 +24,11 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  (e: 'update:body', body: ApiRequestBody | null): void
+  (e: 'update:body', body: LocalApiRequestBody | null): void
 }>()
 
 /** 内部数据 */
-const internalBody = ref<ApiRequestBody>({
+const internalBody = ref<LocalApiRequestBody>({
   type: 'none',
   jsonSchema: undefined,
   formFields: [],
@@ -82,7 +82,7 @@ function handleTypeChange(type: RequestBodyType) {
 
   // 根据类型初始化默认值
   if (type === 'json' && !internalBody.value.jsonSchema) {
-    internalBody.value.jsonSchema = { type: 'object', properties: {} }
+    internalBody.value.jsonSchema = genRootSchemaNode()
   }
   if ((type === 'form-data' || type === 'x-www-form-urlencoded') && !internalBody.value.formFields) {
     internalBody.value.formFields = []
@@ -91,9 +91,18 @@ function handleTypeChange(type: RequestBodyType) {
   emitChange()
 }
 
+function initJsonSchema() {
+  if (internalBody.value.jsonSchema) {
+    toast.error('该接口请求体已经存在 JSON Schema')
+    return
+  }
+  internalBody.value.jsonSchema = genRootSchemaNode()
+  emitChange()
+}
+
 /** 更新 JSON Schema */
-function handleSchemaChange(schema: Record<string, unknown> | null) {
-  internalBody.value.jsonSchema = schema ?? undefined
+function handleSchemaChange(schema: LocalSchemaNode) {
+  internalBody.value.jsonSchema = schema
   emitChange()
 }
 
@@ -206,10 +215,15 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
         <span>JSON Schema 结构定义</span>
       </div>
       <JsonSchemaEditor
-        :schema="(internalBody.jsonSchema as Record<string, unknown>) ?? null"
-        :disabled="disabled"
-        @update:schema="handleSchemaChange"
+        v-if="internalBody.jsonSchema"
+        :model-value="internalBody.jsonSchema"
+        @update:model-value="handleSchemaChange"
       />
+      <div v-else>
+        <Button @click="initJsonSchema">
+          该接口暂无 Body JSON 请求体定义，点击新增
+        </Button>
+      </div>
     </div>
 
     <!-- 表单类型 -->

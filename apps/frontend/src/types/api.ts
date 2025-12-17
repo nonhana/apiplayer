@@ -1,3 +1,4 @@
+import type { LocalSchemaNode } from './json-schema'
 import type { UserBriefInfo } from './user'
 
 /** 标签页类型 */
@@ -73,6 +74,12 @@ export interface ApiRequestBody {
   example?: unknown
   /** 描述 */
   description?: string
+}
+
+/** 本地请求体定义 */
+export interface LocalApiRequestBody extends Omit<ApiRequestBody, 'jsonSchema'> {
+  /** 本地 JSON Schema */
+  jsonSchema?: LocalSchemaNode
 }
 
 /** 响应定义 */
