@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { ApiBaseInfoForm, ApiReqData } from './editor/types'
+import type { TabPageItem } from '@/types'
 import type { ApiDetail, ApiParam, ApiRequestBody, ApiResponse, UpdateApiReq } from '@/types/api'
+import { useRouteQuery } from '@vueuse/router'
 import { FileText, Hash, Loader2, MessageSquare, Save, Settings } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
@@ -24,11 +26,17 @@ const emit = defineEmits<{
   (e: 'updated', api: ApiDetail): void
 }>()
 
+type TabType = 'basic' | 'params' | 'body' | 'responses'
+const tabItems: TabPageItem<TabType>[] = [
+  { value: 'basic', label: '基本信息', icon: Settings },
+  { value: 'params', label: '请求参数', icon: Hash },
+  { value: 'body', label: '请求体', icon: FileText },
+  { value: 'responses', label: '响应定义', icon: MessageSquare },
+]
+
 const apiTreeStore = useApiTreeStore()
 const tabStore = useTabStore()
-
-/** 当前激活的 Tab */
-const activeTab = ref('basic')
+const activeTab = useRouteQuery<TabType>('editing', 'basic')
 
 /** 是否正在保存 */
 const isSaving = ref(false)
@@ -203,14 +211,6 @@ async function handleSave() {
     isSaving.value = false
   }
 }
-
-/** Tab 配置 */
-const tabItems = [
-  { value: 'basic', label: '基本信息', icon: Settings },
-  { value: 'params', label: '请求参数', icon: Hash },
-  { value: 'body', label: '请求体', icon: FileText },
-  { value: 'responses', label: '响应定义', icon: MessageSquare },
-]
 </script>
 
 <template>

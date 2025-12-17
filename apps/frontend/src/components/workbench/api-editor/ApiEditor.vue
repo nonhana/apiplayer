@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import type { Component } from 'vue'
+import type { TabPageItem } from '@/types'
 import type { ApiDetail } from '@/types/api'
+import { useRouteQuery } from '@vueuse/router'
 import { AlertCircle, FileText, Loader2, Pencil, Play, Settings2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { apiApi } from '@/api/api'
@@ -14,13 +15,7 @@ const props = defineProps<{
 }>()
 
 type TabType = 'doc' | 'edit' | 'run' | 'settings'
-interface TabItem {
-  value: TabType
-  label: string
-  icon: Component
-  disabled?: boolean
-}
-const tabItems: TabItem[] = [
+const tabItems: TabPageItem<TabType>[] = [
   { value: 'doc', label: '文档', icon: FileText },
   { value: 'edit', label: '编辑', icon: Pencil },
   { value: 'run', label: '运行', icon: Play, disabled: true },
@@ -28,6 +23,14 @@ const tabItems: TabItem[] = [
 ]
 
 const apiTreeStore = useApiTreeStore()
+const activeTab = useRouteQuery<TabType>('mode', 'doc')
+const editing = useRouteQuery('editing')
+
+watch(activeTab, (newV, oldV) => {
+  if (newV !== oldV && oldV === 'edit' && editing.value) {
+    editing.value = undefined
+  }
+})
 
 /** API 详情数据 */
 const apiDetail = ref<ApiDetail | null>(null)
@@ -37,9 +40,6 @@ const isLoading = ref(false)
 
 /** 加载错误 */
 const loadError = ref<string | null>(null)
-
-/** 当前激活的 Tab */
-const activeTab = ref<TabType>('doc')
 
 /** 是否已加载 */
 const isLoaded = computed(() => apiDetail.value !== null)

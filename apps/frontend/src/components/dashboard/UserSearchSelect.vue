@@ -161,11 +161,6 @@ watch(searchQuery, (query) => {
   }
 })
 
-/** 获取用户的显示标签（用于 Combobox 的 displayValue） */
-function getUserDisplayLabel(user?: UserSearchItem) {
-  return user?.name ?? ''
-}
-
 /** 移除已经选择的用户 */
 function removeSelectedUser(userId: string) {
   if (props.multiple) {
