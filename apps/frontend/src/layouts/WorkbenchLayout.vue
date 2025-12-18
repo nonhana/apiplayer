@@ -27,7 +27,7 @@ onUnmounted(() => {
 <template>
   <div class="h-screen w-screen flex flex-col bg-background text-foreground">
     <WorkbenchHeader />
-    <div class="flex">
+    <div class="flex flex-1">
       <ApiSidebar />
       <router-view />
     </div>
