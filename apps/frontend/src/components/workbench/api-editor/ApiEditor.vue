@@ -12,13 +12,6 @@ import ApiEditView from './ApiEditView.vue'
 const projectId = useRouteParams<string>('projectId')
 const apiId = useRouteParams<string>('apiId')
 
-/** 监听 API ID 和项目 ID 变化，重新获取 API 详情 */
-watch([apiId, projectId], ([curApiId, curProjectId]) => {
-  if (curApiId && curProjectId) {
-    fetchApiDetail()
-  }
-}, { immediate: true })
-
 type TabType = 'doc' | 'edit' | 'run' | 'settings'
 const tabItems: TabPageItem<TabType>[] = [
   { value: 'doc', label: '文档', icon: FileText },
@@ -52,7 +45,6 @@ const isLoaded = computed(() => apiDetail.value !== null)
 async function fetchApiDetail() {
   isLoading.value = true
   loadError.value = null
-
   try {
     const data = await apiApi.getApiDetail(projectId.value, apiId.value)
     apiDetail.value = data
@@ -69,6 +61,13 @@ async function fetchApiDetail() {
 function handleApiUpdated(updatedApi: ApiDetail) {
   apiDetail.value = updatedApi
 }
+
+/** 监听 API ID 和项目 ID 变化，重新获取 API 详情 */
+watch([apiId, projectId], ([curApiId, curProjectId]) => {
+  if (curApiId && curProjectId) {
+    fetchApiDetail()
+  }
+}, { immediate: true })
 </script>
 
 <template>

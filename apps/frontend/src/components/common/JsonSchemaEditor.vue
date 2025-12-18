@@ -4,6 +4,7 @@ import JsonSchemaNode from './JsonSchemaNode.vue'
 
 const root = defineModel<LocalSchemaNode>({ required: true })
 
+// 根据 id path 获取指定 node 的引用
 function getPathNode(node: LocalSchemaNode | null, pathArr: string[]): LocalSchemaNode | null {
   if (!node)
     return null
@@ -12,39 +13,36 @@ function getPathNode(node: LocalSchemaNode | null, pathArr: string[]): LocalSche
 
   const [curId, ...rest] = pathArr
 
+  // 当前节点 id 匹配，继续处理剩余路径
   if (node.id === curId) {
     return getPathNode(node, rest)
   }
 
   let curNode: LocalSchemaNode | null = null
 
-  if (node.type === 'object') {
-    if (!node.children?.length) {
-      return null
-    }
+  if (node.type === 'object' && node.children?.length) {
     curNode = node.children.find(item => item.id === curId) ?? null
   }
-  else if (node.type === 'array') {
-    curNode = node.item?.id === curId ? node.item ?? null : null
+  else if (node.type === 'array' && node.item) {
+    curNode = node.item.id === curId ? node.item : null
   }
 
   return getPathNode(curNode, rest)
 }
 
-function pathToArray(path: string): string[] {
+function pathToArr(path: string): string[] {
   if (!path)
     return []
   return path.split('-').filter(Boolean)
 }
 
 function handleAddNode({ newNode, path }: { newNode: LocalSchemaNode, path: string }) {
-  const pathArr = pathToArray(path)
+  const pathArr = pathToArr(path)
   const node = getPathNode(root.value, pathArr)
 
   if (!node || node.type !== 'object')
     return
 
-  // 确保 children 数组存在
   if (!node.children) {
     node.children = []
   }
@@ -52,7 +50,7 @@ function handleAddNode({ newNode, path }: { newNode: LocalSchemaNode, path: stri
 }
 
 function handleUpdateNode({ patch, path }: { patch: { key: string, value: unknown }, path: string }) {
-  const pathArr = pathToArray(path)
+  const pathArr = pathToArr(path)
   const node = getPathNode(root.value, pathArr)
 
   if (!node) {
@@ -63,7 +61,7 @@ function handleUpdateNode({ patch, path }: { patch: { key: string, value: unknow
 }
 
 function handleDeleteNode({ path }: { path: string }) {
-  const pathArr = pathToArray(path)
+  const pathArr = pathToArr(path)
 
   if (pathArr.length === 0)
     return // 不能删除根节点

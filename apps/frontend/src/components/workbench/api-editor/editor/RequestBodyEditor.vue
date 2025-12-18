@@ -3,10 +3,8 @@ import type { ApiParam, LocalApiRequestBody, RequestBodyType } from '@/types/api
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { FileCode, FileJson, FormInput, Upload } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
-import { toast } from 'vue-sonner'
 import JsonSchemaEditor from '@/components/common/JsonSchemaEditor.vue'
 import { Badge } from '@/components/ui/badge'
-import Button from '@/components/ui/button/Button.vue'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
@@ -65,12 +63,7 @@ watch(
 
 /** 通知变化 */
 function emitChange() {
-  if (internalBody.value.type === 'none') {
-    emit('update:body', null)
-  }
-  else {
-    emit('update:body', { ...internalBody.value })
-  }
+  emit('update:body', { ...internalBody.value })
 }
 
 /** 更新请求体类型 */
@@ -88,15 +81,6 @@ function handleTypeChange(type: RequestBodyType) {
     internalBody.value.formFields = []
   }
 
-  emitChange()
-}
-
-function initJsonSchema() {
-  if (internalBody.value.jsonSchema) {
-    toast.error('该接口请求体已经存在 JSON Schema')
-    return
-  }
-  internalBody.value.jsonSchema = genRootSchemaNode()
   emitChange()
 }
 
@@ -219,11 +203,6 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
         :model-value="internalBody.jsonSchema"
         @update:model-value="handleSchemaChange"
       />
-      <div v-else>
-        <Button @click="initJsonSchema">
-          该接口暂无 Body JSON 请求体定义，点击新增
-        </Button>
-      </div>
     </div>
 
     <!-- 表单类型 -->
@@ -233,7 +212,8 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
         <span>表单字段定义</span>
       </div>
       <EditableParamTable
-        :params="internalBody.formFields ?? []"
+        v-if="internalBody.formFields"
+        :params="internalBody.formFields"
         :disabled="disabled"
         empty-text="暂无表单字段，点击添加"
         add-button-text="添加表单字段"

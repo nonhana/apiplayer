@@ -1,6 +1,11 @@
-import type { ParamType } from '@/types/api'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { generateKey } from '@/lib/utils'
+
+/** JSON Schema 支持的字段类型 */
+export type SchemaFieldType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'null'
+
+/** JSON Schema 支持的字段类型 */
+export const SCHEMA_FIELD_TYPES: SchemaFieldType[] = ['string', 'number', 'integer', 'boolean', 'array', 'object', 'null']
 
 /**
  * 将 JSON Schema 的 properties 转换为子节点数组
@@ -12,7 +17,7 @@ function schemaPropertiesToChildren(schema: Record<string, unknown>): LocalSchem
   const required = (schema.required ?? []) as string[]
 
   return Object.entries(properties).map(([name, prop]) => {
-    const type = (prop.type as ParamType) || 'string'
+    const type = (prop.type as SchemaFieldType) || 'string'
     const node: LocalSchemaNode = {
       id: generateKey(),
       name,
@@ -30,13 +35,14 @@ function schemaPropertiesToChildren(schema: Record<string, unknown>): LocalSchem
     // 递归处理 array 类型
     if (type === 'array' && prop.items) {
       const items = prop.items as Record<string, unknown>
-      const itemType = (items.type as ParamType) || 'string'
+      const itemType = (items.type as SchemaFieldType) || 'string'
       node.item = {
         id: generateKey(),
-        name: 'items',
+        isArrayItem: true,
+        name: 'ITEMS',
         type: itemType,
         required: false,
-        description: '',
+        description: (items.description as string) || '',
       }
       if (itemType === 'object' && items.properties) {
         node.item.children = schemaPropertiesToChildren(items)

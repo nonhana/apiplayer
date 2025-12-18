@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ParamType } from '@/types/api'
+import type { SchemaFieldType } from '@/lib/json-schema'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { ChevronRight, Plus, Trash2 } from 'lucide-vue-next'
 import { computed } from 'vue'
@@ -13,8 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { PARAM_TYPES, paramTypeColors } from '@/constants/api'
-import { cn, generateKey } from '@/lib/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { SCHEMA_FIELD_TYPES } from '@/lib/json-schema'
+import { generateKey } from '@/lib/utils'
+import Code from './Code.vue'
 
 const props = defineProps<{
   /** Schema 节点 */
@@ -43,19 +50,47 @@ const currentPath = computed(() => {
 /** 父节点路径（用于添加相邻节点） */
 const parentPath = computed(() => props.path || '')
 
+/** 是否显示空 children 提示 */
 const showEmptyChildren = computed(() =>
   props.node.type === 'object'
   && (!props.node.children || props.node.children.length === 0),
 )
 
-const canDelete = computed(() => !props.node.isRoot)
-const canAddSibling = computed(() => !props.node.isRoot)
+/** 是否可以删除（根节点和数组项节点不可删除） */
+const canDelete = computed(() => !props.node.isRoot && !props.node.isArrayItem)
+
+/** 是否可以添加相邻节点（根节点和数组项节点不可添加） */
+const canAddSibling = computed(() => !props.node.isRoot && !props.node.isArrayItem)
+
+/** 是否可以添加子节点（object 类型 或 array item 是 object 类型） */
+const canAddChild = computed(() => props.node.type === 'object')
+
+/** 是否需要显示展开指示器 */
+const showExpandIcon = computed(() => {
+  if (props.node.type === 'object')
+    return true
+  if (props.node.type === 'array')
+    return true
+  return false
+})
 
 /** 生成新节点 */
 function genNewNode(): LocalSchemaNode {
   return {
     id: generateKey(),
     name: '',
+    type: 'string',
+    required: false,
+    description: '',
+  }
+}
+
+/** 生成 array item 节点 */
+function genArrayItemNode(): LocalSchemaNode {
+  return {
+    id: generateKey(),
+    isArrayItem: true,
+    name: 'ITEMS',
     type: 'string',
     required: false,
     description: '',
@@ -85,6 +120,39 @@ function deleteNode() {
 
 /** 更新当前节点属性 */
 function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaNode[K]) {
+  // 类型切换时需要进行特殊处理
+  if (key === 'type') {
+    const newType = value as SchemaFieldType
+
+    const patches: Array<{ key: string, value: any }> = []
+
+    patches.push(
+      { key: 'item', value: undefined },
+      { key: 'children', value: undefined },
+    )
+
+    if (newType === 'array') {
+      patches.push({
+        key: 'item',
+        value: genArrayItemNode(),
+      })
+    }
+
+    if (newType === 'object') {
+      patches.push({
+        key: 'children',
+        value: [],
+      })
+    }
+
+    patches.forEach((patch) => {
+      emits('updateNode', {
+        patch,
+        path: currentPath.value,
+      })
+    })
+  }
+
   emits('updateNode', {
     patch: { key, value },
     path: currentPath.value,
@@ -99,47 +167,55 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
       class="flex items-center gap-2 px-2 py-2 hover:bg-muted/30 transition-colors group"
       :style="{ paddingLeft: `${currentDepth * 16 + 8}px` }"
     >
-      <!-- 展开指示器（仅 object/array 类型） -->
+      <!-- 展开指示器 -->
       <div class="w-4 shrink-0">
         <ChevronRight
-          v-if="node.type === 'object' || node.type === 'array'"
+          v-if="showExpandIcon"
           class="h-4 w-4 text-muted-foreground"
         />
       </div>
 
       <!-- 字段名 -->
-      <Input
-        :model-value="node.name"
-        :placeholder="node.isRoot ? '根节点' : '字段名'"
-        :disabled="node.isRoot"
-        class="h-8 text-sm font-mono flex-1 min-w-[120px]"
-        @update:model-value="updateNode('name', String($event))"
-      />
+      <span v-if="node.isRoot" class="min-w-30 flex-1"><Code>根节点</Code></span>
+      <span v-else-if="node.isArrayItem" class="min-w-30 flex-1"><Code>ITEMS</Code></span>
+      <div v-else class="h-8 text-sm font-mono flex-1">
+        <Input
+          :model-value="node.name"
+          placeholder="字段名"
+          class="min-w-30"
+          @update:model-value="updateNode('name', String($event))"
+        />
+      </div>
 
       <!-- 类型 -->
       <Select
         :model-value="node.type"
-        @update:model-value="updateNode('type', $event as ParamType)"
+        :disabled="node.isRoot"
+        @update:model-value="updateNode('type', $event as SchemaFieldType)"
       >
-        <SelectTrigger class="h-8 w-[100px] text-xs">
+        <SelectTrigger
+          class="h-8 w-[100px] text-xs"
+          :class="{ 'text-violet-500 dark:text-violet-400': node.isArrayItem }"
+        >
           <SelectValue>
-            <span :class="cn('font-mono', paramTypeColors[node.type])">
+            <span class="font-mono">
               {{ node.type }}
             </span>
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem v-for="t in PARAM_TYPES" :key="t" :value="t">
-            <span :class="cn('font-mono', paramTypeColors[t])">
+          <SelectItem v-for="t in SCHEMA_FIELD_TYPES" :key="t" :value="t">
+            <span class="font-mono">
               {{ t }}
             </span>
           </SelectItem>
         </SelectContent>
       </Select>
 
-      <!-- 必填 -->
+      <!-- 必填（Array Item 不显示必填选项） -->
       <div class="w-[50px] flex justify-center">
         <Checkbox
+          v-if="!node.isArrayItem"
           :checked="node.required"
           :disabled="node.isRoot"
           @update:checked="updateNode('required', $event)"
@@ -150,57 +226,81 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
       <Input
         :model-value="node.description"
         placeholder="说明"
-        class="h-8 text-sm flex-1 min-w-[120px]"
+        class="h-8 text-sm min-w-[120px]"
         @update:model-value="updateNode('description', String($event))"
       />
 
       <!-- 操作按钮 -->
-      <div class="w-[80px] flex items-center gap-1 justify-end">
+      <div class="flex items-center gap-1 justify-end">
         <!-- 添加相邻节点 -->
-        <Button
-          v-if="canAddSibling"
-          variant="ghost"
-          size="icon"
-          class="h-7 w-7 opacity-0 group-hover:opacity-100"
-          title="添加相邻字段"
-          @click="addSiblingNode"
-        >
-          <Plus class="h-4 w-4" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                :disabled="!canAddSibling"
+                variant="ghost"
+                size="icon"
+                class="h-7 w-7"
+                @click="addSiblingNode"
+              >
+                <Plus class="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              添加相邻字段
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         <!-- 添加子节点（仅 object 类型） -->
-        <Button
-          v-if="node.type === 'object'"
-          variant="ghost"
-          size="icon"
-          class="h-7 w-7 opacity-0 group-hover:opacity-100 text-primary"
-          title="添加子字段"
-          @click="addChildNode"
-        >
-          <Plus class="h-4 w-4" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                :disabled="!canAddChild"
+                variant="ghost"
+                size="icon"
+                class="h-7 w-7 text-primary"
+                @click="addChildNode"
+              >
+                <Plus class="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              添加子字段
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         <!-- 删除节点 -->
-        <Button
-          v-if="canDelete"
-          variant="ghost"
-          size="icon"
-          class="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
-          title="删除字段"
-          @click="deleteNode"
-        >
-          <Trash2 class="h-4 w-4" />
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <Button
+                :disabled="!canDelete"
+                variant="ghost"
+                size="icon"
+                class="h-7 w-7 text-muted-foreground hover:text-destructive"
+                @click="deleteNode"
+              >
+                <Trash2 class="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              删除字段
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
 
-    <!-- 子节点（递归渲染） -->
+    <!-- Object 子节点（递归渲染） -->
     <template v-if="node.type === 'object'">
       <!-- 空 children 提示 -->
       <div
         v-if="showEmptyChildren"
         class="px-4 py-3 text-sm text-muted-foreground bg-muted/20"
-        :style="{ paddingLeft: `${(currentDepth + 1) * 16 + 8}px` }"
+        :style="{ paddingLeft: `${(currentDepth + 1) * 16 + 8 + 24}px` }"
       >
         当前 object 尚未包含字段，点击 + 添加
       </div>
@@ -218,6 +318,7 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
       />
     </template>
 
+    <!-- Array Item 节点（递归渲染） -->
     <template v-else-if="node.type === 'array' && node.item">
       <JsonSchemaNode
         :node="node.item"
