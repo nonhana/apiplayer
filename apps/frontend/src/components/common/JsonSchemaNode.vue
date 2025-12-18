@@ -2,9 +2,14 @@
 import type { SchemaFieldType } from '@/lib/json-schema'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { ChevronRight, Plus, Trash2 } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -20,7 +25,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { SCHEMA_FIELD_TYPES } from '@/lib/json-schema'
-import { generateKey } from '@/lib/utils'
+import { cn, generateKey } from '@/lib/utils'
 import Code from './Code.vue'
 
 const props = defineProps<{
@@ -37,6 +42,9 @@ const emits = defineEmits<{
   (e: 'updateNode', value: { patch: { key: string, value: unknown }, path: string }): void
   (e: 'deleteNode', value: { path: string }): void
 }>()
+
+/** 是否展开（默认展开） */
+const isExpanded = ref(true)
 
 const currentDepth = computed(() => props.depth ?? 0)
 
@@ -62,15 +70,22 @@ const canDelete = computed(() => !props.node.isRoot && !props.node.isArrayItem)
 /** 是否可以添加相邻节点（根节点和数组项节点不可添加） */
 const canAddSibling = computed(() => !props.node.isRoot && !props.node.isArrayItem)
 
-/** 是否可以添加子节点（object 类型 或 array item 是 object 类型） */
+/** 是否可以添加子节点（object 类型） */
 const canAddChild = computed(() => props.node.type === 'object')
 
-/** 是否需要显示展开指示器 */
-const showExpandIcon = computed(() => {
-  if (props.node.type === 'object')
-    return true
-  if (props.node.type === 'array')
-    return true
+/** 是否可以折叠（object 或 array 类型） */
+const isCollapsible = computed(() =>
+  props.node.type === 'object' || props.node.type === 'array',
+)
+
+/** 是否有子内容可以折叠 */
+const hasCollapsibleContent = computed(() => {
+  if (props.node.type === 'object') {
+    return props.node.children && props.node.children.length > 0
+  }
+  if (props.node.type === 'array') {
+    return !!props.node.item
+  }
   return false
 })
 
@@ -124,7 +139,7 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
   if (key === 'type') {
     const newType = value as SchemaFieldType
 
-    const patches: Array<{ key: string, value: any }> = []
+    const patches: Array<{ key: string, value: unknown }> = []
 
     patches.push(
       { key: 'item', value: undefined },
@@ -161,18 +176,32 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
 </script>
 
 <template>
-  <div>
+  <Collapsible v-model:open="isExpanded" :disabled="!isCollapsible">
     <!-- 当前节点行 -->
     <div
       class="flex items-center gap-2 px-2 py-2 hover:bg-muted/30 transition-colors group"
       :style="{ paddingLeft: `${currentDepth * 16 + 8}px` }"
     >
-      <!-- 展开指示器 -->
+      <!-- 展开/折叠指示器 -->
       <div class="w-4 shrink-0">
-        <ChevronRight
-          v-if="showExpandIcon"
-          class="h-4 w-4 text-muted-foreground"
-        />
+        <CollapsibleTrigger
+          v-if="isCollapsible"
+          as-child
+        >
+          <button
+            class="flex items-center justify-center w-4 h-4 rounded hover:bg-muted transition-colors"
+            :class="{ 'cursor-default': !hasCollapsibleContent }"
+            :disabled="!hasCollapsibleContent"
+          >
+            <ChevronRight
+              :class="cn(
+                'h-4 w-4 text-muted-foreground transition-transform duration-200',
+                isExpanded && 'rotate-90',
+                !hasCollapsibleContent && 'opacity-30',
+              )"
+            />
+          </button>
+        </CollapsibleTrigger>
       </div>
 
       <!-- 字段名 -->
@@ -294,40 +323,43 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
       </div>
     </div>
 
-    <!-- Object 子节点（递归渲染） -->
-    <template v-if="node.type === 'object'">
-      <!-- 空 children 提示 -->
-      <div
-        v-if="showEmptyChildren"
-        class="px-4 py-3 text-sm text-muted-foreground bg-muted/20"
-        :style="{ paddingLeft: `${(currentDepth + 1) * 16 + 8 + 24}px` }"
-      >
-        当前 object 尚未包含字段，点击 + 添加
-      </div>
+    <!-- 可折叠的子内容 -->
+    <CollapsibleContent>
+      <!-- Object 子节点（递归渲染） -->
+      <template v-if="node.type === 'object'">
+        <!-- 空 children 提示 -->
+        <div
+          v-if="showEmptyChildren"
+          class="px-4 py-3 text-sm text-muted-foreground bg-muted/20"
+          :style="{ paddingLeft: `${(currentDepth + 1) * 16 + 8 + 24}px` }"
+        >
+          当前 object 尚未包含字段，点击 + 添加
+        </div>
 
-      <JsonSchemaNode
-        v-for="item in node.children"
-        v-else
-        :key="item.id"
-        :node="item"
-        :path="currentPath"
-        :depth="currentDepth + 1"
-        @add-node="emits('addNode', $event)"
-        @update-node="emits('updateNode', $event)"
-        @delete-node="emits('deleteNode', $event)"
-      />
-    </template>
+        <JsonSchemaNode
+          v-for="item in node.children"
+          v-else
+          :key="item.id"
+          :node="item"
+          :path="currentPath"
+          :depth="currentDepth + 1"
+          @add-node="emits('addNode', $event)"
+          @update-node="emits('updateNode', $event)"
+          @delete-node="emits('deleteNode', $event)"
+        />
+      </template>
 
-    <!-- Array Item 节点（递归渲染） -->
-    <template v-else-if="node.type === 'array' && node.item">
-      <JsonSchemaNode
-        :node="node.item"
-        :path="currentPath"
-        :depth="currentDepth + 1"
-        @add-node="emits('addNode', $event)"
-        @update-node="emits('updateNode', $event)"
-        @delete-node="emits('deleteNode', $event)"
-      />
-    </template>
-  </div>
+      <!-- Array Item 节点（递归渲染） -->
+      <template v-else-if="node.type === 'array' && node.item">
+        <JsonSchemaNode
+          :node="node.item"
+          :path="currentPath"
+          :depth="currentDepth + 1"
+          @add-node="emits('addNode', $event)"
+          @update-node="emits('updateNode', $event)"
+          @delete-node="emits('deleteNode', $event)"
+        />
+      </template>
+    </CollapsibleContent>
+  </Collapsible>
 </template>

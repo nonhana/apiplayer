@@ -25,9 +25,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="h-screen w-screen overflow-hidden flex flex-col bg-background text-foreground">
+  <div class="h-screen w-screen flex flex-col bg-background text-foreground">
     <WorkbenchHeader />
-    <div class="flex-1 flex overflow-hidden">
+    <div class="flex">
       <ApiSidebar />
       <router-view />
     </div>
