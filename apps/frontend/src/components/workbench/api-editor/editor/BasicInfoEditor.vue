@@ -42,9 +42,7 @@ const internalInfo = ref<ApiBaseInfoForm>({
   method: 'GET',
   path: '',
   status: 'DRAFT',
-  description: '',
   tags: [],
-  ownerId: '',
 })
 
 /** 同步外部数据 */
@@ -71,12 +69,12 @@ function updateField<K extends keyof ApiBaseInfoForm>(key: K, value: ApiBaseInfo
 }
 
 /** 当前方法的样式类 */
-const currentMethodClass = computed(() => {
+const curMethodClass = computed(() => {
   return methodBadgeColors[internalInfo.value.method] ?? 'bg-slate-500/15 text-slate-600'
 })
 
 /** 当前状态的样式类 */
-const currentStatusClass = computed(() => {
+const curStatusClass = computed(() => {
   return statusColors[internalInfo.value.status] ?? 'bg-slate-500/15 text-slate-600'
 })
 </script>
@@ -107,7 +105,7 @@ const currentStatusClass = computed(() => {
           :disabled="disabled"
           @update:model-value="updateField('method', $event as HttpMethod)"
         >
-          <SelectTrigger id="api-method" :class="cn('font-bold', currentMethodClass)">
+          <SelectTrigger id="api-method" :class="cn('font-bold', curMethodClass)">
             <SelectValue>{{ internalInfo.method }}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -147,7 +145,7 @@ const currentStatusClass = computed(() => {
           :disabled="disabled"
           @update:model-value="updateField('status', $event as ApiStatus)"
         >
-          <SelectTrigger id="api-status" :class="currentStatusClass">
+          <SelectTrigger id="api-status" :class="curStatusClass">
             <SelectValue>{{ statusLabels[internalInfo.status] }}</SelectValue>
           </SelectTrigger>
           <SelectContent>

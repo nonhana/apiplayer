@@ -1,18 +1,23 @@
 <script lang="ts" setup>
 import type { TabPageItem } from '@/types'
 import type { ApiDetail } from '@/types/api'
-import { useRouteQuery } from '@vueuse/router'
+import { useRouteParams, useRouteQuery } from '@vueuse/router'
 import { AlertCircle, FileText, Loader2, Pencil, Play, Settings2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { apiApi } from '@/api/api'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import ApiDocView from './ApiDocView.vue'
 import ApiEditView from './ApiEditView.vue'
 
-const props = defineProps<{
-  apiId: string
-}>()
+const projectId = useRouteParams<string>('projectId')
+const apiId = useRouteParams<string>('apiId')
+
+/** 监听 API ID 和项目 ID 变化，重新获取 API 详情 */
+watch([apiId, projectId], ([curApiId, curProjectId]) => {
+  if (curApiId && curProjectId) {
+    fetchApiDetail()
+  }
+}, { immediate: true })
 
 type TabType = 'doc' | 'edit' | 'run' | 'settings'
 const tabItems: TabPageItem<TabType>[] = [
@@ -22,7 +27,6 @@ const tabItems: TabPageItem<TabType>[] = [
   { value: 'settings', label: '设置', icon: Settings2, disabled: true },
 ]
 
-const apiTreeStore = useApiTreeStore()
 const activeTab = useRouteQuery<TabType>('mode', 'doc')
 const editing = useRouteQuery('editing')
 
@@ -46,43 +50,20 @@ const isLoaded = computed(() => apiDetail.value !== null)
 
 /** 获取 API 详情 */
 async function fetchApiDetail() {
-  if (!props.apiId || !apiTreeStore.projectId)
-    return
-
   isLoading.value = true
   loadError.value = null
 
   try {
-    const data = await apiApi.getApiDetail(apiTreeStore.projectId, props.apiId)
+    const data = await apiApi.getApiDetail(projectId.value, apiId.value)
     apiDetail.value = data
   }
   catch (err) {
-    console.error('获取 API 详情失败:', err)
-    loadError.value = '获取接口详情失败，请稍后重试'
+    loadError.value = `获取 API 详情失败: ${err}`
   }
   finally {
     isLoading.value = false
   }
 }
-
-/** 监听 API ID 变化，重新获取数据 */
-watch(
-  () => props.apiId,
-  () => {
-    fetchApiDetail()
-  },
-  { immediate: true },
-)
-
-/** 监听项目 ID 变化 */
-watch(
-  () => apiTreeStore.projectId,
-  () => {
-    if (apiTreeStore.projectId && props.apiId) {
-      fetchApiDetail()
-    }
-  },
-)
 
 /** 处理 API 更新成功 */
 function handleApiUpdated(updatedApi: ApiDetail) {
@@ -142,10 +123,7 @@ function handleApiUpdated(updatedApi: ApiDetail) {
       </TabsContent>
 
       <TabsContent value="edit" class="flex-1 mt-0 overflow-hidden">
-        <ApiEditView
-          :api="apiDetail"
-          @updated="handleApiUpdated"
-        />
+        <ApiEditView :api="apiDetail" @updated="handleApiUpdated" />
       </TabsContent>
 
       <TabsContent value="run" class="flex-1 mt-0 overflow-hidden">

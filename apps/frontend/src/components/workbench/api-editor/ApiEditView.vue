@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ApiBaseInfoForm, ApiReqData } from './editor/types'
 import type { TabPageItem } from '@/types'
-import type { ApiDetail, ApiParam, ApiRequestBody, ApiResponse, LocalApiRequestBody, UpdateApiReq } from '@/types/api'
+import type { ApiDetail, ApiRequestBody, ApiResponse, LocalApiRequestBody, UpdateApiReq } from '@/types/api'
 import { useRouteQuery } from '@vueuse/router'
 import { FileText, Hash, Loader2, MessageSquare, Save, Settings } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -48,9 +48,7 @@ const basicInfo = ref<ApiBaseInfoForm>({
   method: 'GET',
   path: '',
   status: 'DRAFT',
-  description: '',
   tags: [],
-  ownerId: '',
 })
 
 /** 请求参数 */
@@ -96,20 +94,22 @@ function initFromApi(api: ApiDetail) {
     method: api.method,
     path: api.path,
     status: api.status,
-    description: api.description ?? '',
-    tags: api.tags ?? [],
-    ownerId: api.owner?.id ?? '',
+    tags: api.tags,
   }
+  if (api.owner)
+    basicInfo.value.ownerId = api.owner.id
+  if (api.description)
+    basicInfo.value.description = api.description
 
   paramsData.value = {
-    pathParams: (api.pathParams ?? []) as ApiParam[],
-    queryParams: (api.queryParams ?? []) as ApiParam[],
-    requestHeaders: (api.requestHeaders ?? []) as ApiParam[],
+    pathParams: api.pathParams,
+    queryParams: api.queryParams,
+    requestHeaders: api.requestHeaders,
   }
 
   requestBody.value = api.requestBody ? toLocalReqBody(api.requestBody) : null
 
-  responses.value = (api.responses ?? []) as ApiResponse[]
+  responses.value = api.responses
 
   // 保存原始数据快照
   originalData.value = JSON.stringify({
@@ -142,6 +142,7 @@ const currentDataSnapshot = computed(() => {
 })
 
 /** 是否有未保存的修改 */
+// TODO: JSON.stringify 比较两个对象过于简单粗暴，没有考虑到无法正常序列化的情况，需要优化
 const hasChanges = computed(() => {
   return currentDataSnapshot.value !== originalData.value
 })
@@ -161,7 +162,7 @@ function buildUpdateRequest(): UpdateApiReq {
     method: basicInfo.value.method,
     path: basicInfo.value.path,
     status: basicInfo.value.status,
-    description: basicInfo.value.description || undefined,
+    description: basicInfo.value.description,
     tags: basicInfo.value.tags,
     ownerId: basicInfo.value.ownerId,
   }
@@ -171,11 +172,11 @@ function buildUpdateRequest(): UpdateApiReq {
 
   // 核心信息
   req.coreInfo = {
-    requestHeaders: paramsData.value.requestHeaders as Record<string, unknown>[],
-    pathParams: paramsData.value.pathParams as Record<string, unknown>[],
-    queryParams: paramsData.value.queryParams as Record<string, unknown>[],
-    requestBody: reqBody as Record<string, unknown> | undefined,
-    responses: responses.value as Record<string, unknown>[],
+    requestHeaders: paramsData.value.requestHeaders,
+    pathParams: paramsData.value.pathParams,
+    queryParams: paramsData.value.queryParams,
+    requestBody: reqBody as (Record<string, unknown> | undefined),
+    responses: responses.value,
   }
 
   return req
@@ -187,13 +188,13 @@ async function handleSave() {
     return
 
   // 验证必填字段
-  if (!basicInfo.value.name.trim()) {
+  if (!basicInfo.value.name?.trim()) {
     toast.error('请输入接口名称')
     activeTab.value = 'basic'
     return
   }
 
-  if (!basicInfo.value.path.trim()) {
+  if (!basicInfo.value.path?.trim()) {
     toast.error('请输入接口路径')
     activeTab.value = 'basic'
     return
@@ -227,8 +228,8 @@ async function handleSave() {
       responses: responses.value,
     })
   }
-  catch (error) {
-    console.error('保存失败:', error)
+  catch (err) {
+    console.error('保存失败:', err)
     toast.error('保存失败，请稍后重试')
   }
   finally {

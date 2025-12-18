@@ -137,11 +137,7 @@ function handleDragEnd() {
       />
 
       <!-- API 编辑器 -->
-      <ApiEditor
-        v-else-if="showApiEditor"
-        :key="apiId"
-        :api-id="apiId"
-      />
+      <ApiEditor v-else-if="showApiEditor" />
 
       <!-- 空状态（无 Tab 时显示 slot 内容） -->
       <slot v-else />
