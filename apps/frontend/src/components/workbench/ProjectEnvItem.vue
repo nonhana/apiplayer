@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectEnv, ProjectEnvType } from '@/types/project'
-import { MoreHorizontal, Star } from 'lucide-vue-next'
+import { Check, MoreHorizontal, Pencil, Star, Trash2 } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { Badge } from '@/components/ui/badge'

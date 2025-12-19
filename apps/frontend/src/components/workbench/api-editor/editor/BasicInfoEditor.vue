@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { ApiBaseInfoForm } from './types'
 import type { ApiStatus, HttpMethod } from '@/types/api'
+import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
-import UserSearchSelect from '@/components/dashboard/UserSearchSelect.vue'
+import SearchInput from '@/components/common/SearchInput.vue'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -21,6 +22,7 @@ import {
   statusLabels,
 } from '@/constants/api'
 import { cn } from '@/lib/utils'
+import { useProjectStore } from '@/stores/useProjectStore'
 import TagsInput from './TagsInput.vue'
 
 const props = withDefaults(defineProps<{
@@ -35,6 +37,16 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'update:info', info: ApiBaseInfoForm): void
 }>()
+
+const projectStore = useProjectStore()
+const { projectMembers } = storeToRefs(projectStore)
+
+const memberOptions = computed(() =>
+  projectMembers.value.map(member => ({
+    label: member.user.name,
+    value: member.user.id,
+  })),
+)
 
 /** 内部数据 */
 const internalInfo = ref<ApiBaseInfoForm>({
@@ -164,9 +176,9 @@ const curStatusClass = computed(() => {
 
       <div class="flex-1 space-y-2">
         <Label for="api-owner">负责人</Label>
-        <UserSearchSelect
-          :model-value="internalInfo.ownerId"
-          :multiple="false"
+        <SearchInput
+          :model-value="internalInfo.ownerId ?? ''"
+          :options="memberOptions"
           :disabled="disabled"
           @update:model-value="updateField('ownerId', $event as string)"
         />
