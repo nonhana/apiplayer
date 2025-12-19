@@ -43,7 +43,6 @@ const props = withDefaults(defineProps<{
 })
 
 const emits = defineEmits<{
-  /** 操作成功后触发，返回项目数据 */
   (e: 'success', project: ProjectItem): void
 }>()
 

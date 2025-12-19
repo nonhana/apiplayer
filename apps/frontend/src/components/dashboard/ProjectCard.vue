@@ -32,6 +32,7 @@ import { getProjectFallbackIcon } from '@/lib/utils'
 const props = defineProps<{
   project: ProjectItem
 }>()
+
 const emits = defineEmits<{
   (e: 'edit', project: ProjectItem): void
   (e: 'delete', project: ProjectItem): void
