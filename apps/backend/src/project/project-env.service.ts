@@ -156,6 +156,56 @@ export class ProjectEnvService {
     }
   }
 
+  async setProjectEnvAsDefault(projectId: string, environmentId: string, userId: string) {
+    try {
+      await this.projectUtilsService.getProjectById(projectId)
+
+      // 检查环境是否存在且属于该项目
+      const environment = await this.prisma.projectEnvironment.findUnique({
+        where: { id: environmentId },
+      })
+
+      if (!environment || environment.projectId !== projectId) {
+        throw new HanaException('环境不存在', ErrorCode.ENVIRONMENT_NOT_FOUND, 404)
+      }
+
+      // 如果已经是默认环境，直接返回（幂等性）
+      if (environment.isDefault) {
+        this.logger.log(`环境 ${environment.name} 已经是默认环境，无需操作`)
+        return environment
+      }
+
+      // 使用事务保证原子性：取消其他默认环境 + 设置新默认环境
+      const updatedEnv = await this.prisma.$transaction(async (tx) => {
+        // 取消当前项目中其他默认环境
+        await tx.projectEnvironment.updateMany({
+          where: {
+            projectId,
+            isDefault: true,
+          },
+          data: { isDefault: false },
+        })
+
+        // 设置当前环境为默认环境
+        return tx.projectEnvironment.update({
+          where: { id: environmentId },
+          data: { isDefault: true },
+        })
+      })
+
+      this.logger.log(`用户 ${userId} 将项目 ${projectId} 的默认环境设置为 ${updatedEnv.name}`)
+
+      return updatedEnv
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error(`设置默认环境失败: ${error.message}`, error.stack)
+      throw new HanaException('设置默认环境失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
   async deleteProjectEnv(projectId: string, environmentId: string, userId: string) {
     try {
       await this.projectUtilsService.getProjectById(projectId)

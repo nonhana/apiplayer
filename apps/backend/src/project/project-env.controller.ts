@@ -57,6 +57,20 @@ export class ProjectEnvController {
     return plainToInstance(ProjectEnvDto, result)
   }
 
+  /** 设置某个项目环境为默认环境 */
+  @Post(':projectId/environments/:environmentId/default')
+  @RequireProjectMember()
+  @ProjectPermissions(['project:write'])
+  @ResMsg('默认环境设置成功')
+  async setProjectEnvironmentAsDefault(
+    @Param('projectId') projectId: string,
+    @Param('environmentId') environmentId: string,
+    @ReqUser('id') userId: string,
+  ): Promise<ProjectEnvDto> {
+    const result = await this.projectEnvService.setProjectEnvAsDefault(projectId, environmentId, userId)
+    return plainToInstance(ProjectEnvDto, result)
+  }
+
   /** 删除项目环境 */
   @Delete(':projectId/environments/:environmentId')
   @RequireProjectMember()

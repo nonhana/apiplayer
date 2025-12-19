@@ -19,7 +19,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   const projectId = ref('')
 
   /** 展开的分组 ID 集合 */
-  const expandedKeys = ref<Set<string>>(new Set())
+  const expandedIds = ref<Set<string>>(new Set())
 
   /** 搜索关键词 */
   const searchQuery = ref('')
@@ -126,7 +126,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   /** 批量展开指定路径上的所有分组 */
   function expandGroupPath(pathGroupIds: string[]) {
     for (const id of pathGroupIds) {
-      expandedKeys.value.add(id)
+      expandedIds.value.add(id)
     }
   }
 
@@ -162,22 +162,22 @@ export const useApiTreeStore = defineStore('apiTree', () => {
 
   /** 切换分组展开/折叠状态 */
   function toggleExpand(groupId: string) {
-    if (expandedKeys.value.has(groupId)) {
-      expandedKeys.value.delete(groupId)
+    if (expandedIds.value.has(groupId)) {
+      expandedIds.value.delete(groupId)
     }
     else {
-      expandedKeys.value.add(groupId)
+      expandedIds.value.add(groupId)
     }
   }
 
   /** 展开分组 */
   function expandGroup(groupId: string) {
-    expandedKeys.value.add(groupId)
+    expandedIds.value.add(groupId)
   }
 
   /** 折叠分组 */
   function collapseGroup(groupId: string) {
-    expandedKeys.value.delete(groupId)
+    expandedIds.value.delete(groupId)
   }
 
   /** 展开所有分组 */
@@ -185,17 +185,17 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     const collectIds = (nodes: GroupNodeWithApis[]): string[] => {
       return nodes.flatMap(node => [node.id, ...collectIds(node.children)])
     }
-    expandedKeys.value = new Set(collectIds(tree.value))
+    expandedIds.value = new Set(collectIds(tree.value))
   }
 
   /** 折叠所有分组 */
   function collapseAll() {
-    expandedKeys.value.clear()
+    expandedIds.value.clear()
   }
 
   /** 检查分组是否展开 */
   function isExpanded(groupId: string): boolean {
-    return expandedKeys.value.has(groupId)
+    return expandedIds.value.has(groupId)
   }
 
   /** 设置搜索关键词 */
@@ -395,7 +395,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   function reset() {
     tree.value = []
     loadingStatus.value = 'start'
-    expandedKeys.value.clear()
+    expandedIds.value.clear()
     searchQuery.value = ''
     selectedNodeId.value = null
     selectedNodeType.value = null
@@ -406,7 +406,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     tree,
     loadingStatus,
     projectId,
-    expandedKeys,
+    expandedIds,
     searchQuery,
     selectedNodeId,
     selectedNodeType,

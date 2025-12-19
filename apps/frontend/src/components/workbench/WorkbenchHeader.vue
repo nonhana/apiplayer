@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import type { ProjectDetail } from '@/types/project'
 import { ArrowLeft, Settings } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { projectApi } from '@/api/project'
+import { storeToRefs } from 'pinia'
+import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
 import {
   Avatar,
   AvatarFallback,
@@ -30,37 +30,47 @@ import { useProjectStore } from '@/stores/useProjectStore'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
 
-const route = useRoute()
 const router = useRouter()
+
 const userStore = useUserStore()
 const teamStore = useTeamStore()
 const projectStore = useProjectStore()
 
-/** 项目 ID */
-const projectId = computed(() => route.params.projectId as string)
+const { projectDetail } = storeToRefs(projectStore)
 
-/** 项目详情 */
-const project = ref<ProjectDetail | null>(null)
+const environments = computed(() => projectDetail.value?.environments ?? [])
 
-/** 加载状态 */
-const isLoading = ref(false)
-
-/** 当前选中的环境 */
-const currentEnvId = computed({
-  get: () => projectStore.currentEnvId,
-  set: (val) => {
-    projectStore.setEnvironment(val)
-  },
-})
-
-/** 环境列表 */
-const environments = computed(() => project.value?.environments ?? [])
+const curEnvId = ref('')
 
 /** 当前环境 */
-const currentEnv = computed(() =>
-  environments.value.find(e => e.id === currentEnvId.value),
+const curEnv = computed(() =>
+  environments.value.find(e => e.id === curEnvId.value),
 )
 
+// 环境列表变更时，设置默认环境
+watch(environments, (newV) => {
+  // 设置默认环境
+  if (!curEnvId.value && newV.length > 0) {
+    const defaultEnv = newV.find(e => e.isDefault) ?? newV[0]
+    if (defaultEnv) {
+      curEnvId.value = defaultEnv.id
+    }
+  }
+}, { immediate: true, deep: true })
+
+// 用户手动切换时的逻辑
+watch(curEnvId, async (newV, oldV) => {
+  if (!newV || !oldV || newV === oldV)
+    return
+
+  try {
+    await projectStore.setDefaultEnv(newV)
+  }
+  catch {
+    toast.error('切换环境失败，请稍后再试')
+    curEnvId.value = oldV
+  }
+})
 /** 显示名称 */
 const displayName = computed(() => userStore.user?.name || userStore.user?.username || '未登录')
 
@@ -69,30 +79,6 @@ const avatarInitials = computed(() => {
   const name = displayName.value
   return name.charAt(0).toUpperCase()
 })
-
-/** 获取项目详情 */
-async function fetchProject() {
-  if (!projectId.value)
-    return
-
-  isLoading.value = true
-  try {
-    project.value = await projectApi.getProjectDetail(projectId.value)
-    projectStore.setCurrentProject(projectId.value)
-
-    // 设置默认环境
-    if (!currentEnvId.value && project.value.environments.length > 0) {
-      const defaultEnv = project.value.environments.find(e => e.isDefault)
-        ?? project.value.environments[0]
-      if (defaultEnv) {
-        currentEnvId.value = defaultEnv.id
-      }
-    }
-  }
-  finally {
-    isLoading.value = false
-  }
-}
 
 /** 返回仪表盘 */
 function goBack() {
@@ -110,10 +96,6 @@ function handleLogout() {
   userStore.logout()
   router.push('/auth/login')
 }
-
-onMounted(() => {
-  fetchProject()
-})
 </script>
 
 <template>
@@ -128,26 +110,26 @@ onMounted(() => {
         <ArrowLeft class="h-4 w-4" />
       </Button>
 
-      <div v-if="isLoading" class="flex items-center gap-2">
+      <div v-if="!projectDetail" class="flex items-center gap-2">
         <Skeleton class="h-5 w-32" />
       </div>
-      <div v-else-if="project" class="flex items-center gap-2">
+      <div v-else class="flex items-center gap-2">
         <Avatar class="h-6 w-6 rounded">
-          <AvatarImage v-if="project.icon" :src="project.icon" />
+          <AvatarImage v-if="projectDetail.icon" :src="projectDetail.icon" />
           <AvatarFallback class="text-xs rounded">
-            {{ project.name.charAt(0).toUpperCase() }}
+            {{ projectDetail.name.charAt(0).toUpperCase() }}
           </AvatarFallback>
         </Avatar>
-        <span class="font-semibold text-sm">{{ project.name }}</span>
+        <span class="font-semibold text-sm">{{ projectDetail.name }}</span>
       </div>
 
       <span class="text-muted-foreground">/</span>
 
-      <Select v-model="currentEnvId" :disabled="environments.length === 0">
+      <Select v-model="curEnvId" :disabled="environments.length === 0">
         <SelectTrigger class="h-7 w-auto min-w-30 text-xs border-dashed">
           <SelectValue placeholder="选择环境">
-            <span v-if="currentEnv">
-              {{ currentEnv.name }}
+            <span v-if="curEnv">
+              {{ curEnv.name }}
             </span>
           </SelectValue>
         </SelectTrigger>

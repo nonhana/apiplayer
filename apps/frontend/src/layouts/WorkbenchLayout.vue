@@ -4,23 +4,29 @@ import { onUnmounted, watch } from 'vue'
 import ApiSidebar from '@/components/workbench/ApiSidebar.vue'
 import WorkbenchHeader from '@/components/workbench/WorkbenchHeader.vue'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
+import { useProjectStore } from '@/stores/useProjectStore'
 import { useTabStore } from '@/stores/useTabStore'
+
+const projectId = useRouteParams<string>('projectId')
 
 const tabStore = useTabStore()
 const apiTreeStore = useApiTreeStore()
-const projectId = useRouteParams<string>('projectId')
+const projectStore = useProjectStore()
 
-/** 监听路由变化，更新当前项目 */
+// projectId 变化，更新项目数据
 watch(projectId, (newV) => {
   if (newV) {
     apiTreeStore.setProjectId(newV)
+    projectStore.setProjectId(newV)
+    projectStore.init()
   }
 }, { immediate: true })
 
-/** 组件卸载时重置状态 */
+// 离开页面时清空所有 Store
 onUnmounted(() => {
   apiTreeStore.reset()
   tabStore.reset()
+  projectStore.reset()
 })
 </script>
 

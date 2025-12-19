@@ -5,6 +5,7 @@ import type {
   InviteProjectMembersReq,
   ProjectBrief,
   ProjectDetail,
+  ProjectEnv,
   ProjectMember,
   ProjectMembersArr,
   ProjectMembersResponse,
@@ -60,4 +61,8 @@ export const projectApi = {
   /** 移除项目成员 */
   removeProjectMember: (projectId: string, memberId: string) =>
     http.delete(`projects/${projectId}/members/${memberId}`).json<void>(),
+
+  /** 设置某个项目环境为默认环境 */
+  setDefaultEnv: (projectId: string, envId: string) =>
+    http.post(`projects/${projectId}/environments/${envId}/default`).json<ProjectEnv>(),
 }

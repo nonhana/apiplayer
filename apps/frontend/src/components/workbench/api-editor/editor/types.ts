@@ -1,7 +1,7 @@
 import type { ApiParam, ApiStatus, HttpMethod } from '@/types/api'
 
 /** API 基本信息表单项 */
-export type ApiBaseInfoForm = {
+export interface ApiBaseInfoForm {
   // 必填
   name: string
   method: HttpMethod
