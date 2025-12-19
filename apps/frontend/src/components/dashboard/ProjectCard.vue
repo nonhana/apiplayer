@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectItem } from '@/types/project'
-import { Code2, Globe, Lock, MoreHorizontal, Pencil, Settings, Trash2, Users } from 'lucide-vue-next'
+import { Code2, Globe, Lock, MoreHorizontal, Pencil, Trash2, Users } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -36,7 +36,6 @@ const props = defineProps<{
 const emits = defineEmits<{
   (e: 'edit', project: ProjectItem): void
   (e: 'delete', project: ProjectItem): void
-  (e: 'manageMembers', project: ProjectItem): void
 }>()
 
 const router = useRouter()
@@ -61,10 +60,6 @@ function handleEdit() {
 
 function handleDelete() {
   emits('delete', props.project)
-}
-
-function handleManageMembers() {
-  emits('manageMembers', props.project)
 }
 </script>
 
@@ -92,10 +87,6 @@ function handleManageMembers() {
           <DropdownMenuItem @click="handleEdit">
             <Pencil class="mr-2 h-4 w-4" />
             编辑项目
-          </DropdownMenuItem>
-          <DropdownMenuItem @click="handleManageMembers">
-            <Settings class="mr-2 h-4 w-4" />
-            成员管理
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem

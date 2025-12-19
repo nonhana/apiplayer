@@ -1,15 +1,16 @@
 <script lang="ts" setup>
-import type { RoleItem } from '@/types/role'
-import type { TeamItem, TeamMember } from '@/types/team'
+import type { ProjectDetail, ProjectMember } from '@/types/project'
 import {
   Loader2,
   Search,
   UserPlus,
 } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
-import { roleApi } from '@/api/role'
-import { teamApi } from '@/api/team'
+import { projectApi } from '@/api/project'
+import InviteMemberDialog from '@/components/dashboard/InviteMemberDialog.vue'
+import MemberItem from '@/components/dashboard/MemberItem.vue'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,33 +24,30 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Skeleton } from '@/components/ui/skeleton'
 import { TabsContent } from '@/components/ui/tabs'
-import { useTeamStore } from '@/stores/useTeamStore'
-import InviteMemberDialog from './InviteMemberDialog.vue'
-import MemberItem from './MemberItem.vue'
+import { useGlobalStore } from '@/stores/useGlobalStore'
+import { useProjectStore } from '@/stores/useProjectStore'
 
 const props = defineProps<{
-  team: TeamItem
+  project: ProjectDetail
   isAdmin: boolean
-  isOwner: boolean
 }>()
 
-const teamStore = useTeamStore()
+const globalStore = useGlobalStore()
+const projectStore = useProjectStore()
+
+const { projectRoles } = storeToRefs(globalStore)
+const { projectMembers: members } = storeToRefs(projectStore)
 
 // 成员管理状态
-const members = ref<TeamMember[]>([])
-const isLoadingMembers = ref(false)
 const memberSearchQuery = ref('')
-const teamRoles = ref<RoleItem[]>([])
-const isLoadingRoles = ref(false)
 
 // 邀请成员对话框
 const isInviteDialogOpen = ref(false)
 
 // 删除成员确认
 const isDeleteMemberDialogOpen = ref(false)
-const memberToDelete = ref<TeamMember | null>(null)
+const memberToDelete = ref<ProjectMember | null>(null)
 const isDeletingMember = ref(false)
 
 /** 已有成员的用户 ID 列表 */
@@ -63,42 +61,19 @@ const filteredMembers = computed(() => {
   return members.value.filter(m =>
     m.user.name.toLowerCase().includes(query)
     || m.user.email.toLowerCase().includes(query)
-    || m.user.username.toLowerCase().includes(query)
-    || m.nickname?.toLowerCase().includes(query),
+    || m.user.username.toLowerCase().includes(query),
   )
 })
 
-/** 获取团队角色列表 */
-async function fetchTeamRoles() {
-  isLoadingRoles.value = true
-  try {
-    const response = await roleApi.getRoles({ type: 'TEAM' })
-    teamRoles.value = response.roles
-  }
-  finally {
-    isLoadingRoles.value = false
-  }
-}
-
-/** 获取团队成员列表 */
-async function fetchMembers() {
-  isLoadingMembers.value = true
-  try {
-    const response = await teamApi.getTeamMembers(props.team.id, { limit: 100 })
-    members.value = response.members
-  }
-  finally {
-    isLoadingMembers.value = false
-  }
-}
-
 /** 更新成员 */
-function handleUpdateMember(member: TeamMember) {
+function handleUpdateMember(member: ProjectMember) {
   members.value = members.value.map(m => m.id === member.id ? member : m)
+  // 同步更新 store
+  projectStore.setProjectMembers(members.value)
 }
 
 /** 打开删除成员确认 */
-function handleDeleteMember(member: TeamMember) {
+function handleDeleteMember(member: ProjectMember) {
   memberToDelete.value = member
   isDeleteMemberDialogOpen.value = true
 }
@@ -110,14 +85,12 @@ async function confirmDeleteMember() {
 
   isDeletingMember.value = true
   try {
-    await teamApi.removeTeamMember(props.team.id, memberToDelete.value.id)
+    await projectApi.removeProjectMember(props.project.id, memberToDelete.value.id)
 
     members.value = members.value.filter(m => m.id !== memberToDelete.value?.id)
 
-    // 更新 store 中的成员数量
-    teamStore.updateTeam(props.team.id, {
-      memberCount: members.value.length,
-    })
+    // 同步更新 store
+    projectStore.setProjectMembers(members.value)
 
     toast.success('成员已移除')
 
@@ -130,20 +103,13 @@ async function confirmDeleteMember() {
 }
 
 /** 成员邀请成功 */
-function handleMembersInvited(newMembers: TeamMember[]) {
+function handleMembersInvited(newMembers: ProjectMember[]) {
   members.value.push(...newMembers)
-
-  // 更新 store 中的成员数量
-  teamStore.updateTeam(props.team.id, {
-    memberCount: members.value.length,
-  })
+  // 同步更新 store
+  projectStore.setProjectMembers(members.value)
 }
 
-watch(() => props.team, async () => {
-  await Promise.all([
-    fetchTeamRoles(),
-    fetchMembers(),
-  ])
+watch(() => props.project, async () => {
   memberSearchQuery.value = ''
 }, { immediate: true })
 </script>
@@ -173,36 +139,22 @@ watch(() => props.team, async () => {
 
     <!-- 成员列表 -->
     <ScrollArea class="flex-1 -mx-6 px-6">
-      <!-- 加载状态 -->
-      <div v-if="isLoadingMembers" class="space-y-3">
-        <div v-for="i in 5" :key="i" class="flex items-center gap-3 p-3 rounded-lg">
-          <Skeleton class="h-10 w-10 rounded-full" />
-          <div class="flex-1 space-y-1.5">
-            <Skeleton class="h-4 w-24" />
-            <Skeleton class="h-3 w-32" />
-          </div>
-          <Skeleton class="h-6 w-16" />
-        </div>
-      </div>
-
-      <!-- 成员列表 -->
-      <div v-else class="space-y-2">
+      <div class="space-y-2">
         <MemberItem
           v-for="member in filteredMembers"
           :key="member.id"
-          type="team"
-          :team-id="team.id"
+          type="project"
+          :project-id="project.id"
           :member="member"
-          :roles="teamRoles"
+          :roles="projectRoles"
           :is-admin="isAdmin"
-          :is-owner="isOwner"
           @update-member="handleUpdateMember"
           @delete-member="handleDeleteMember"
         />
 
         <!-- 空状态 -->
         <div
-          v-if="filteredMembers.length === 0 && !isLoadingMembers"
+          v-if="filteredMembers.length === 0"
           class="py-8 text-center text-muted-foreground"
         >
           {{ memberSearchQuery ? '没有找到匹配的成员' : '暂无成员' }}
@@ -218,9 +170,9 @@ watch(() => props.team, async () => {
     <!-- 邀请成员对话框 -->
     <InviteMemberDialog
       v-model:open="isInviteDialogOpen"
-      type="team"
-      :resource-id="team.id"
-      :resource-name="team.name"
+      type="project"
+      :resource-id="project.id"
+      :resource-name="project.name"
       :existing-member-ids="existingMemberIds"
       @invited="handleMembersInvited"
     />
@@ -231,7 +183,7 @@ watch(() => props.team, async () => {
         <AlertDialogHeader>
           <AlertDialogTitle>移除成员</AlertDialogTitle>
           <AlertDialogDescription>
-            确定要将 <span class="font-medium text-foreground">{{ memberToDelete?.user.name }}</span> 从团队中移除吗？
+            确定要将 <span class="font-medium text-foreground">{{ memberToDelete?.user.name }}</span> 从项目中移除吗？
             此操作不可撤销。
           </AlertDialogDescription>
         </AlertDialogHeader>

@@ -8,7 +8,6 @@ import { projectApi } from '@/api/project'
 import DeleteProjectDialog from '@/components/dashboard/DeleteProjectDialog.vue'
 import ProjectCard from '@/components/dashboard/ProjectCard.vue'
 import ProjectFormDialog from '@/components/dashboard/ProjectFormDialog.vue'
-import ProjectMembersSheet from '@/components/dashboard/ProjectMembersSheet.vue'
 import RecentProjects from '@/components/dashboard/RecentProjects.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,12 +34,10 @@ const visibilityFilter = ref<ProjectVisibility>('all')
 const isProjectFormDialogOpen = ref(false)
 const projectFormMode = ref<ProjectFormMode>('create')
 const isDeleteProjectDialogOpen = ref(false)
-const isMembersSheetOpen = ref(false)
 
 // 当前操作的项目
 const currentProject = ref<ProjectItem | null>(null)
 const projectToDelete = ref<ProjectItem | null>(null)
-const projectToManageMembers = ref<ProjectItem | null>(null)
 
 /** 过滤后的项目列表 */
 const filteredProjects = computed(() => {
@@ -144,26 +141,6 @@ function handleProjectDeleted(projectId: string) {
   projects.value = projects.value.filter(p => p.id !== projectId)
   projectToDelete.value = null
   recentProjectsRef.value?.refresh()
-}
-
-/** 打开成员管理 */
-function handleManageMembers(project: ProjectItem) {
-  projectToManageMembers.value = project
-  isMembersSheetOpen.value = true
-}
-
-/** 成员数量变化 */
-function handleMemberCountChanged(count: number) {
-  if (projectToManageMembers.value) {
-    const index = projects.value.findIndex(p => p.id === projectToManageMembers.value?.id)
-    const existingProject = projects.value[index]
-    if (index !== -1 && existingProject) {
-      projects.value[index] = {
-        ...existingProject,
-        memberCount: count,
-      }
-    }
-  }
 }
 
 /** 监听团队变化，重新获取项目 */
@@ -293,7 +270,6 @@ onMounted(() => {
           :project="project"
           @edit="handleEditProject"
           @delete="handleDeleteProject"
-          @manage-members="handleManageMembers"
         />
       </div>
 
@@ -317,14 +293,6 @@ onMounted(() => {
       v-model:open="isDeleteProjectDialogOpen"
       :project="projectToDelete"
       @deleted="handleProjectDeleted"
-    />
-
-    <!-- 成员管理抽屉 -->
-    <ProjectMembersSheet
-      v-if="projectToManageMembers"
-      v-model:open="isMembersSheetOpen"
-      :project="projectToManageMembers"
-      @member-count-changed="handleMemberCountChanged"
     />
   </div>
 </template>

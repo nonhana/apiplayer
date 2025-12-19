@@ -109,6 +109,7 @@ export const useProjectStore = defineStore('project', () => {
 
     // setters
     setProjectId,
+    setProjectMembers,
 
     // actions
     init,

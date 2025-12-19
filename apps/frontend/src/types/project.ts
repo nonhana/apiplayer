@@ -147,3 +147,19 @@ export interface InviteProjectMembersReq {
 export interface UpdateProjectMemberReq {
   roleId: string
 }
+
+/** 项目环境类型 */
+export type ProjectEnvType = 'DEV' | 'TEST' | 'STAGING' | 'PROD'
+
+/** 创建项目环境请求 */
+export interface CreateProjectEnvReq {
+  name: string
+  type: ProjectEnvType
+  baseUrl: string
+  variables?: Record<string, string>
+  headers?: Record<string, string>
+  isDefault?: boolean
+}
+
+/** 更新项目环境请求 */
+export type UpdateProjectEnvReq = Partial<CreateProjectEnvReq>

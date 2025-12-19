@@ -1,5 +1,6 @@
 import type { BasePaginatedQuery } from '@/types'
 import type {
+  CreateProjectEnvReq,
   CreateProjectReq,
   GetProjectsReq,
   InviteProjectMembersReq,
@@ -12,6 +13,7 @@ import type {
   ProjectPermissionsResponse,
   ProjectsResponse,
   RecentProjectItem,
+  UpdateProjectEnvReq,
   UpdateProjectMemberReq,
   UpdateProjectReq,
 } from '@/types/project'
@@ -65,4 +67,20 @@ export const projectApi = {
   /** 设置某个项目环境为默认环境 */
   setDefaultEnv: (projectId: string, envId: string) =>
     http.post(`projects/${projectId}/environments/${envId}/default`).json<ProjectEnv>(),
+
+  /** 创建项目环境 */
+  createProjectEnv: (projectId: string, data: CreateProjectEnvReq) =>
+    http.post(`projects/${projectId}/environments`, { json: data }).json<ProjectEnv>(),
+
+  /** 获取项目环境列表 */
+  getProjectEnvs: (projectId: string) =>
+    http.get(`projects/${projectId}/environments`).json<ProjectEnv[]>(),
+
+  /** 更新项目环境 */
+  updateProjectEnv: (projectId: string, envId: string, data: UpdateProjectEnvReq) =>
+    http.patch(`projects/${projectId}/environments/${envId}`, { json: data }).json<ProjectEnv>(),
+
+  /** 删除项目环境 */
+  deleteProjectEnv: (projectId: string, envId: string) =>
+    http.delete(`projects/${projectId}/environments/${envId}`).json<void>(),
 }

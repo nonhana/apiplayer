@@ -29,6 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useProjectStore } from '@/stores/useProjectStore'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
+import ProjectSettingsSheet from './ProjectSettingsSheet.vue'
 
 const router = useRouter()
 
@@ -96,6 +97,9 @@ function handleLogout() {
   userStore.logout()
   router.push('/auth/login')
 }
+
+// 项目设置抽屉
+const isSettingsSheetOpen = ref(false)
 </script>
 
 <template>
@@ -154,6 +158,8 @@ function handleLogout() {
         variant="ghost"
         size="icon"
         class="h-8 w-8"
+        :disabled="!projectDetail"
+        @click="isSettingsSheetOpen = true"
       >
         <Settings class="h-4 w-4" />
       </Button>
@@ -194,5 +200,12 @@ function handleLogout() {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+
+    <!-- 项目设置抽屉 -->
+    <ProjectSettingsSheet
+      v-if="projectDetail"
+      v-model:open="isSettingsSheetOpen"
+      :project="projectDetail"
+    />
   </header>
 </template>

@@ -8,7 +8,6 @@ import type { LocalSchemaNode } from '@/types/json-schema'
 import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
 import JsonSchemaEditor from '@/components/common/JsonSchemaEditor.vue'
-import { genRootSchemaNode, nodeToSchema, schemaToNode } from '@/lib/json-schema'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,6 +26,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { HTTP_STATUS_CATEGORIES, httpStatusLabels } from '@/constants/api'
+import { genRootSchemaNode, nodeToSchema, schemaToNode } from '@/lib/json-schema'
 import { cn } from '@/lib/utils'
 
 /** 内部响应项（带唯一 key 和本地 schema） */
