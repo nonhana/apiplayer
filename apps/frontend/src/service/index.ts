@@ -2,7 +2,7 @@ import type { Hooks, KyInstance, Options } from 'ky'
 import type { IApiResponse } from './types'
 import ky from 'ky'
 import { toast } from 'vue-sonner'
-import { useUserStore } from '../stores/useUserStore'
+import { useUserStore } from '@/stores/useUserStore'
 import { HanaError } from './error'
 
 const hooks: Hooks = {
