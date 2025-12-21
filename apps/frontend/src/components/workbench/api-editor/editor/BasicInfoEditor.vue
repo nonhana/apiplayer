@@ -174,7 +174,7 @@ const curStatusClass = computed(() => {
         </Select>
       </div>
 
-      <div class="flex-1 space-y-2">
+      <div class="space-y-2">
         <Label for="api-owner">负责人</Label>
         <SearchInput
           :model-value="internalInfo.ownerId ?? ''"

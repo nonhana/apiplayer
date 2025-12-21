@@ -37,11 +37,20 @@ const open = ref(false)
 /** 搜索关键词（用于过滤选项列表） */
 const searchTerm = ref('')
 
-/** 同步外部值到搜索框 */
+/** 根据 value 找到对应的 label 用于显示 */
+function getDisplayLabel(value: string): string {
+  const option = props.options.find(opt => String(opt.value) === String(value))
+  return option ? option.label : value
+}
+
+/** 同步外部值到搜索框（显示 label 而非 value） */
 watch(
-  () => props.modelValue,
-  (newValue) => {
-    searchTerm.value = newValue
+  [() => props.modelValue, () => props.options],
+  ([newValue]) => {
+    // 如果当前没有在输入状态，则根据 value 找到对应的 label 显示
+    if (!open.value) {
+      searchTerm.value = getDisplayLabel(newValue)
+    }
   },
   { immediate: true },
 )
@@ -74,6 +83,16 @@ function handleSelect(item: unknown) {
     open.value = false
   }
 }
+
+/** 处理失焦：恢复显示当前 modelValue 对应的 label */
+function handleBlur() {
+  // 延迟执行，确保 select 事件先触发
+  setTimeout(() => {
+    if (!open.value) {
+      searchTerm.value = getDisplayLabel(props.modelValue)
+    }
+  }, 150)
+}
 </script>
 
 <template>
@@ -93,6 +112,7 @@ function handleSelect(item: unknown) {
           :placeholder="placeholder"
           :disabled="disabled"
           @focus="open = true"
+          @blur="handleBlur"
         />
       </ComboboxInput>
     </ComboboxAnchor>
