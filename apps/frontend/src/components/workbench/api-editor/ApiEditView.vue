@@ -4,6 +4,7 @@ import type { TabPageItem } from '@/types'
 import type { ApiDetail, ApiRequestBody, ApiResponse, LocalApiRequestBody, UpdateApiReq } from '@/types/api'
 import { useRouteQuery } from '@vueuse/router'
 import { FileText, Hash, Loader2, MessageSquare, Save, Settings } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { reactive, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { apiApi } from '@/api/api'
@@ -12,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { nodeToSchema, schemaToNode } from '@/lib/json-schema'
+import { useApiEditorStore } from '@/stores/useApiEditorStore'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useTabStore } from '@/stores/useTabStore'
 import BasicInfoEditor from './editor/BasicInfoEditor.vue'
@@ -36,8 +38,12 @@ const tabItems: TabPageItem<TabType>[] = [
 ]
 
 const apiTreeStore = useApiTreeStore()
+const apiEditorStore = useApiEditorStore()
 const tabStore = useTabStore()
 const activeTab = useRouteQuery<TabType>('editing', 'basic')
+
+const { isDirty } = storeToRefs(apiEditorStore)
+const { setIsDirty } = apiEditorStore
 
 /** 是否正在保存 */
 const isSaving = ref(false)
@@ -119,8 +125,6 @@ watch(
   },
   { immediate: true, deep: true },
 )
-
-const isDirty = ref(false)
 
 /** 监听变化，更新 Tab 的 dirty 状态 */
 watch(isDirty, (dirty) => {
@@ -206,7 +210,7 @@ async function handleSave() {
   }
   finally {
     isSaving.value = false
-    isDirty.value = false
+    setIsDirty(false)
   }
 }
 </script>
@@ -266,7 +270,7 @@ async function handleSave() {
           <TabsContent value="basic" class="mt-0">
             <BasicInfoEditor
               :info="apiData.basicInfo"
-              @update:info="apiData.basicInfo = $event; isDirty = true"
+              @update:info="apiData.basicInfo = $event; setIsDirty(true)"
             />
           </TabsContent>
 
@@ -275,7 +279,7 @@ async function handleSave() {
             <ParamsEditor
               :params="apiData.paramsData"
               :path="apiData.basicInfo.path"
-              @update:params="apiData.paramsData = $event; isDirty = true"
+              @update:params="apiData.paramsData = $event; setIsDirty(true)"
             />
           </TabsContent>
 
@@ -283,7 +287,7 @@ async function handleSave() {
           <TabsContent value="body" class="mt-0">
             <RequestBodyEditor
               :body="apiData.requestBody"
-              @update:body="apiData.requestBody = $event; isDirty = true"
+              @update:body="apiData.requestBody = $event; setIsDirty(true)"
             />
           </TabsContent>
 
@@ -291,7 +295,7 @@ async function handleSave() {
           <TabsContent value="responses" class="mt-0">
             <ResponsesEditor
               :responses="apiData.responses"
-              @update:responses="apiData.responses = $event; isDirty = true"
+              @update:responses="apiData.responses = $event; setIsDirty(true)"
             />
           </TabsContent>
         </div>

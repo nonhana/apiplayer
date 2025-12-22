@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import type { LocalSchemaNode } from '@/types/json-schema'
+import { useApiEditorStore } from '@/stores/useApiEditorStore'
 import JsonSchemaNode from './JsonSchemaNode.vue'
+
+const apiEditorStore = useApiEditorStore()
+const { setIsDirty } = apiEditorStore
 
 const root = defineModel<LocalSchemaNode>({ required: true })
 
@@ -76,6 +80,7 @@ function handleAddNode({ newNode, path }: { newNode: LocalSchemaNode, path: stri
   }
 
   node.children.push(newNode)
+  setIsDirty(true)
 }
 
 /**
@@ -93,6 +98,7 @@ function handleUpdateNode({ patch, path }: { patch: { key: string, value: unknow
 
   // 类型安全地更新属性
   ;(node as unknown as Record<string, unknown>)[patch.key] = patch.value
+  setIsDirty(true)
 }
 
 /**
@@ -120,6 +126,7 @@ function handleDeleteNode({ path }: { path: string }) {
   }
 
   parentNode.children = parentNode.children.filter(child => child.id !== targetId)
+  setIsDirty(true)
 }
 </script>
 
