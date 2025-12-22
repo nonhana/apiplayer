@@ -24,8 +24,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { SCHEMA_FIELD_TYPES } from '@/lib/json-schema'
-import { cn, generateKey } from '@/lib/utils'
+import { genArrayItemNode, genNewNode, SCHEMA_FIELD_TYPES } from '@/lib/json-schema'
+import { cn } from '@/lib/utils'
 import Code from './Code.vue'
 
 const props = defineProps<{
@@ -88,29 +88,6 @@ const hasCollapsibleContent = computed(() => {
   }
   return false
 })
-
-/** 生成新节点 */
-function genNewNode(): LocalSchemaNode {
-  return {
-    id: generateKey(),
-    name: '',
-    type: 'string',
-    required: false,
-    description: '',
-  }
-}
-
-/** 生成 array item 节点 */
-function genArrayItemNode(): LocalSchemaNode {
-  return {
-    id: generateKey(),
-    isArrayItem: true,
-    name: 'ITEMS',
-    type: 'string',
-    required: false,
-    description: '',
-  }
-}
 
 /** 添加相邻节点（在父节点的 children 中添加） */
 function addSiblingNode() {
@@ -219,7 +196,6 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
       <!-- 类型 -->
       <Select
         :model-value="node.type"
-        :disabled="node.isRoot"
         @update:model-value="updateNode('type', $event as SchemaFieldType)"
       >
         <SelectTrigger
@@ -245,9 +221,9 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
       <div class="w-[50px] flex justify-center">
         <Checkbox
           v-if="!node.isArrayItem"
-          :checked="node.required"
+          :model-value="node.required"
           :disabled="node.isRoot"
-          @update:checked="updateNode('required', $event)"
+          @update:model-value="updateNode('required', $event as boolean)"
         />
       </div>
 
@@ -336,17 +312,19 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
           当前 object 尚未包含字段，点击 + 添加
         </div>
 
-        <JsonSchemaNode
-          v-for="item in node.children"
-          v-else
-          :key="item.id"
-          :node="item"
-          :path="currentPath"
-          :depth="currentDepth + 1"
-          @add-node="emits('addNode', $event)"
-          @update-node="emits('updateNode', $event)"
-          @delete-node="emits('deleteNode', $event)"
-        />
+        <!-- 子节点列表 -->
+        <template v-else>
+          <JsonSchemaNode
+            v-for="item in node.children"
+            :key="item.id"
+            :node="item"
+            :path="currentPath"
+            :depth="currentDepth + 1"
+            @add-node="emits('addNode', $event)"
+            @update-node="emits('updateNode', $event)"
+            @delete-node="emits('deleteNode', $event)"
+          />
+        </template>
       </template>
 
       <!-- Array Item 节点（递归渲染） -->
