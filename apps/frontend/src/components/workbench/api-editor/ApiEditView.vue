@@ -4,7 +4,7 @@ import type { TabPageItem } from '@/types'
 import type { ApiDetail, ApiRequestBody, ApiResponse, LocalApiRequestBody, UpdateApiReq } from '@/types/api'
 import { useRouteQuery } from '@vueuse/router'
 import { FileText, Hash, Loader2, MessageSquare, Save, Settings } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { apiApi } from '@/api/api'
 import { Button } from '@/components/ui/button'
@@ -42,30 +42,27 @@ const activeTab = useRouteQuery<TabType>('editing', 'basic')
 /** 是否正在保存 */
 const isSaving = ref(false)
 
-/** 基本信息 */
-const basicInfo = ref<ApiBaseInfoForm>({
-  name: '',
-  method: 'GET',
-  path: '',
-  status: 'DRAFT',
-  tags: [],
+const apiData = reactive<{
+  basicInfo: ApiBaseInfoForm
+  paramsData: ApiReqData
+  requestBody: LocalApiRequestBody | null
+  responses: ApiResponse[]
+}>({
+  basicInfo: {
+    name: '',
+    method: 'GET',
+    path: '',
+    status: 'DRAFT',
+    tags: [],
+  },
+  paramsData: {
+    pathParams: [],
+    queryParams: [],
+    requestHeaders: [],
+  },
+  requestBody: null,
+  responses: [],
 })
-
-/** 请求参数 */
-const paramsData = ref<ApiReqData>({
-  pathParams: [],
-  queryParams: [],
-  requestHeaders: [],
-})
-
-/** 请求体 */
-const requestBody = ref<LocalApiRequestBody | null>(null)
-
-/** 响应定义 */
-const responses = ref<ApiResponse[]>([])
-
-/** 原始数据（用于检测变化） */
-const originalData = ref<string>('')
 
 /** ApiRequestBody -> LocalApiRequestBody */
 function toLocalReqBody(body: ApiRequestBody): LocalApiRequestBody {
@@ -89,7 +86,7 @@ function toApiReqBody(body: LocalApiRequestBody): ApiRequestBody {
 
 /** 从 API 详情初始化数据 */
 function initFromApi(api: ApiDetail) {
-  basicInfo.value = {
+  apiData.basicInfo = {
     name: api.name,
     method: api.method,
     path: api.path,
@@ -97,27 +94,19 @@ function initFromApi(api: ApiDetail) {
     tags: api.tags,
   }
   if (api.owner)
-    basicInfo.value.ownerId = api.owner.id
+    apiData.basicInfo.ownerId = api.owner.id
   if (api.description)
-    basicInfo.value.description = api.description
+    apiData.basicInfo.description = api.description
 
-  paramsData.value = {
+  apiData.paramsData = {
     pathParams: api.pathParams,
     queryParams: api.queryParams,
     requestHeaders: api.requestHeaders,
   }
 
-  requestBody.value = api.requestBody ? toLocalReqBody(api.requestBody) : null
+  apiData.requestBody = api.requestBody ? toLocalReqBody(api.requestBody) : null
 
-  responses.value = api.responses
-
-  // 保存原始数据快照
-  originalData.value = JSON.stringify({
-    basicInfo: basicInfo.value,
-    paramsData: paramsData.value,
-    requestBody: requestBody.value,
-    responses: responses.value,
-  })
+  apiData.responses = api.responses
 }
 
 /** 监听 API 变化 */
@@ -131,24 +120,10 @@ watch(
   { immediate: true, deep: true },
 )
 
-/** 当前数据快照 */
-const currentDataSnapshot = computed(() => {
-  return JSON.stringify({
-    basicInfo: basicInfo.value,
-    paramsData: paramsData.value,
-    requestBody: requestBody.value,
-    responses: responses.value,
-  })
-})
-
-/** 是否有未保存的修改 */
-// TODO: JSON.stringify 比较两个对象过于简单粗暴，没有考虑到无法正常序列化的情况，需要优化
-const hasChanges = computed(() => {
-  return currentDataSnapshot.value !== originalData.value
-})
+const isDirty = ref(false)
 
 /** 监听变化，更新 Tab 的 dirty 状态 */
-watch(hasChanges, (dirty) => {
+watch(isDirty, (dirty) => {
   tabStore.setTabDirty(props.api.id, dirty)
 })
 
@@ -158,25 +133,25 @@ function buildUpdateRequest(): UpdateApiReq {
 
   // 基本信息
   req.baseInfo = {
-    name: basicInfo.value.name,
-    method: basicInfo.value.method,
-    path: basicInfo.value.path,
-    status: basicInfo.value.status,
-    description: basicInfo.value.description,
-    tags: basicInfo.value.tags,
-    ownerId: basicInfo.value.ownerId,
+    name: apiData.basicInfo.name,
+    method: apiData.basicInfo.method,
+    path: apiData.basicInfo.path,
+    status: apiData.basicInfo.status,
+    description: apiData.basicInfo.description,
+    tags: apiData.basicInfo.tags,
+    ownerId: apiData.basicInfo.ownerId,
   }
 
   // 处理请求体数据
-  const reqBody = requestBody.value ? toApiReqBody(requestBody.value) : undefined
+  const reqBody = apiData.requestBody ? toApiReqBody(apiData.requestBody) : undefined
 
   // 核心信息
   req.coreInfo = {
-    requestHeaders: paramsData.value.requestHeaders,
-    pathParams: paramsData.value.pathParams,
-    queryParams: paramsData.value.queryParams,
+    requestHeaders: apiData.paramsData.requestHeaders,
+    pathParams: apiData.paramsData.pathParams,
+    queryParams: apiData.paramsData.queryParams,
     requestBody: reqBody as (Record<string, unknown> | undefined),
-    responses: responses.value,
+    responses: apiData.responses,
   }
 
   return req
@@ -188,13 +163,13 @@ async function handleSave() {
     return
 
   // 验证必填字段
-  if (!basicInfo.value.name?.trim()) {
+  if (!apiData.basicInfo.name?.trim()) {
     toast.error('请输入接口名称')
     activeTab.value = 'basic'
     return
   }
 
-  if (!basicInfo.value.path?.trim()) {
+  if (!apiData.basicInfo.path?.trim()) {
     toast.error('请输入接口路径')
     activeTab.value = 'basic'
     return
@@ -206,26 +181,23 @@ async function handleSave() {
     const req = buildUpdateRequest()
     await apiApi.updateApi(apiTreeStore.projectId, props.api.id, req)
 
-    // 更新原始数据快照
-    originalData.value = currentDataSnapshot.value
-
     // 刷新树
     await apiTreeStore.refreshTree()
 
     // 更新 Tab 标题
-    tabStore.updateTabTitle(props.api.id, basicInfo.value.name)
+    tabStore.updateTabTitle(props.api.id, apiData.basicInfo.name)
 
     toast.success('保存成功')
 
     // 通知父组件更新本地数据
     emit('updated', {
       ...props.api,
-      ...basicInfo.value,
-      requestHeaders: paramsData.value.requestHeaders,
-      pathParams: paramsData.value.pathParams,
-      queryParams: paramsData.value.queryParams,
-      requestBody: requestBody.value ? toApiReqBody(requestBody.value) : undefined,
-      responses: responses.value,
+      ...apiData.basicInfo,
+      requestHeaders: apiData.paramsData.requestHeaders,
+      pathParams: apiData.paramsData.pathParams,
+      queryParams: apiData.paramsData.queryParams,
+      requestBody: apiData.requestBody ? toApiReqBody(apiData.requestBody) : undefined,
+      responses: apiData.responses,
     })
   }
   catch (err) {
@@ -234,6 +206,7 @@ async function handleSave() {
   }
   finally {
     isSaving.value = false
+    isDirty.value = false
   }
 }
 </script>
@@ -248,10 +221,10 @@ async function handleSave() {
         </h2>
         <Separator orientation="vertical" class="h-4" />
         <span class="text-sm font-semibold truncate max-w-[300px]">
-          {{ basicInfo.name || '未命名接口' }}
+          {{ apiData.basicInfo.name || '未命名接口' }}
         </span>
         <span
-          v-if="hasChanges"
+          v-if="isDirty"
           class="text-xs text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded"
         >
           未保存
@@ -260,7 +233,7 @@ async function handleSave() {
 
       <Button
         size="sm"
-        :disabled="!hasChanges || isSaving"
+        :disabled="!isDirty || isSaving"
         @click="handleSave"
       >
         <Loader2 v-if="isSaving" class="h-4 w-4 mr-1.5 animate-spin" />
@@ -292,33 +265,33 @@ async function handleSave() {
           <!-- 基本信息 -->
           <TabsContent value="basic" class="mt-0">
             <BasicInfoEditor
-              :info="basicInfo"
-              @update:info="basicInfo = $event"
+              :info="apiData.basicInfo"
+              @update:info="apiData.basicInfo = $event; isDirty = true"
             />
           </TabsContent>
 
           <!-- 请求参数 -->
           <TabsContent value="params" class="mt-0">
             <ParamsEditor
-              :params="paramsData"
-              :path="basicInfo.path"
-              @update:params="paramsData = $event"
+              :params="apiData.paramsData"
+              :path="apiData.basicInfo.path"
+              @update:params="apiData.paramsData = $event; isDirty = true"
             />
           </TabsContent>
 
           <!-- 请求体 -->
           <TabsContent value="body" class="mt-0">
             <RequestBodyEditor
-              :body="requestBody"
-              @update:body="requestBody = $event"
+              :body="apiData.requestBody"
+              @update:body="apiData.requestBody = $event; isDirty = true"
             />
           </TabsContent>
 
           <!-- 响应定义 -->
           <TabsContent value="responses" class="mt-0">
             <ResponsesEditor
-              :responses="responses"
-              @update:responses="responses = $event"
+              :responses="apiData.responses"
+              @update:responses="apiData.responses = $event; isDirty = true"
             />
           </TabsContent>
         </div>
