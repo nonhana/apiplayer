@@ -40,6 +40,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "catalog:frontend",
     "@vue/tsconfig": "catalog:frontend",
+    "shiki": "catalog:",
     "tw-animate-css": "catalog:frontend",
     "vite": "catalog:frontend",
     "vue-tsc": "catalog:frontend"

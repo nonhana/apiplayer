@@ -74,14 +74,11 @@ const contentType = computed(() => {
     </div>
 
     <div v-if="hasBody">
-      <!-- JSON 类型 -->
       <div v-if="isJsonType" class="space-y-4">
-        <!-- 描述 -->
         <p v-if="body?.description" class="text-sm text-muted-foreground">
           {{ body.description }}
         </p>
 
-        <!-- JSON Schema 预览 -->
         <div v-if="body?.jsonSchema" class="space-y-2">
           <div class="flex items-center gap-2 text-sm text-muted-foreground">
             <FileJson class="h-4 w-4" />
@@ -90,7 +87,6 @@ const contentType = computed(() => {
           <JsonPreview :data="body.jsonSchema" max-height="250px" />
         </div>
 
-        <!-- 示例数据 -->
         <div v-if="body?.example" class="space-y-2">
           <div class="text-sm text-muted-foreground">
             示例
@@ -99,7 +95,6 @@ const contentType = computed(() => {
         </div>
       </div>
 
-      <!-- 表单类型 -->
       <div v-else-if="isFormType" class="space-y-4">
         <p v-if="body?.description" class="text-sm text-muted-foreground">
           {{ body.description }}
@@ -121,7 +116,6 @@ const contentType = computed(() => {
         </div>
       </div>
 
-      <!-- 其他类型 -->
       <div v-else class="space-y-2">
         <p v-if="body?.description" class="text-sm text-muted-foreground">
           {{ body.description }}
@@ -134,7 +128,6 @@ const contentType = computed(() => {
       </div>
     </div>
 
-    <!-- 无请求体 -->
     <div
       v-else
       class="text-center py-8 text-muted-foreground text-sm border rounded-md bg-muted/30"

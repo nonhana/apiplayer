@@ -1,21 +1,19 @@
 <script lang="ts" setup>
 import { Check, Copy } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { highlightCode } from '@/lib/highlighter'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
   /** JSON 数据 */
   data: unknown
-  /** 最大高度 */
-  maxHeight?: string
   /** 是否显示复制按钮 */
   showCopy?: boolean
   /** 自定义类名 */
   class?: string
 }>(), {
-  maxHeight: '300px',
   showCopy: true,
 })
 
@@ -54,6 +52,16 @@ async function handleCopy() {
     console.error('复制失败:', err)
   }
 }
+
+const html = ref('')
+
+async function highlight() {
+  html.value = await highlightCode(formattedJson.value, 'json')
+}
+
+watch(formattedJson, () => {
+  highlight()
+}, { immediate: true })
 </script>
 
 <template>
@@ -68,7 +76,7 @@ async function handleCopy() {
       v-if="showCopy && hasContent"
       variant="ghost"
       size="icon"
-      class="absolute top-2 right-2 h-7 w-7 opacity-0 hover:opacity-100 focus:opacity-100 transition-opacity z-10"
+      class="absolute top-2 right-2 h-7 w-7 z-10"
       :class="{ 'opacity-100': justCopied }"
       @click="handleCopy"
     >
@@ -77,8 +85,8 @@ async function handleCopy() {
     </Button>
 
     <!-- JSON 内容 -->
-    <ScrollArea :style="{ maxHeight }" class="p-4">
-      <pre v-if="hasContent" class="text-xs leading-relaxed whitespace-pre-wrap break-all"><code>{{ formattedJson }}</code></pre>
+    <ScrollArea class="p-4">
+      <div v-if="hasContent" v-html="html" />
       <div v-else class="text-muted-foreground text-center py-4">
         暂无数据
       </div>

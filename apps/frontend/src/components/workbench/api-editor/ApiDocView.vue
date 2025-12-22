@@ -43,16 +43,12 @@ const responses = computed<ApiResponse[]>(() => {
 <template>
   <ScrollArea class="h-full">
     <div class="w-full p-6 space-y-8">
-      <!-- 主内容区域：左右布局 -->
       <div class="flex gap-6">
-        <!-- 左侧：主要内容 -->
         <div class="flex-1 min-w-0 space-y-8">
-          <!-- 基本信息 -->
           <ApiBasicInfo :api="api" />
 
           <Separator />
 
-          <!-- 请求参数 -->
           <ApiRequestParams
             :headers="requestHeaders"
             :path-params="pathParams"
@@ -61,16 +57,13 @@ const responses = computed<ApiResponse[]>(() => {
 
           <Separator />
 
-          <!-- 请求体 -->
           <ApiRequestBodySection :body="requestBody" />
 
           <Separator />
 
-          <!-- 响应定义 -->
           <ApiResponses :responses="responses" />
         </div>
 
-        <!-- 右侧：元数据 -->
         <div class="w-64 shrink-0">
           <div class="sticky top-6">
             <ApiMetadata :api="api" />
