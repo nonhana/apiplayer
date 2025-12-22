@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ApiBaseInfoForm, ApiReqData } from './editor/types'
 import type { TabPageItem } from '@/types'
-import type { ApiDetail, ApiRequestBody, ApiResponse, LocalApiRequestBody, UpdateApiReq } from '@/types/api'
+import type { ApiDetail, ApiRequestBody, LocalApiRequestBody, LocalApiResponse, UpdateApiReq } from '@/types/api'
 import { useRouteQuery } from '@vueuse/router'
 import { FileText, Hash, Loader2, MessageSquare, Save, Settings } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
@@ -52,7 +52,7 @@ const apiData = reactive<{
   basicInfo: ApiBaseInfoForm
   paramsData: ApiReqData
   requestBody: LocalApiRequestBody | null
-  responses: ApiResponse[]
+  responses: LocalApiResponse[]
 }>({
   basicInfo: {
     name: '',
@@ -112,7 +112,14 @@ function initFromApi(api: ApiDetail) {
 
   apiData.requestBody = api.requestBody ? toLocalReqBody(api.requestBody) : null
 
-  apiData.responses = api.responses
+  apiData.responses = api.responses.map((response) => {
+    const { body, ...rest } = response
+    const res: LocalApiResponse = { ...rest }
+    if (body) {
+      res.body = schemaToNode(body)
+    }
+    return res
+  })
 }
 
 /** 监听 API 变化 */

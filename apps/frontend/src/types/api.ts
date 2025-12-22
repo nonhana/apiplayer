@@ -98,6 +98,12 @@ export interface ApiResponse {
   example?: unknown
 }
 
+/** 本地响应定义 */
+export interface LocalApiResponse extends Omit<ApiResponse, 'body'> {
+  /** 本地响应体 Schema */
+  body?: LocalSchemaNode
+}
+
 /** Mock 配置 */
 export interface ApiMockConfig {
   /** 是否启用 Mock */

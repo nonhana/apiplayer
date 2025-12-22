@@ -1,8 +1,4 @@
 <script lang="ts" setup>
-/**
- * 响应定义编辑组件
- * 支持多个响应码的定义，每个响应包含状态码、名称、描述、响应体
- */
 import type { ApiResponse } from '@/types/api'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-vue-next'
