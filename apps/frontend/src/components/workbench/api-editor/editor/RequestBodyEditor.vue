@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
-import { REQUEST_BODY_TYPES, requestBodyTypeLabels } from '@/constants/api'
+import { FORM_DATA_TYPES, PARAM_TYPES, REQUEST_BODY_TYPES, requestBodyTypeLabels } from '@/constants/api'
 import { genRootSchemaNode } from '@/lib/json-schema'
 import EditableParamTable from './EditableParamTable.vue'
 
@@ -71,6 +71,7 @@ function handleTypeChange(type: RequestBodyType) {
   if (props.disabled)
     return
 
+  const prevType = internalBody.value.type
   internalBody.value.type = type
 
   // 根据类型初始化默认值
@@ -79,6 +80,12 @@ function handleTypeChange(type: RequestBodyType) {
   }
   if ((type === 'form-data' || type === 'x-www-form-urlencoded') && !internalBody.value.formFields) {
     internalBody.value.formFields = []
+  }
+
+  // 从 form-data 切换到 x-www-form-urlencoded 时，需要将 file 类型重置为 string
+  if (prevType === 'form-data' && type === 'x-www-form-urlencoded' && internalBody.value.formFields) {
+    const targetItems = internalBody.value.formFields.filter(field => field.type === 'file')
+    targetItems.forEach(item => item.type = 'string')
   }
 
   emitChange()
@@ -109,6 +116,8 @@ const isJsonType = computed(() => internalBody.value.type === 'json')
 const isFormType = computed(() =>
   internalBody.value.type === 'form-data' || internalBody.value.type === 'x-www-form-urlencoded',
 )
+
+const isFormData = computed(() => internalBody.value.type === 'form-data')
 
 /** 是否是二进制类型 */
 const isBinaryType = computed(() => internalBody.value.type === 'binary')
@@ -152,7 +161,7 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
   <div class="space-y-6">
     <!-- 类型选择 -->
     <div class="space-y-3">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 h-6">
         <Label>请求体类型</Label>
         <Badge v-if="contentType" variant="outline" class="font-mono text-xs">
           {{ contentType }}
@@ -215,6 +224,7 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
         v-if="internalBody.formFields"
         :params="internalBody.formFields"
         :disabled="disabled"
+        :param-type-options="isFormData ? FORM_DATA_TYPES : PARAM_TYPES"
         empty-text="暂无表单字段，点击添加"
         add-button-text="添加表单字段"
         @update:params="handleFormFieldsChange"

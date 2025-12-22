@@ -5,7 +5,7 @@ import { FileText, Hash, LinkIcon } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { HEADER_PARAMS } from '@/constants/api'
+import { HEADER_PARAMS, PARAM_TYPES } from '@/constants/api'
 import { buildOptionList, extractPathParamNames } from '@/lib/utils'
 import EditableParamTable from './EditableParamTable.vue'
 import PathParamTable from './PathParamTable.vue'
@@ -168,6 +168,7 @@ const tabItems = computed(() => [
         <EditableParamTable
           :params="internalParams.queryParams"
           :disabled="disabled"
+          :param-type-options="PARAM_TYPES"
           empty-text="暂无查询参数，点击添加"
           add-button-text="添加 Query 参数"
           @update:params="handleQueryParamsChange"
@@ -200,6 +201,7 @@ const tabItems = computed(() => [
           :disabled="disabled"
           :show-type="false"
           :show-required="false"
+          :param-type-options="PARAM_TYPES"
           :param-name-options="buildOptionList(HEADER_PARAMS)"
           empty-text="暂无请求头，点击添加"
           add-button-text="添加请求头"

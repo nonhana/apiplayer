@@ -45,7 +45,10 @@ export const statusColors: Record<ApiStatus, string> = {
 } as const
 
 /** 参数类型选项 */
-export const PARAM_TYPES: ParamType[] = ['string', 'number', 'integer', 'boolean', 'array', 'object', 'file']
+export const PARAM_TYPES: ParamType[] = ['string', 'number', 'integer', 'boolean', 'array', 'object']
+
+/** form-data 参数类型选项 */
+export const FORM_DATA_TYPES: ParamType[] = [...PARAM_TYPES, 'file']
 
 /** 参数类型显示文案 */
 export const paramTypeLabels: Record<ParamType, string> = {

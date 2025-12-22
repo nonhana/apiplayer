@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { PARAM_TYPES, paramTypeColors } from '@/constants/api'
+import { paramTypeColors } from '@/constants/api'
 import { cn, generateKey } from '@/lib/utils'
 import ParamTableValueForm from './ParamTableValueForm.vue'
 
@@ -52,8 +52,10 @@ const props = withDefaults(defineProps<{
   draggable?: boolean
   /** 是否禁用 */
   disabled?: boolean
-  /** 参数名建议列表（用于下拉选择，如 Header 参数名） */
+  /** 参数名建议列表 */
   paramNameOptions?: Option[]
+  /** 参数类型建议列表 */
+  paramTypeOptions?: ParamType[]
 }>(), {
   showType: true,
   showRequired: true,
@@ -65,6 +67,7 @@ const props = withDefaults(defineProps<{
   draggable: false,
   disabled: false,
   paramNameOptions: () => [],
+  paramTypeOptions: () => [],
 })
 
 const emit = defineEmits<{
@@ -78,19 +81,10 @@ const internalParams = ref<ParamItem[]>([])
 watch(
   () => props.params,
   (newParams) => {
-    // 只在外部数据真正变化时同步
-    const needsSync = newParams.length !== internalParams.value.length
-      || newParams.some((p, i) => {
-        const internal = internalParams.value[i]
-        return !internal || p.name !== internal.name
-      })
-
-    if (needsSync) {
-      internalParams.value = newParams.map(p => ({
-        ...p,
-        _key: generateKey(),
-      }))
-    }
+    internalParams.value = newParams.map(p => ({
+      ...p,
+      _key: generateKey(),
+    }))
   },
   { immediate: true, deep: true },
 )
@@ -240,7 +234,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem
-                      v-for="type in PARAM_TYPES"
+                      v-for="type in paramTypeOptions"
                       :key="type"
                       :value="type"
                     >
