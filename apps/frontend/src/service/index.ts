@@ -76,7 +76,7 @@ const hooks: Hooks = {
 }
 
 const options: Options = {
-  prefixUrl: import.meta.env.DEV ? '/api' : import.meta.env.API_BASE_URL,
+  prefixUrl: import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_BASE_URL,
   timeout: 10000,
   hooks,
   credentials: 'include',
