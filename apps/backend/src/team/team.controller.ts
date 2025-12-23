@@ -24,14 +24,23 @@ export class TeamController {
     return plainToInstance(TeamDto, newTeam)
   }
 
-  /** 获取用户的团队列表 */
+  /** 分页获取用户的团队列表 */
   @Get()
   async getUserTeams(
     @Query() query: BasePaginatedQueryDto,
     @ReqUser('id') userId: string,
-  ) {
+  ): Promise<TeamsDto> {
     const result = await this.teamService.getUserTeams(query, userId)
     return plainToInstance(TeamsDto, result)
+  }
+
+  /** 获取用户的全部团队列表 */
+  @Get('all')
+  async getAllUserTeams(
+    @ReqUser('id') userId: string,
+  ): Promise<TeamDto[]> {
+    const result = await this.teamService.getAllUserTeams(userId)
+    return plainToInstance(TeamDto, result)
   }
 
   /** 获取团队详情 */

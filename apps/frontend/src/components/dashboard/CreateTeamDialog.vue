@@ -89,7 +89,7 @@ const onSubmit = handleSubmit(async (formValues) => {
       },
     }
     teamStore.addTeam(teamItem)
-    teamStore.switchTeam(newTeam.id)
+    await teamStore.switchTeam(newTeam.id)
 
     toast.success('团队创建成功', {
       description: `团队 "${newTeam.name}" 已创建`,

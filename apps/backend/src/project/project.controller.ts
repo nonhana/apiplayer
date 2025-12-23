@@ -11,6 +11,7 @@ import {
   GetProjectsReqDto,
   ProjectBriefDto,
   ProjectDetailDto,
+  ProjectItemDto,
   ProjectsDto,
   RecentProjectItemDto,
   UpdateProjectReqDto,
@@ -36,7 +37,7 @@ export class ProjectController {
     return plainToInstance(ProjectBriefDto, result)
   }
 
-  /** 获取用户的项目列表 */
+  /** 分页获取用户的项目列表 */
   @Get()
   async getUserProjects(
     @Query() dto: GetProjectsReqDto,
@@ -44,6 +45,15 @@ export class ProjectController {
   ): Promise<ProjectsDto> {
     const result = await this.projectService.getUserProjects(dto, userId)
     return plainToInstance(ProjectsDto, result)
+  }
+
+  /** 获取用户的全部项目列表 */
+  @Get('all')
+  async getAllUserProjects(
+    @ReqUser('id') userId: string,
+  ): Promise<ProjectItemDto[]> {
+    const result = await this.projectService.getAllUserProjects(userId)
+    return plainToInstance(ProjectItemDto, result)
   }
 
   /** 获取项目详情 */

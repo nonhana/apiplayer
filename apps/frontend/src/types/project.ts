@@ -51,11 +51,6 @@ export interface ProjectMember {
   joinedAt: string
 }
 
-/** 项目成员数组 */
-export interface ProjectMembersArr {
-  members: ProjectMember[]
-}
-
 /** 项目环境 */
 export interface ProjectEnv {
   id: string

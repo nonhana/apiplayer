@@ -3,8 +3,8 @@ import type {
   InviteTeamMembersReq,
   TeamBrief,
   TeamDetail,
+  TeamItem,
   TeamMember,
-  TeamMembersArr,
   TeamMembersResponse,
   TeamsResponse,
   UpdateTeamMemberReq,
@@ -24,9 +24,13 @@ export const teamApi = {
   createTeam: (data: CreateTeamReq) =>
     http.post('teams', { json: data }).json<TeamBrief>(),
 
-  /** 获取用户的团队列表 */
+  /** 分页获取用户的团队列表 */
   getTeams: (params?: BasePaginatedQuery) =>
     http.get('teams', { searchParams: params as Record<string, string | number> }).json<TeamsResponse>(),
+
+  /** 获取用户的全部团队列表 */
+  getAllUserTeams: () =>
+    http.get('teams/all').json<TeamItem[]>(),
 
   /** 获取团队详情 */
   getTeamDetail: (teamId: string) =>
@@ -42,11 +46,15 @@ export const teamApi = {
 
   /** 邀请成员加入团队 */
   inviteTeamMembers: (teamId: string, data: InviteTeamMembersReq) =>
-    http.post(`team-members/${teamId}/members`, { json: data }).json<TeamMembersArr>(),
+    http.post(`team-members/${teamId}/members`, { json: data }).json<TeamMember[]>(),
 
-  /** 获取团队成员列表 */
+  /** 分页获取团队成员列表 */
   getTeamMembers: (teamId: string, params?: BasePaginatedQuery) =>
     http.get(`team-members/${teamId}/members`, { searchParams: params as Record<string, string | number> }).json<TeamMembersResponse>(),
+
+  /** 获取全部团队成员列表 */
+  getAllTeamMembers: (teamId: string) =>
+    http.get(`team-members/${teamId}/members/all`).json<TeamMember[]>(),
 
   /** 更新团队成员角色 */
   updateTeamMember: (teamId: string, memberId: string, data: UpdateTeamMemberReq) =>

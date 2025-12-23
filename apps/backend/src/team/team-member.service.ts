@@ -85,7 +85,7 @@ export class TeamMemberService {
         `用户 ${inviterId} 邀请了 ${newMembers.length} 名用户加入团队 ${teamId}`,
       )
 
-      return { members: newMembers }
+      return newMembers
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -93,6 +93,31 @@ export class TeamMemberService {
       }
       this.logger.error(`邀请团队成员失败: ${error.message}`, error.stack)
       throw new HanaException('邀请团队成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /** 获取团队全部成员（不分页） */
+  async getAllTeamMembers(teamId: string) {
+    try {
+      await this.teamUtilsService.getTeamById(teamId)
+
+      const members = await this.prisma.teamMember.findMany({
+        where: { teamId },
+        include: {
+          user: true,
+          role: true,
+        },
+        orderBy: { joinedAt: 'asc' },
+      })
+
+      return members
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error(`获取团队全部成员失败: ${error.message}`, error.stack)
+      throw new HanaException('获取团队全部成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 

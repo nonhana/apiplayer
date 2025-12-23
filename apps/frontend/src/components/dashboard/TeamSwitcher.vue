@@ -35,16 +35,16 @@ const isTeamSettingsOpen = ref(false)
 const selectedTeamForSettings = ref<TeamItem | null>(null)
 
 /** 当前团队显示名 */
-const currentTeamName = computed(() => teamStore.currentTeam?.name ?? '选择团队')
+const currentTeamName = computed(() => teamStore.curTeam?.name ?? '选择团队')
 
 /** 当前团队的兜底 Icon */
 const currentTeamFallbackIcon = computed(() =>
-  teamStore.currentTeam ? getTeamFallbackIcon(teamStore.currentTeam.name) : 'T',
+  teamStore.curTeam ? getTeamFallbackIcon(teamStore.curTeam.name) : 'T',
 )
 
 /** 切换团队 */
-function handleSelectTeam(teamId: string) {
-  teamStore.switchTeam(teamId)
+async function handleSelectTeam(teamId: string) {
+  await teamStore.switchTeam(teamId)
   isOpen.value = false
 }
 
@@ -90,7 +90,7 @@ watch(
           </template>
           <template v-else>
             <Avatar class="h-5 w-5 border">
-              <AvatarImage v-if="teamStore.currentTeam?.avatar" :src="teamStore.currentTeam.avatar" />
+              <AvatarImage v-if="teamStore.curTeam?.avatar" :src="teamStore.curTeam.avatar" />
               <AvatarFallback class="text-[10px] font-semibold bg-primary/10 text-primary">
                 {{ currentTeamFallbackIcon }}
               </AvatarFallback>

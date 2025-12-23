@@ -27,9 +27,9 @@ export const useProjectStore = defineStore('project', () => {
     if (!projectId.value)
       return
 
-    const [detail, { members }] = await Promise.all([
+    const [detail, members] = await Promise.all([
       projectApi.getProjectDetail(projectId.value),
-      projectApi.getProjectMembers(projectId.value, { limit: 100 }),
+      projectApi.getAllProjectMembers(projectId.value),
     ])
 
     setProjectDetail(detail)

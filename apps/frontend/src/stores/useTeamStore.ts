@@ -1,4 +1,4 @@
-import type { TeamItem } from '@/types/team'
+import type { TeamItem, TeamMember } from '@/types/team'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { teamApi } from '@/api/team'
@@ -8,26 +8,28 @@ export const useTeamStore = defineStore('team', () => {
   const teams = ref<TeamItem[]>([])
 
   /** 当前选中的团队 ID */
-  const currentTeamId = ref<string | null>(null)
+  const curTeamId = ref<string | null>(null)
+
+  /** 当前选中团队的团队成员 */
+  const curTeamMembers = ref<TeamMember[]>([])
 
   /** 是否正在加载团队列表 */
   const isLoading = ref(false)
 
   /** 当前选中的团队 */
-  const currentTeam = computed(() =>
-    teams.value.find(t => t.id === currentTeamId.value) ?? null,
+  const curTeam = computed(() =>
+    teams.value.find(t => t.id === curTeamId.value) ?? null,
   )
 
   /** 获取用户的团队列表 */
   async function fetchTeams() {
     isLoading.value = true
     try {
-      const response = await teamApi.getTeams({ limit: 100 })
-      teams.value = response.teams
+      teams.value = await teamApi.getAllUserTeams()
 
       // 如果没有选中团队且有团队列表，自动选中第一个
-      if (!currentTeamId.value && response.teams.length > 0 && response.teams[0]) {
-        currentTeamId.value = response.teams[0].id
+      if (!curTeamId.value && teams.value.length > 0 && teams.value[0]) {
+        curTeamId.value = teams.value[0].id
       }
     }
     finally {
@@ -36,10 +38,12 @@ export const useTeamStore = defineStore('team', () => {
   }
 
   /** 切换当前团队 */
-  function switchTeam(teamId: string) {
+  async function switchTeam(teamId: string) {
     const team = teams.value.find(t => t.id === teamId)
     if (team) {
-      currentTeamId.value = teamId
+      curTeamId.value = teamId
+      // 切换团队后，需要获取当前团队的团队成员列表
+      await fetchCurTeamMembers()
     }
   }
 
@@ -48,7 +52,7 @@ export const useTeamStore = defineStore('team', () => {
     teams.value.unshift(team)
     // 如果是第一个团队，自动选中
     if (teams.value.length === 1) {
-      currentTeamId.value = team.id
+      curTeamId.value = team.id
     }
   }
 
@@ -67,34 +71,44 @@ export const useTeamStore = defineStore('team', () => {
     if (index !== -1) {
       teams.value.splice(index, 1)
       // 如果删除的是当前选中的团队，切换到第一个
-      if (currentTeamId.value === teamId) {
-        currentTeamId.value = teams.value[0]?.id ?? null
+      if (curTeamId.value === teamId) {
+        curTeamId.value = teams.value[0]?.id ?? null
       }
     }
+  }
+
+  /** 获取当前选中团队的团队成员 */
+  async function fetchCurTeamMembers() {
+    if (!curTeamId.value)
+      return
+
+    curTeamMembers.value = await teamApi.getAllTeamMembers(curTeamId.value)
   }
 
   /** 重置状态 */
   function reset() {
     teams.value = []
-    currentTeamId.value = null
+    curTeamId.value = null
+    curTeamMembers.value = []
     isLoading.value = false
   }
 
   return {
     teams,
-    currentTeamId,
-    currentTeam,
+    curTeamId,
+    curTeam,
     isLoading,
     fetchTeams,
     switchTeam,
     addTeam,
     updateTeam,
     removeTeam,
+    fetchCurTeamMembers,
     reset,
   }
 }, {
   persist: {
-    pick: ['currentTeamId'],
+    pick: ['curTeamId'],
     storage: localStorage,
   },
 })

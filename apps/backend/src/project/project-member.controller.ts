@@ -3,7 +3,7 @@ import { plainToInstance } from 'class-transformer'
 import { ProjectPermissions, RequireProjectMember } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
-import { MemberDto, MembersArrDto, MembersDto } from '@/common/dto/member.dto'
+import { MemberDto, MembersDto } from '@/common/dto/member.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import { GetMembersReqDto, InviteMembersReqDto, UpdateMemberReqDto } from './dto'
@@ -24,12 +24,12 @@ export class ProjectMemberController {
     @Param('projectId') projectId: string,
     @Body() dto: InviteMembersReqDto,
     @ReqUser('id') userId: string,
-  ): Promise<MembersArrDto> {
+  ): Promise<MemberDto[]> {
     const result = await this.projectMemberService.inviteProjectMembers(dto, projectId, userId)
-    return plainToInstance(MembersArrDto, result)
+    return plainToInstance(MemberDto, result)
   }
 
-  /** 获取项目成员列表 */
+  /** 分页获取项目成员列表 */
   @Get(':projectId/members')
   @RequireProjectMember()
   @ProjectPermissions(['project:read'])
@@ -39,6 +39,17 @@ export class ProjectMemberController {
   ): Promise<MembersDto> {
     const result = await this.projectMemberService.getProjectMembers(dto, projectId)
     return plainToInstance(MembersDto, result)
+  }
+
+  /** 获取全部项目成员列表 */
+  @Get(':projectId/members/all')
+  @RequireProjectMember()
+  @ProjectPermissions(['project:read'])
+  async getAllProjectMembers(
+    @Param('projectId') projectId: string,
+  ): Promise<MemberDto[]> {
+    const result = await this.projectMemberService.getAllProjectMembers(projectId)
+    return plainToInstance(MemberDto, result)
   }
 
   /** 更新项目成员角色 */

@@ -63,6 +63,41 @@ export class TeamService {
     }
   }
 
+  /** 获取用户的全部团队列表（不分页，用于选择器等场景） */
+  async getAllUserTeams(userId: string) {
+    try {
+      const teams = await this.prisma.team.findMany({
+        where: {
+          isActive: true,
+          members: {
+            some: { userId },
+          },
+        },
+        include: {
+          members: {
+            where: { userId },
+            include: {
+              role: true,
+            },
+          },
+          _count: {
+            select: {
+              members: true,
+              projects: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+
+      return teams
+    }
+    catch (error) {
+      this.logger.error(`获取用户全部团队列表失败: ${error.message}`, error.stack)
+      throw new HanaException('获取团队列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
   async getUserTeams(dto: BasePaginatedQueryDto, userId: string) {
     const { page = 1, limit = 10, search } = dto
 

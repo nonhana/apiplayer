@@ -44,8 +44,8 @@ const filteredProjects = computed(() => {
   let result = projects.value
 
   // 属于当前团队的项目
-  if (teamStore.currentTeamId) {
-    result = result.filter(p => p.team.id === teamStore.currentTeamId)
+  if (teamStore.curTeamId) {
+    result = result.filter(p => p.team.id === teamStore.curTeamId)
   }
 
   // 按搜索关键词过滤
@@ -76,17 +76,13 @@ const hasProjects = computed(() => filteredProjects.value.length > 0)
 const showEmptyState = computed(() => !isLoading.value && !hasProjects.value)
 
 /** 当前团队名称 */
-const currentTeamName = computed(() => teamStore.currentTeam?.name ?? '所有团队')
+const currentTeamName = computed(() => teamStore.curTeam?.name ?? '所有团队')
 
 /** 获取项目列表 */
 async function fetchProjects() {
   isLoading.value = true
   try {
-    const response = await projectApi.getProjects({
-      limit: 100,
-      teamId: teamStore.currentTeamId ?? undefined,
-    })
-    projects.value = response.projects
+    projects.value = await projectApi.getAllUserProjects()
   }
   finally {
     isLoading.value = false
@@ -145,7 +141,7 @@ function handleProjectDeleted(projectId: string) {
 
 /** 监听团队变化，重新获取项目 */
 watch(
-  () => teamStore.currentTeamId,
+  () => teamStore.curTeamId,
   () => {
     fetchProjects()
   },

@@ -60,7 +60,7 @@ const dialogTitle = computed(() => isCreateMode.value ? '创建项目' : '编辑
 /** 对话框描述 */
 const dialogDescription = computed(() => {
   if (isCreateMode.value) {
-    return `在 ${teamStore.currentTeam?.name ?? '当前团队'} 中创建一个新项目`
+    return `在 ${teamStore.curTeam?.name ?? '当前团队'} 中创建一个新项目`
   }
   return `修改项目 ${props.project?.name ?? ''} 的基本信息`
 })
@@ -129,12 +129,12 @@ const onSubmit = handleSubmit(async (formValues) => {
 
     if (isCreateMode.value) {
       // 创建模式
-      if (!teamStore.currentTeamId) {
+      if (!teamStore.curTeamId) {
         toast.error('创建项目时请指定一个团队')
         return
       }
 
-      const newProject = await projectApi.createProject(teamStore.currentTeamId, {
+      const newProject = await projectApi.createProject(teamStore.curTeamId, {
         name: formValues.name,
         slug: formValues.slug,
         description: formValues.description || undefined,
@@ -148,9 +148,9 @@ const onSubmit = handleSubmit(async (formValues) => {
         memberCount: 1,
         apiCount: 0,
         team: {
-          id: teamStore.currentTeamId,
-          name: teamStore.currentTeam?.name ?? '',
-          slug: teamStore.currentTeam?.slug ?? '',
+          id: teamStore.curTeamId,
+          name: teamStore.curTeam?.name ?? '',
+          slug: teamStore.curTeam?.slug ?? '',
         },
         currentUserRole: {
           id: 'project:admin',

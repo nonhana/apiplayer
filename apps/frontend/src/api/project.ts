@@ -7,8 +7,8 @@ import type {
   ProjectBrief,
   ProjectDetail,
   ProjectEnv,
+  ProjectItem,
   ProjectMember,
-  ProjectMembersArr,
   ProjectMembersResponse,
   ProjectPermissionsResponse,
   ProjectsResponse,
@@ -24,9 +24,13 @@ export const projectApi = {
   createProject: (teamId: string, data: CreateProjectReq) =>
     http.post(`projects/${teamId}`, { json: data }).json<ProjectBrief>(),
 
-  /** 获取用户的项目列表 */
+  /** 分页获取用户的项目列表 */
   getProjects: (params?: GetProjectsReq) =>
     http.get('projects', { searchParams: params as Record<string, string | number | boolean> }).json<ProjectsResponse>(),
+
+  /** 获取用户的全部项目列表 */
+  getAllUserProjects: () =>
+    http.get('projects/all').json<ProjectItem[]>(),
 
   /** 获取项目详情 */
   getProjectDetail: (projectId: string) =>
@@ -48,13 +52,17 @@ export const projectApi = {
   getMyProjectRole: (projectId: string) =>
     http.get(`projects/${projectId}/my-role`).json<ProjectPermissionsResponse>(),
 
-  /** 获取项目成员列表 */
+  /** 分页获取项目成员列表 */
   getProjectMembers: (projectId: string, params?: BasePaginatedQuery) =>
     http.get(`projects/${projectId}/members`, { searchParams: params as Record<string, string | number> }).json<ProjectMembersResponse>(),
 
+  /** 获取全部项目成员列表 */
+  getAllProjectMembers: (projectId: string) =>
+    http.get(`projects/${projectId}/members/all`).json<ProjectMember[]>(),
+
   /** 邀请项目成员 */
   inviteProjectMembers: (projectId: string, data: InviteProjectMembersReq) =>
-    http.post(`projects/${projectId}/members`, { json: data }).json<ProjectMembersArr>(),
+    http.post(`projects/${projectId}/members`, { json: data }).json<ProjectMember[]>(),
 
   /** 更新项目成员角色 */
   updateProjectMember: (projectId: string, memberId: string, data: UpdateProjectMemberReq) =>

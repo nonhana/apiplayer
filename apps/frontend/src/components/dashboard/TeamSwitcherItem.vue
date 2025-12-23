@@ -49,7 +49,7 @@ const teamStore = useTeamStore()
     <Check
       :class="cn(
         'h-4 w-4 shrink-0',
-        teamStore.currentTeamId === team.id ? 'opacity-100' : 'opacity-0',
+        teamStore.curTeamId === team.id ? 'opacity-100' : 'opacity-0',
       )"
     />
   </CommandItem>

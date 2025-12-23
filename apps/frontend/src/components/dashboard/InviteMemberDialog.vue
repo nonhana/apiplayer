@@ -115,25 +115,23 @@ async function fetchRoles() {
 
 /** 邀请团队成员 */
 async function inviteTeamMembers(): Promise<TeamMember[]> {
-  const { members } = await teamApi.inviteTeamMembers(props.resourceId, {
+  return await teamApi.inviteTeamMembers(props.resourceId, {
     members: selectedUsers.value.map(user => ({
       email: user.email,
       roleId: selectedRoleId.value,
       nickname: nickname.value || undefined,
     })),
   })
-  return members
 }
 
 /** 邀请项目成员 */
 async function inviteProjectMembers(): Promise<ProjectMember[]> {
-  const { members } = await projectApi.inviteProjectMembers(props.resourceId, {
+  return await projectApi.inviteProjectMembers(props.resourceId, {
     members: selectedUsers.value.map(user => ({
       email: user.email,
       roleId: selectedRoleId.value,
     })),
   })
-  return members
 }
 
 /** 提交邀请 */

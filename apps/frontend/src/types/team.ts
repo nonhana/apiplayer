@@ -50,11 +50,6 @@ export interface TeamMember {
   joinedAt: string
 }
 
-/** 团队成员数组 */
-export interface TeamMembersArr {
-  members: TeamMember[]
-}
-
 /** 团队关联的项目简要信息 */
 export interface TeamProject {
   id: string

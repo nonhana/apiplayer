@@ -100,7 +100,7 @@ export class ProjectMemberService {
         `用户 ${inviterId} 邀请了 ${newMembers.length} 名用户加入项目 ${projectId}`,
       )
 
-      return { members: newMembers }
+      return newMembers
     }
     catch (error) {
       if (error instanceof HanaException) {
@@ -108,6 +108,31 @@ export class ProjectMemberService {
       }
       this.logger.error(`邀请项目成员失败: ${error.message}`, error.stack)
       throw new HanaException('邀请项目成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
+  /** 获取项目全部成员（不分页） */
+  async getAllProjectMembers(projectId: string) {
+    try {
+      await this.projectUtilsService.getProjectById(projectId)
+
+      const members = await this.prisma.projectMember.findMany({
+        where: { projectId },
+        include: {
+          user: true,
+          role: true,
+        },
+        orderBy: { joinedAt: 'asc' },
+      })
+
+      return members
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error(`获取项目全部成员失败: ${error.message}`, error.stack)
+      throw new HanaException('获取项目全部成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 

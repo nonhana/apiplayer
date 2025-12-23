@@ -77,6 +77,44 @@ export class ProjectService {
     }
   }
 
+  /** 获取用户的全部项目列表（不分页，用于选择器等场景） */
+  async getAllUserProjects(userId: string) {
+    try {
+      const projects = await this.prisma.project.findMany({
+        where: {
+          status: 'ACTIVE',
+          members: {
+            some: { userId },
+          },
+        },
+        include: {
+          team: true,
+          members: {
+            where: { userId },
+            include: {
+              role: true,
+            },
+          },
+          _count: {
+            select: {
+              members: true,
+              apis: {
+                where: { recordStatus: 'ACTIVE' },
+              },
+            },
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+      })
+
+      return projects
+    }
+    catch (error) {
+      this.logger.error(`获取用户全部项目列表失败: ${error.message}`, error.stack)
+      throw new HanaException('获取项目列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
   async getUserProjects(dto: GetProjectsReqDto, userId: string) {
     const { page = 1, limit = 10, search, isPublic, teamId } = dto
 

@@ -84,8 +84,7 @@ async function fetchTeamRoles() {
 async function fetchMembers() {
   isLoadingMembers.value = true
   try {
-    const response = await teamApi.getTeamMembers(props.team.id, { limit: 100 })
-    members.value = response.members
+    members.value = await teamApi.getAllTeamMembers(props.team.id)
   }
   finally {
     isLoadingMembers.value = false
