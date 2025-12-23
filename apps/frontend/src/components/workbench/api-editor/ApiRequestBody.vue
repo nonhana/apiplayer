@@ -2,6 +2,7 @@
 import type { ApiRequestBody } from '@/types/api'
 import { FileJson, FormInput } from 'lucide-vue-next'
 import { computed } from 'vue'
+import JsonSchemaPreviewer from '@/components/common/JsonSchemaPreviewer.vue'
 import { Badge } from '@/components/ui/badge'
 import { requestBodyTypeLabels } from '@/constants/api'
 import JsonPreview from './JsonPreview.vue'
@@ -84,7 +85,7 @@ const contentType = computed(() => {
             <FileJson class="h-4 w-4" />
             <span>JSON Schema</span>
           </div>
-          <JsonPreview :data="body.jsonSchema" max-height="250px" />
+          <JsonSchemaPreviewer :schema="body.jsonSchema" max-height="300px" />
         </div>
 
         <div v-if="body?.example" class="space-y-2">
