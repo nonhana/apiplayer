@@ -1,15 +1,484 @@
+import type { ApiBaseInfoForm, ApiReqData } from '@/components/workbench/api-editor/editor/types'
+import type { ApiDetail, ApiParam, ApiRequestBody, ApiResItem, LocalApiRequestBody, LocalApiResItem, UpdateApiReq } from '@/types/api'
+import type { LocalSchemaNode } from '@/types/json-schema'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
+import { toast } from 'vue-sonner'
+import { apiApi } from '@/api/api'
+import { toApiReqBody, toApiResList, toLocalReqBody, toLocalResList } from '@/lib/api-editor'
+import { genRootSchemaNode } from '@/lib/json-schema'
+import { extractPathParamNames, generateKey } from '@/lib/utils'
+import { useApiTreeStore } from './useApiTreeStore'
+import { useTabStore } from './useTabStore'
+
+/** API 编辑器完整数据结构 */
+export interface ApiEditorData {
+  basicInfo: ApiBaseInfoForm
+  paramsData: ApiReqData
+  requestBody: LocalApiRequestBody | null
+  responses: LocalApiResItem[]
+}
+
+/** 创建空白编辑器数据 */
+function createEmptyEditorData(): ApiEditorData {
+  return {
+    basicInfo: {
+      name: '',
+      method: 'GET',
+      path: '',
+      status: 'DRAFT',
+      tags: [],
+    },
+    paramsData: {
+      pathParams: [],
+      queryParams: [],
+      requestHeaders: [],
+    },
+    requestBody: null,
+    responses: [],
+  }
+}
 
 export const useApiEditorStore = defineStore('apiEditor', () => {
+  // ========== 状态 ==========
+
+  /** 当前编辑的 API ID */
+  const currentApiId = ref<string | null>(null)
+
+  /** 原始 API 数据（用于对比是否有变更） */
+  const originalApi = shallowRef<ApiDetail | null>(null)
+
+  /** 编辑器数据 */
+  const data = ref<ApiEditorData>(createEmptyEditorData())
+
+  /** 是否有未保存的修改 */
   const isDirty = ref(false)
 
+  /** 是否正在保存 */
+  const isSaving = ref(false)
+
+  // ========== 计算属性 ==========
+
+  /** 基本信息 */
+  const basicInfo = computed(() => data.value.basicInfo)
+
+  /** 请求参数 */
+  const paramsData = computed(() => data.value.paramsData)
+
+  /** 请求体 */
+  const requestBody = computed(() => data.value.requestBody)
+
+  /** 响应列表 */
+  const responses = computed(() => data.value.responses)
+
+  /** 当前 API 路径 */
+  const currentPath = computed(() => data.value.basicInfo.path)
+
+  // ========== 初始化方法 ==========
+
+  /**
+   * 从 API 详情初始化编辑器
+   * @param api API 详情
+   */
+  function initFromApi(api: ApiDetail) {
+    currentApiId.value = api.id
+    originalApi.value = api
+
+    // 基本信息
+    data.value.basicInfo = {
+      name: api.name,
+      method: api.method,
+      path: api.path,
+      status: api.status,
+      tags: api.tags ?? [],
+      description: api.description,
+      ownerId: api.owner?.id,
+    }
+
+    // 请求参数
+    data.value.paramsData = {
+      pathParams: api.pathParams ?? [],
+      queryParams: api.queryParams ?? [],
+      requestHeaders: api.requestHeaders ?? [],
+    }
+
+    // 请求体
+    data.value.requestBody = api.requestBody ? toLocalReqBody(api.requestBody) : null
+
+    // 响应列表
+    data.value.responses = toLocalResList(api.responses ?? [])
+
+    // 重置脏状态
+    isDirty.value = false
+  }
+
+  /** 重置编辑器 */
+  function reset() {
+    currentApiId.value = null
+    originalApi.value = null
+    data.value = createEmptyEditorData()
+    isDirty.value = false
+    isSaving.value = false
+  }
+
+  // ========== 脏状态管理 ==========
+
+  /** 标记为已修改 */
+  function markDirty() {
+    isDirty.value = true
+  }
+
+  /** 设置脏状态 */
   function setIsDirty(dirty: boolean) {
     isDirty.value = dirty
   }
 
+  // ========== 基本信息更新 ==========
+
+  /** 更新基本信息字段 */
+  function updateBasicInfo<K extends keyof ApiBaseInfoForm>(key: K, value: ApiBaseInfoForm[K]) {
+    data.value.basicInfo[key] = value
+    markDirty()
+
+    // 如果更新的是路径，同步路径参数
+    if (key === 'path') {
+      syncPathParams(value as string)
+    }
+  }
+
+  /** 批量更新基本信息 */
+  function setBasicInfo(info: ApiBaseInfoForm) {
+    const oldPath = data.value.basicInfo.path
+    data.value.basicInfo = { ...info }
+    markDirty()
+
+    // 如果路径变了，同步路径参数
+    if (oldPath !== info.path) {
+      syncPathParams(info.path)
+    }
+  }
+
+  // ========== 请求参数更新 ==========
+
+  /** 同步路径参数（根据 path 自动提取） */
+  function syncPathParams(path: string) {
+    const extractedNames = extractPathParamNames(path)
+
+    // 获取现有参数的映射
+    const existingMap = new Map<string, ApiParam>()
+    for (const param of data.value.paramsData.pathParams) {
+      existingMap.set(param.name, param)
+    }
+
+    // 根据提取的参数名生成新列表
+    const newPathParams: ApiParam[] = extractedNames.map((name) => {
+      const existing = existingMap.get(name)
+      if (existing) {
+        return { ...existing, required: true }
+      }
+      return {
+        name,
+        type: 'string',
+        required: true,
+        description: '',
+        example: '',
+      }
+    })
+
+    // 检查是否有变化
+    const hasChanged
+      = newPathParams.length !== data.value.paramsData.pathParams.length
+        || newPathParams.some((p, i) => p.name !== data.value.paramsData.pathParams[i]?.name)
+
+    if (hasChanged) {
+      data.value.paramsData.pathParams = newPathParams
+      // 不需要再次 markDirty，因为调用方已经标记过了
+    }
+  }
+
+  /** 更新路径参数 */
+  function updatePathParams(params: ApiParam[]) {
+    data.value.paramsData.pathParams = params
+    markDirty()
+  }
+
+  /** 更新查询参数 */
+  function updateQueryParams(params: ApiParam[]) {
+    data.value.paramsData.queryParams = params
+    markDirty()
+  }
+
+  /** 更新请求头 */
+  function updateRequestHeaders(params: ApiParam[]) {
+    data.value.paramsData.requestHeaders = params
+    markDirty()
+  }
+
+  // ========== 请求体更新 ==========
+
+  /** 更新请求体 */
+  function updateRequestBody(body: LocalApiRequestBody | null) {
+    data.value.requestBody = body
+    markDirty()
+  }
+
+  /** 更新请求体类型 */
+  function updateRequestBodyType(type: LocalApiRequestBody['type']) {
+    if (!data.value.requestBody) {
+      data.value.requestBody = {
+        type,
+        formFields: [],
+        rawContentType: 'text/plain',
+        description: '',
+      }
+    }
+    else {
+      const prevType = data.value.requestBody.type
+      data.value.requestBody.type = type
+
+      // 根据类型初始化默认值
+      if (type === 'json' && !data.value.requestBody.jsonSchema) {
+        data.value.requestBody.jsonSchema = genRootSchemaNode()
+      }
+      if ((type === 'form-data' || type === 'x-www-form-urlencoded') && !data.value.requestBody.formFields) {
+        data.value.requestBody.formFields = []
+      }
+
+      // form-data -> x-www-form-urlencoded：重置 file 类型
+      if (prevType === 'form-data' && type === 'x-www-form-urlencoded' && data.value.requestBody.formFields) {
+        data.value.requestBody.formFields.forEach((field) => {
+          if (field.type === 'file')
+            field.type = 'string'
+        })
+      }
+    }
+    markDirty()
+  }
+
+  /** 更新请求体 JSON Schema */
+  function updateRequestBodySchema(schema: LocalSchemaNode) {
+    if (data.value.requestBody) {
+      data.value.requestBody.jsonSchema = schema
+      markDirty()
+    }
+  }
+
+  /** 更新请求体表单字段 */
+  function updateRequestBodyFormFields(fields: ApiParam[]) {
+    if (data.value.requestBody) {
+      data.value.requestBody.formFields = fields
+      markDirty()
+    }
+  }
+
+  /** 更新请求体描述 */
+  function updateRequestBodyDescription(description: string) {
+    if (data.value.requestBody) {
+      data.value.requestBody.description = description
+      markDirty()
+    }
+  }
+
+  // ========== 响应列表更新 ==========
+
+  /** 添加响应 */
+  function addResponse() {
+    const newResponse: LocalApiResItem = {
+      id: generateKey(),
+      name: '成功响应',
+      httpStatus: 200,
+      description: '',
+      body: genRootSchemaNode(),
+    }
+    data.value.responses.push(newResponse)
+    markDirty()
+    return newResponse.id
+  }
+
+  /** 删除响应 */
+  function removeResponse(index: number) {
+    data.value.responses.splice(index, 1)
+    markDirty()
+  }
+
+  /** 更新响应字段 */
+  function updateResponseField<K extends keyof LocalApiResItem>(
+    index: number,
+    key: K,
+    value: LocalApiResItem[K],
+  ) {
+    const response = data.value.responses[index]
+    if (response) {
+      response[key] = value
+      markDirty()
+    }
+  }
+
+  /** 更新响应体 Schema */
+  function updateResponseBody(index: number, schema: LocalSchemaNode) {
+    const response = data.value.responses[index]
+    if (response) {
+      response.body = schema
+      // 注意：JsonSchemaEditor 内部已经调用了 markDirty，这里不重复调用
+    }
+  }
+
+  // ========== 保存逻辑 ==========
+
+  /** 构建更新请求 */
+  function buildUpdateRequest(): UpdateApiReq {
+    const req: UpdateApiReq = {}
+
+    // 基本信息
+    req.baseInfo = {
+      name: data.value.basicInfo.name,
+      method: data.value.basicInfo.method,
+      path: data.value.basicInfo.path,
+      status: data.value.basicInfo.status,
+      description: data.value.basicInfo.description,
+      tags: data.value.basicInfo.tags,
+      ownerId: data.value.basicInfo.ownerId,
+    }
+
+    // 处理请求体
+    const reqBody = data.value.requestBody ? toApiReqBody(data.value.requestBody) : undefined
+
+    // 处理响应列表
+    const reqResList = toApiResList(data.value.responses)
+
+    // 核心信息
+    req.coreInfo = {
+      requestHeaders: data.value.paramsData.requestHeaders,
+      pathParams: data.value.paramsData.pathParams,
+      queryParams: data.value.paramsData.queryParams,
+      requestBody: reqBody,
+      responses: reqResList,
+    }
+
+    return req
+  }
+
+  /** 验证表单 */
+  function validate(): { valid: boolean, message?: string, field?: string } {
+    if (!data.value.basicInfo.name?.trim()) {
+      return { valid: false, message: '请输入接口名称', field: 'basic' }
+    }
+    if (!data.value.basicInfo.path?.trim()) {
+      return { valid: false, message: '请输入接口路径', field: 'basic' }
+    }
+    return { valid: true }
+  }
+
+  /**
+   * 保存 API
+   * @param projectId 项目 ID
+   * @returns 是否保存成功
+   */
+  async function save(projectId: string): Promise<boolean> {
+    if (!currentApiId.value || isSaving.value)
+      return false
+
+    // 验证
+    const validation = validate()
+    if (!validation.valid) {
+      toast.error(validation.message ?? '验证失败')
+      return false
+    }
+
+    isSaving.value = true
+
+    try {
+      const req = buildUpdateRequest()
+      await apiApi.updateApi(projectId, currentApiId.value, req)
+
+      // 刷新树
+      const apiTreeStore = useApiTreeStore()
+      await apiTreeStore.refreshTree()
+
+      // 更新 Tab 标题
+      const tabStore = useTabStore()
+      tabStore.updateTabTitle(currentApiId.value, data.value.basicInfo.name)
+
+      toast.success('保存成功')
+
+      // 重置脏状态
+      isDirty.value = false
+
+      return true
+    }
+    catch (err) {
+      console.error('保存失败:', err)
+      toast.error('保存失败，请稍后重试')
+      return false
+    }
+    finally {
+      isSaving.value = false
+    }
+  }
+
+  /**
+   * 获取更新后的 API 详情（用于通知父组件）
+   */
+  function getUpdatedApiDetail(): Partial<ApiDetail> & { requestBody?: ApiRequestBody, responses: ApiResItem[] } {
+    return {
+      ...data.value.basicInfo,
+      requestHeaders: data.value.paramsData.requestHeaders,
+      pathParams: data.value.paramsData.pathParams,
+      queryParams: data.value.paramsData.queryParams,
+      requestBody: data.value.requestBody ? toApiReqBody(data.value.requestBody) : undefined,
+      responses: toApiResList(data.value.responses),
+    }
+  }
+
   return {
+    // 状态
+    currentApiId,
+    originalApi,
+    data,
     isDirty,
+    isSaving,
+
+    // 计算属性
+    basicInfo,
+    paramsData,
+    requestBody,
+    responses,
+    currentPath,
+
+    // 初始化
+    initFromApi,
+    reset,
+
+    // 脏状态
+    markDirty,
     setIsDirty,
+
+    // 基本信息
+    updateBasicInfo,
+    setBasicInfo,
+
+    // 请求参数
+    syncPathParams,
+    updatePathParams,
+    updateQueryParams,
+    updateRequestHeaders,
+
+    // 请求体
+    updateRequestBody,
+    updateRequestBodyType,
+    updateRequestBodySchema,
+    updateRequestBodyFormFields,
+    updateRequestBodyDescription,
+
+    // 响应
+    addResponse,
+    removeResponse,
+    updateResponseField,
+    updateResponseBody,
+
+    // 保存
+    validate,
+    save,
+    getUpdatedApiDetail,
   }
 })

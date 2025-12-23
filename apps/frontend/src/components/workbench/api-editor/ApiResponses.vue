@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ApiResponse } from '@/types/api'
+import type { ApiResItem } from '@/types/api'
 import { Check, ChevronDown, X } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +15,7 @@ import JsonPreview from './JsonPreview.vue'
 
 const props = defineProps<{
   /** 响应定义列表 */
-  responses: ApiResponse[]
+  responses: ApiResItem[]
 }>()
 
 /** 是否有响应 */

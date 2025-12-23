@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ApiDetail, ApiParam, ApiRequestBody as ApiRequestBodyType, ApiResponse } from '@/types/api'
+import type { ApiDetail, ApiParam, ApiRequestBody as ApiRequestBodyType, ApiResItem } from '@/types/api'
 import { computed } from 'vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -35,8 +35,8 @@ const requestBody = computed<ApiRequestBodyType | undefined>(() => {
 })
 
 /** 响应列表 */
-const responses = computed<ApiResponse[]>(() => {
-  return (props.api.responses ?? []) as ApiResponse[]
+const responses = computed<ApiResItem[]>(() => {
+  return (props.api.responses ?? []) as ApiResItem[]
 })
 </script>
 

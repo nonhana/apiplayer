@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import type { ApiResponse } from '@/types/api'
+import type { LocalApiResItem } from '@/types/api'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { ref, watch } from 'vue'
 import JsonSchemaEditor from '@/components/common/JsonSchemaEditor.vue'
 import { Badge } from '@/components/ui/badge'
@@ -22,70 +23,27 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { HTTP_STATUS_CATEGORIES, httpStatusLabels } from '@/constants/api'
-import { genRootSchemaNode, nodeToSchema, schemaToNode } from '@/lib/json-schema'
 import { cn } from '@/lib/utils'
+import { useApiEditorStore } from '@/stores/useApiEditorStore'
 
-/** 内部响应项（带唯一 key 和本地 schema） */
-interface ResponseItem extends Omit<ApiResponse, 'body'> {
-  _key: string
-  /** 本地 schema 节点（用于编辑器） */
-  localSchema: LocalSchemaNode
-}
-
-const props = withDefaults(defineProps<{
-  /** 响应列表 */
-  responses: ApiResponse[]
+withDefaults(defineProps<{
   /** 是否禁用 */
   disabled?: boolean
 }>(), {
   disabled: false,
 })
 
-const emit = defineEmits<{
-  (e: 'update:responses', responses: ApiResponse[]): void
-}>()
-
-/** 生成唯一 key */
-function generateKey() {
-  return `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
-}
-
-/** 内部响应列表 */
-const internalResponses = ref<ResponseItem[]>([])
+const apiEditorStore = useApiEditorStore()
+const { responses } = storeToRefs(apiEditorStore)
 
 /** 展开状态 */
 const expandedKeys = ref<Set<string>>(new Set())
 
-/** 同步外部数据 */
-watch(
-  () => props.responses,
-  (newResponses) => {
-    internalResponses.value = newResponses.map((r) => {
-      const { body, ...rest } = r
-      return {
-        ...rest,
-        _key: generateKey(),
-        // 将 body（JSON Schema）转换为本地节点
-        localSchema: schemaToNode(body as Record<string, unknown> | null),
-      }
-    })
-    // 默认展开第一个
-    if (internalResponses.value.length > 0 && expandedKeys.value.size === 0) {
-      expandedKeys.value.add(internalResponses.value[0]!._key)
-    }
-  },
-  { immediate: true, deep: true },
-)
-
-/** 通知变化 */
-function emitChange() {
-  const responses: ApiResponse[] = internalResponses.value.map(({ _key, localSchema, ...rest }) => ({
-    ...rest,
-    // 将本地节点转换回 JSON Schema
-    body: nodeToSchema(localSchema),
-  }))
-  emit('update:responses', responses)
-}
+watch(responses, (newV) => {
+  if (newV.length > 0 && expandedKeys.value.size === 0) {
+    expandedKeys.value.add(newV[0]!.id)
+  }
+}, { immediate: true, deep: true })
 
 /** 常用 HTTP 状态码选项 */
 const statusOptions = [
@@ -146,73 +104,44 @@ function isExpanded(key: string): boolean {
 
 /** 添加响应 */
 function handleAdd() {
-  if (props.disabled)
-    return
-
-  const newResponse: ResponseItem = {
-    _key: generateKey(),
-    name: '成功响应',
-    httpStatus: 200,
-    description: '',
-    localSchema: genRootSchemaNode(),
-  }
-
-  internalResponses.value.push(newResponse)
-  expandedKeys.value.add(newResponse._key)
-  emitChange()
+  const newId = apiEditorStore.addResponse()
+  expandedKeys.value.add(newId)
 }
 
 /** 删除响应 */
 function handleRemove(index: number) {
-  if (props.disabled)
-    return
-
-  const removed = internalResponses.value.splice(index, 1)[0]
-  if (removed) {
-    expandedKeys.value.delete(removed._key)
+  const response = responses.value[index]
+  if (response) {
+    expandedKeys.value.delete(response.id)
   }
-  emitChange()
+  apiEditorStore.removeResponse(index)
 }
 
 /** 更新响应字段 */
-function updateField<K extends keyof ApiResponse>(index: number, key: K, value: ApiResponse[K]) {
-  if (props.disabled)
-    return
-
-  const response = internalResponses.value[index]
-  if (response) {
-    (response as ApiResponse)[key] = value
-    emitChange()
-  }
+function updateField<K extends keyof LocalApiResItem>(index: number, key: K, value: LocalApiResItem[K]) {
+  apiEditorStore.updateResponseField(index, key, value)
 }
 
-/** 更新响应体 Schema（通过 v-model 自动触发） */
+/** 更新响应体 Schema */
 function updateLocalSchema(index: number, schema: LocalSchemaNode) {
-  if (props.disabled)
-    return
-
-  const response = internalResponses.value[index]
-  if (response) {
-    response.localSchema = schema
-    emitChange()
-  }
+  apiEditorStore.updateResponseBody(index, schema)
 }
 </script>
 
 <template>
   <div class="space-y-4">
     <!-- 响应列表 -->
-    <div v-if="internalResponses.length > 0" class="space-y-3">
+    <div v-if="responses.length > 0" class="space-y-3">
       <Collapsible
-        v-for="(response, index) in internalResponses"
-        :key="response._key"
-        :open="isExpanded(response._key)"
+        v-for="(response, index) in responses"
+        :key="response.id"
+        :open="isExpanded(response.id)"
         class="border rounded-lg overflow-hidden"
       >
         <!-- 响应头部 -->
         <CollapsibleTrigger
           class="flex items-center justify-between w-full p-3 hover:bg-muted/50 transition-colors"
-          @click="toggleExpand(response._key)"
+          @click="toggleExpand(response.id)"
         >
           <div class="flex items-center gap-3">
             <Badge :class="cn('font-mono text-xs px-2', getStatusClass(response.httpStatus))">
@@ -242,7 +171,7 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
             <ChevronDown
               :class="cn(
                 'h-4 w-4 text-muted-foreground transition-transform duration-200',
-                isExpanded(response._key) && 'rotate-180',
+                isExpanded(response.id) && 'rotate-180',
               )"
             />
           </div>
@@ -309,7 +238,8 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
             <div class="space-y-2">
               <Label>响应体结构</Label>
               <JsonSchemaEditor
-                :model-value="response.localSchema"
+                v-if="response.body"
+                :model-value="response.body"
                 @update:model-value="updateLocalSchema(index, $event)"
               />
             </div>

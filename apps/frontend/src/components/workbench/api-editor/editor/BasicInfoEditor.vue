@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import type { ApiBaseInfoForm } from './types'
 import type { ApiStatus, HttpMethod } from '@/types/api'
 import { storeToRefs } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import SearchInput from '@/components/common/SearchInput.vue'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,23 +21,21 @@ import {
   statusLabels,
 } from '@/constants/api'
 import { cn } from '@/lib/utils'
+import { useApiEditorStore } from '@/stores/useApiEditorStore'
 import { useProjectStore } from '@/stores/useProjectStore'
 import TagsInput from './TagsInput.vue'
 
-const props = withDefaults(defineProps<{
-  /** 基本信息数据 */
-  info: ApiBaseInfoForm
+withDefaults(defineProps<{
   /** 是否禁用 */
   disabled?: boolean
 }>(), {
   disabled: false,
 })
 
-const emit = defineEmits<{
-  (e: 'update:info', info: ApiBaseInfoForm): void
-}>()
-
+const apiEditorStore = useApiEditorStore()
 const projectStore = useProjectStore()
+
+const { basicInfo } = storeToRefs(apiEditorStore)
 const { projectMembers } = storeToRefs(projectStore)
 
 const memberOptions = computed(() =>
@@ -48,46 +45,14 @@ const memberOptions = computed(() =>
   })),
 )
 
-/** 内部数据 */
-const internalInfo = ref<ApiBaseInfoForm>({
-  name: '',
-  method: 'GET',
-  path: '',
-  status: 'DRAFT',
-  tags: [],
-})
-
-/** 同步外部数据 */
-watch(
-  () => props.info,
-  (newInfo) => {
-    internalInfo.value = { ...newInfo }
-  },
-  { immediate: true, deep: true },
-)
-
-/** 通知变化 */
-function emitChange() {
-  emit('update:info', { ...internalInfo.value })
-}
-
-/** 更新字段 */
-function updateField<K extends keyof ApiBaseInfoForm>(key: K, value: ApiBaseInfoForm[K]) {
-  if (props.disabled)
-    return
-
-  internalInfo.value[key] = value
-  emitChange()
-}
-
 /** 当前方法的样式类 */
 const curMethodClass = computed(() => {
-  return methodBadgeColors[internalInfo.value.method] ?? 'bg-slate-500/15 text-slate-600'
+  return methodBadgeColors[basicInfo.value.method] ?? 'bg-slate-500/15 text-slate-600'
 })
 
 /** 当前状态的样式类 */
 const curStatusClass = computed(() => {
-  return statusColors[internalInfo.value.status] ?? 'bg-slate-500/15 text-slate-600'
+  return statusColors[basicInfo.value.status] ?? 'bg-slate-500/15 text-slate-600'
 })
 </script>
 
@@ -99,11 +64,11 @@ const curStatusClass = computed(() => {
       </Label>
       <Input
         id="api-name"
-        :model-value="internalInfo.name"
+        :model-value="basicInfo.name"
         placeholder="请输入接口名称"
         :disabled="disabled"
         class="font-medium"
-        @update:model-value="updateField('name', String($event))"
+        @update:model-value="apiEditorStore.updateBasicInfo('name', String($event))"
       />
     </div>
 
@@ -113,12 +78,12 @@ const curStatusClass = computed(() => {
           请求方法 <span class="text-destructive">*</span>
         </Label>
         <Select
-          :model-value="internalInfo.method"
+          :model-value="basicInfo.method"
           :disabled="disabled"
-          @update:model-value="updateField('method', $event as HttpMethod)"
+          @update:model-value="apiEditorStore.updateBasicInfo('method', $event as HttpMethod)"
         >
           <SelectTrigger id="api-method" :class="cn('font-bold', curMethodClass)">
-            <SelectValue>{{ internalInfo.method }}</SelectValue>
+            <SelectValue>{{ basicInfo.method }}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem
@@ -140,11 +105,11 @@ const curStatusClass = computed(() => {
         </Label>
         <Input
           id="api-path"
-          :model-value="internalInfo.path"
+          :model-value="basicInfo.path"
           placeholder="/api/example"
           :disabled="disabled"
           class="font-mono"
-          @update:model-value="updateField('path', String($event))"
+          @update:model-value="apiEditorStore.updateBasicInfo('path', String($event))"
         />
       </div>
     </div>
@@ -153,12 +118,12 @@ const curStatusClass = computed(() => {
       <div class="w-[200px] space-y-2">
         <Label for="api-status">接口状态</Label>
         <Select
-          :model-value="internalInfo.status"
+          :model-value="basicInfo.status"
           :disabled="disabled"
-          @update:model-value="updateField('status', $event as ApiStatus)"
+          @update:model-value="apiEditorStore.updateBasicInfo('status', $event as ApiStatus)"
         >
           <SelectTrigger id="api-status" :class="curStatusClass">
-            <SelectValue>{{ statusLabels[internalInfo.status] }}</SelectValue>
+            <SelectValue>{{ statusLabels[basicInfo.status] }}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem
@@ -177,10 +142,10 @@ const curStatusClass = computed(() => {
       <div class="space-y-2">
         <Label for="api-owner">负责人</Label>
         <SearchInput
-          :model-value="internalInfo.ownerId ?? ''"
+          :model-value="basicInfo.ownerId ?? ''"
           :options="memberOptions"
           :disabled="disabled"
-          @update:model-value="updateField('ownerId', $event as string)"
+          @update:model-value="apiEditorStore.updateBasicInfo('ownerId', $event as string)"
         />
       </div>
     </div>
@@ -189,22 +154,22 @@ const curStatusClass = computed(() => {
       <Label for="api-description">接口描述</Label>
       <Textarea
         id="api-description"
-        :model-value="internalInfo.description"
+        :model-value="basicInfo.description"
         placeholder="请输入接口描述（可选）"
         :disabled="disabled"
         rows="3"
         class="resize-none"
-        @update:model-value="updateField('description', String($event))"
+        @update:model-value="apiEditorStore.updateBasicInfo('description', String($event))"
       />
     </div>
 
     <div class="space-y-2">
       <Label>标签</Label>
       <TagsInput
-        :tags="internalInfo.tags"
+        :tags="basicInfo.tags"
         :disabled="disabled"
         placeholder="输入标签后按回车添加"
-        @update:tags="updateField('tags', $event)"
+        @update:tags="apiEditorStore.updateBasicInfo('tags', $event)"
       />
     </div>
   </div>

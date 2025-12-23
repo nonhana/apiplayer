@@ -1,136 +1,53 @@
 <script lang="ts" setup>
-import type { ApiParam, LocalApiRequestBody, RequestBodyType } from '@/types/api'
+import type { ApiParam, RequestBodyType } from '@/types/api'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { FileCode, FileJson, FormInput, Upload } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
 import JsonSchemaEditor from '@/components/common/JsonSchemaEditor.vue'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
 import { FORM_DATA_TYPES, PARAM_TYPES, REQUEST_BODY_TYPES, requestBodyTypeLabels } from '@/constants/api'
-import { genRootSchemaNode } from '@/lib/json-schema'
+import { useApiEditorStore } from '@/stores/useApiEditorStore'
 import EditableParamTable from './EditableParamTable.vue'
 
-const props = withDefaults(defineProps<{
-  /** 请求体数据 */
-  body: LocalApiRequestBody | null
+withDefaults(defineProps<{
   /** 是否禁用 */
   disabled?: boolean
 }>(), {
   disabled: false,
 })
 
-const emit = defineEmits<{
-  (e: 'update:body', body: LocalApiRequestBody | null): void
-}>()
+const apiEditorStore = useApiEditorStore()
+const { requestBody } = storeToRefs(apiEditorStore)
 
-/** 内部数据 */
-const internalBody = ref<LocalApiRequestBody>({
-  type: 'none',
-  jsonSchema: undefined,
-  formFields: [],
-  rawContentType: 'text/plain',
-  description: '',
-})
-
-/** 同步外部数据 */
-watch(
-  () => props.body,
-  (newBody) => {
-    if (newBody) {
-      internalBody.value = {
-        type: newBody.type ?? 'none',
-        jsonSchema: newBody.jsonSchema,
-        formFields: newBody.formFields ? [...newBody.formFields] : [],
-        rawContentType: newBody.rawContentType ?? 'text/plain',
-        description: newBody.description ?? '',
-        example: newBody.example,
-      }
-    }
-    else {
-      internalBody.value = {
-        type: 'none',
-        jsonSchema: undefined,
-        formFields: [],
-        rawContentType: 'text/plain',
-        description: '',
-      }
-    }
-  },
-  { immediate: true, deep: true },
-)
-
-/** 通知变化 */
-function emitChange() {
-  emit('update:body', { ...internalBody.value })
-}
-
-/** 更新请求体类型 */
-function handleTypeChange(type: RequestBodyType) {
-  if (props.disabled)
-    return
-
-  const prevType = internalBody.value.type
-  internalBody.value.type = type
-
-  // 根据类型初始化默认值
-  if (type === 'json' && !internalBody.value.jsonSchema) {
-    internalBody.value.jsonSchema = genRootSchemaNode()
-  }
-  if ((type === 'form-data' || type === 'x-www-form-urlencoded') && !internalBody.value.formFields) {
-    internalBody.value.formFields = []
-  }
-
-  // 从 form-data 切换到 x-www-form-urlencoded 时，需要将 file 类型重置为 string
-  if (prevType === 'form-data' && type === 'x-www-form-urlencoded' && internalBody.value.formFields) {
-    const targetItems = internalBody.value.formFields.filter(field => field.type === 'file')
-    targetItems.forEach(item => item.type = 'string')
-  }
-
-  emitChange()
-}
-
-/** 更新 JSON Schema */
-function handleSchemaChange(schema: LocalSchemaNode) {
-  internalBody.value.jsonSchema = schema
-  emitChange()
-}
-
-/** 更新表单字段 */
-function handleFormFieldsChange(fields: ApiParam[]) {
-  internalBody.value.formFields = fields
-  emitChange()
-}
-
-/** 更新描述 */
-function handleDescriptionChange(description: string) {
-  internalBody.value.description = description
-  emitChange()
-}
+/** 当前请求体类型 */
+const currentType = computed(() => requestBody.value?.type ?? 'none')
 
 /** 是否是 JSON 类型 */
-const isJsonType = computed(() => internalBody.value.type === 'json')
+const isJsonType = computed(() => currentType.value === 'json')
 
 /** 是否是表单类型 */
 const isFormType = computed(() =>
-  internalBody.value.type === 'form-data' || internalBody.value.type === 'x-www-form-urlencoded',
+  currentType.value === 'form-data' || currentType.value === 'x-www-form-urlencoded',
 )
 
-const isFormData = computed(() => internalBody.value.type === 'form-data')
+const isFormData = computed(() => currentType.value === 'form-data')
 
 /** 是否是二进制类型 */
-const isBinaryType = computed(() => internalBody.value.type === 'binary')
+const isBinaryType = computed(() => currentType.value === 'binary')
 
 /** 是否是原始类型 */
-const isRawType = computed(() => internalBody.value.type === 'raw')
+const isRawType = computed(() => currentType.value === 'raw')
 
 /** 是否是 none */
-const isNoneType = computed(() => internalBody.value.type === 'none')
+const isNoneType = computed(() => currentType.value === 'none')
 
 /** Content-Type */
 const contentType = computed(() => {
-  switch (internalBody.value.type) {
+  switch (currentType.value) {
     case 'json':
       return 'application/json'
     case 'form-data':
@@ -140,7 +57,7 @@ const contentType = computed(() => {
     case 'binary':
       return 'application/octet-stream'
     case 'raw':
-      return internalBody.value.rawContentType ?? 'text/plain'
+      return requestBody.value?.rawContentType ?? 'text/plain'
     default:
       return ''
   }
@@ -154,6 +71,26 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
   'x-www-form-urlencoded': FormInput,
   'binary': Upload,
   'raw': FileCode,
+}
+
+/** 更新请求体类型 */
+function handleTypeChange(type: RequestBodyType) {
+  apiEditorStore.updateRequestBodyType(type)
+}
+
+/** 更新 JSON Schema */
+function handleSchemaChange(schema: LocalSchemaNode) {
+  apiEditorStore.updateRequestBodySchema(schema)
+}
+
+/** 更新表单字段 */
+function handleFormFieldsChange(fields: ApiParam[]) {
+  apiEditorStore.updateRequestBodyFormFields(fields)
+}
+
+/** 更新描述 */
+function handleDescriptionChange(description: string) {
+  apiEditorStore.updateRequestBodyDescription(description)
 }
 </script>
 
@@ -169,7 +106,7 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
       </div>
 
       <RadioGroup
-        :model-value="internalBody.type"
+        :model-value="currentType"
         :disabled="disabled"
         class="flex flex-wrap gap-2"
         @update:model-value="handleTypeChange($event as RequestBodyType)"
@@ -208,8 +145,8 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
         <span>JSON Schema 结构定义</span>
       </div>
       <JsonSchemaEditor
-        v-if="internalBody.jsonSchema"
-        :model-value="internalBody.jsonSchema"
+        v-if="requestBody?.jsonSchema"
+        :model-value="requestBody.jsonSchema"
         @update:model-value="handleSchemaChange"
       />
     </div>
@@ -221,8 +158,8 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
         <span>表单字段定义</span>
       </div>
       <EditableParamTable
-        v-if="internalBody.formFields"
-        :params="internalBody.formFields"
+        v-if="requestBody?.formFields"
+        :params="requestBody.formFields"
         :disabled="disabled"
         :param-type-options="isFormData ? FORM_DATA_TYPES : PARAM_TYPES"
         empty-text="暂无表单字段，点击添加"
@@ -263,7 +200,7 @@ const typeIcons: Record<RequestBodyType, typeof FileJson> = {
     <div v-if="!isNoneType" class="space-y-2">
       <Label>请求体描述</Label>
       <Textarea
-        :model-value="internalBody.description ?? ''"
+        :model-value="requestBody?.description ?? ''"
         placeholder="请输入请求体描述（可选）"
         :disabled="disabled"
         rows="2"

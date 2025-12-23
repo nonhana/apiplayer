@@ -83,7 +83,9 @@ export interface LocalApiRequestBody extends Omit<ApiRequestBody, 'jsonSchema'> 
 }
 
 /** 响应定义 */
-export interface ApiResponse {
+export interface ApiResItem {
+  /** 唯一标识 */
+  id: string
   /** 响应名称 */
   name: string
   /** HTTP 状态码 */
@@ -99,7 +101,7 @@ export interface ApiResponse {
 }
 
 /** 本地响应定义 */
-export interface LocalApiResponse extends Omit<ApiResponse, 'body'> {
+export interface LocalApiResItem extends Omit<ApiResItem, 'body'> {
   /** 本地响应体 Schema */
   body?: LocalSchemaNode
 }
@@ -137,7 +139,7 @@ export interface ApiDetail extends ApiBrief {
   pathParams: ApiParam[]
   queryParams: ApiParam[]
   requestBody?: ApiRequestBody
-  responses: ApiResponse[]
+  responses: ApiResItem[]
   examples: Record<string, unknown>
   mockConfig?: ApiMockConfig
 }
@@ -231,13 +233,13 @@ export interface CreateApiReq {
   version?: string
   summary?: string
   status?: ApiStatus
-  requestHeaders?: Record<string, unknown>[]
-  pathParams?: Record<string, unknown>[]
-  queryParams?: Record<string, unknown>[]
-  requestBody?: Record<string, unknown>
-  responses?: { name: string, httpStatus: number, body: Record<string, unknown> }[]
+  requestHeaders?: ApiParam[]
+  pathParams?: ApiParam[]
+  queryParams?: ApiParam[]
+  requestBody?: ApiRequestBody
+  responses?: ApiResItem[]
   examples?: Record<string, unknown>
-  mockConfig?: Record<string, unknown>
+  mockConfig?: ApiMockConfig
   ownerId?: string
 }
 
@@ -255,13 +257,13 @@ export interface UpdateApiBaseInfo {
 
 /** 更新 API 核心信息 */
 export interface UpdateApiCoreInfo {
-  requestHeaders?: Record<string, unknown>[]
-  pathParams?: Record<string, unknown>[]
-  queryParams?: Record<string, unknown>[]
-  requestBody?: Record<string, unknown>
-  responses?: Record<string, unknown>[]
+  requestHeaders?: ApiParam[]
+  pathParams?: ApiParam[]
+  queryParams?: ApiParam[]
+  requestBody?: ApiRequestBody
+  responses?: ApiResItem[]
   examples?: Record<string, unknown>
-  mockConfig?: Record<string, unknown>
+  mockConfig?: ApiMockConfig
 }
 
 /** 更新 API 版本信息 */
