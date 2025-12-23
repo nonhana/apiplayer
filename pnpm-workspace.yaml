@@ -1,29 +1,32 @@
+catalogMode: prefer
+cleanupUnusedCatalogs: true
+shellEmulator: true
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - undici-types@6.21.0
+  - chokidar@4.0.3
+
 packages:
   - apps/*
 
-catalog:
-  shiki: ^3.20.0
-
-catalogMode: prefer
-
 catalogs:
   backend:
-    '@aws-sdk/client-s3': ^3.955.0
+    '@aws-sdk/client-s3': ^3.957.0
     '@fastify/cookie': ^11.0.2
     '@fastify/multipart': ^9.3.0
     '@fastify/session': ^11.1.1
     '@fastify/static': ^8.3.0
     '@nestjs/cli': ^11.0.14
-    '@nestjs/common': ^11.1.9
+    '@nestjs/common': ^11.1.10
     '@nestjs/config': ^4.0.2
-    '@nestjs/core': ^11.1.9
+    '@nestjs/core': ^11.1.10
     '@nestjs/mapped-types': ^2.1.0
-    '@nestjs/platform-express': ^11.1.9
-    '@nestjs/platform-fastify': ^11.1.9
+    '@nestjs/platform-express': ^11.1.10
+    '@nestjs/platform-fastify': ^11.1.10
     '@nestjs/schematics': ^11.0.9
     '@nestjs/swagger': ^11.2.3
     '@nestjs/terminus': ^11.0.0
-    '@nestjs/testing': ^11.1.9
+    '@nestjs/testing': ^11.1.10
     '@prisma/adapter-pg': ^7.2.0
     '@prisma/client': ^7.2.0
     '@swc/cli': ^0.7.9
@@ -47,7 +50,7 @@ catalogs:
     source-map-support: ^0.5.21
     ts-loader: ^9.5.4
     tsconfig-paths: ^4.2.0
-    tsdown: ^0.18.1
+    tsdown: ^0.18.2
     winston: ^3.19.0
     winston-daily-rotate-file: ^5.0.0
   frontend:
@@ -67,7 +70,8 @@ catalogs:
     monaco-editor: ^0.55.1
     pinia: ^3.0.4
     pinia-plugin-persistedstate: ^4.7.1
-    reka-ui: ^2.6.1
+    reka-ui: ^2.7.0
+    shiki: ^3.20.0
     swrv: ^1.1.0
     tailwind-merge: ^3.4.0
     tailwindcss: ^4.1.18
@@ -79,16 +83,14 @@ catalogs:
     vue-picture-cropper: ^0.7.0
     vue-router: ^4.6.4
     vue-sonner: ^2.0.9
-    vue-tsc: ^3.1.8
+    vue-tsc: ^3.2.1
     zod: '3'
   public:
-    '@antfu/eslint-config': ^6.7.1
+    '@antfu/eslint-config': ^6.7.3
     '@types/node': ^25.0.3
     eslint: ^9.39.2
     tsx: ^4.21.0
     typescript: ^5.9.3
-
-cleanupUnusedCatalogs: true
 
 onlyBuiltDependencies:
   - '@nestjs/core'
@@ -100,11 +102,3 @@ onlyBuiltDependencies:
   - esbuild
   - prisma
   - vue-demi
-
-shellEmulator: true
-
-trustPolicy: no-downgrade
-
-trustPolicyExclude:
-  - undici-types@6.21.0
-  - chokidar@4.0.3
