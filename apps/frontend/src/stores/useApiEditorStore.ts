@@ -106,7 +106,7 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
       ownerId: api.owner?.id,
     }
 
-    // 请求参数（深拷贝，避免与 props.api 共享引用）
+    // 请求参数
     data.value.paramsData = {
       pathParams: cloneDeep(api.pathParams),
       queryParams: cloneDeep(api.queryParams),
