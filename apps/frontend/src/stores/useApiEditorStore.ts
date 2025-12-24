@@ -1,5 +1,5 @@
 import type { ApiBaseInfoForm, ApiReqData } from '@/components/workbench/api-editor/editor/types'
-import type { ApiDetail, ApiParam, ApiRequestBody, ApiResItem, LocalApiRequestBody, LocalApiResItem, UpdateApiReq } from '@/types/api'
+import type { ApiDetail, ApiParam, LocalApiRequestBody, LocalApiResItem, UpdateApiReq } from '@/types/api'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
@@ -11,7 +11,6 @@ import { extractPathParamNames, generateKey } from '@/lib/utils'
 import { useApiTreeStore } from './useApiTreeStore'
 import { useTabStore } from './useTabStore'
 
-/** API 编辑器完整数据结构 */
 export interface ApiEditorData {
   basicInfo: ApiBaseInfoForm
   paramsData: ApiReqData
@@ -19,7 +18,6 @@ export interface ApiEditorData {
   responses: LocalApiResItem[]
 }
 
-/** 创建空白编辑器数据 */
 function createEmptyEditorData(): ApiEditorData {
   return {
     basicInfo: {
@@ -192,7 +190,6 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
 
     if (hasChanged) {
       data.value.paramsData.pathParams = newPathParams
-      // 不需要再次 markDirty，因为调用方已经标记过了
     }
   }
 
@@ -416,20 +413,6 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     }
   }
 
-  /**
-   * 获取更新后的 API 详情（用于通知父组件）
-   */
-  function getUpdatedApiDetail(): Partial<ApiDetail> & { requestBody?: ApiRequestBody, responses: ApiResItem[] } {
-    return {
-      ...data.value.basicInfo,
-      requestHeaders: data.value.paramsData.requestHeaders,
-      pathParams: data.value.paramsData.pathParams,
-      queryParams: data.value.paramsData.queryParams,
-      requestBody: data.value.requestBody ? toApiReqBody(data.value.requestBody) : undefined,
-      responses: toApiResList(data.value.responses),
-    }
-  }
-
   return {
     // 状态
     currentApiId,
@@ -479,6 +462,5 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     // 保存
     validate,
     save,
-    getUpdatedApiDetail,
   }
 })

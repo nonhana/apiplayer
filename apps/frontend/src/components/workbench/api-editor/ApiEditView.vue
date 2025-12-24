@@ -21,8 +21,8 @@ const props = defineProps<{
   api: ApiDetail
 }>()
 
-const emit = defineEmits<{
-  (e: 'updated', api: ApiDetail): void
+const emits = defineEmits<{
+  (e: 'updated'): void
 }>()
 
 type TabType = 'basic' | 'params' | 'body' | 'responses'
@@ -70,26 +70,19 @@ async function handleSave() {
 
   const success = await apiEditorStore.save(apiTreeStore.projectId)
 
-  if (success) {
-    // 通知父组件更新本地数据
-    emit('updated', {
-      ...props.api,
-      ...apiEditorStore.getUpdatedApiDetail(),
-    })
-  }
+  success && emits('updated')
 }
 </script>
 
 <template>
   <div class="h-full flex flex-col">
-    <!-- 顶部工具栏 -->
     <div class="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
       <div class="flex items-center gap-3">
         <h2 class="text-sm font-medium text-muted-foreground">
           编辑接口
         </h2>
         <Separator orientation="vertical" class="h-4" />
-        <span class="text-sm font-semibold truncate max-w-[300px]">
+        <span class="text-sm font-semibold truncate max-w-75">
           {{ basicInfo.name || '未命名接口' }}
         </span>
         <span
@@ -111,9 +104,7 @@ async function handleSave() {
       </Button>
     </div>
 
-    <!-- 编辑区域 -->
     <Tabs v-model="activeTab" class="flex-1 flex flex-col overflow-hidden">
-      <!-- Tab 导航 -->
       <div class="border-b px-4 py-2 bg-background">
         <TabsList class="h-10 bg-transparent p-0 gap-1">
           <TabsTrigger
@@ -128,25 +119,20 @@ async function handleSave() {
         </TabsList>
       </div>
 
-      <!-- Tab 内容 -->
       <ScrollArea class="flex-1">
         <div class="w-full p-6">
-          <!-- 基本信息 -->
           <TabsContent value="basic" class="mt-0">
             <BasicInfoEditor />
           </TabsContent>
 
-          <!-- 请求参数 -->
           <TabsContent value="params" class="mt-0">
             <ParamsEditor />
           </TabsContent>
 
-          <!-- 请求体 -->
           <TabsContent value="body" class="mt-0">
             <RequestBodyEditor />
           </TabsContent>
 
-          <!-- 响应定义 -->
           <TabsContent value="responses" class="mt-0">
             <ResponsesEditor />
           </TabsContent>

@@ -46,8 +46,7 @@ async function fetchApiDetail() {
   isLoading.value = true
   loadError.value = null
   try {
-    const data = await apiApi.getApiDetail(projectId.value, apiId.value)
-    apiDetail.value = data
+    apiDetail.value = await apiApi.getApiDetail(projectId.value, apiId.value)
   }
   catch (err) {
     loadError.value = `获取 API 详情失败: ${err}`
@@ -57,9 +56,14 @@ async function fetchApiDetail() {
   }
 }
 
-/** 处理 API 更新成功 */
-function handleApiUpdated(updatedApi: ApiDetail) {
-  apiDetail.value = updatedApi
+async function refreshApiDetail() {
+  loadError.value = null
+  try {
+    apiDetail.value = await apiApi.getApiDetail(projectId.value, apiId.value)
+  }
+  catch (err) {
+    loadError.value = `获取 API 详情失败: ${err}`
+  }
 }
 
 /** 监听 API ID 和项目 ID 变化，重新获取 API 详情 */
@@ -122,7 +126,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
       </TabsContent>
 
       <TabsContent value="edit" class="flex-1 mt-0 overflow-hidden">
-        <ApiEditView :api="apiDetail" @updated="handleApiUpdated" />
+        <ApiEditView :api="apiDetail" @updated="refreshApiDetail" />
       </TabsContent>
 
       <TabsContent value="run" class="flex-1 mt-0 overflow-hidden">

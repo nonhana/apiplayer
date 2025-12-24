@@ -73,7 +73,7 @@ const curStatusClass = computed(() => {
     </div>
 
     <div class="flex gap-3">
-      <div class="w-[130px] space-y-2">
+      <div class="w-32.5 space-y-2">
         <Label for="api-method">
           请求方法 <span class="text-destructive">*</span>
         </Label>
@@ -115,7 +115,7 @@ const curStatusClass = computed(() => {
     </div>
 
     <div class="flex gap-3">
-      <div class="w-[200px] space-y-2">
+      <div class="w-50 space-y-2">
         <Label for="api-status">接口状态</Label>
         <Select
           :model-value="basicInfo.status"
