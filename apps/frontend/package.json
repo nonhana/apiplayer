@@ -21,6 +21,7 @@
     "cropperjs": "catalog:frontend",
     "dayjs": "catalog:frontend",
     "ky": "catalog:frontend",
+    "lodash-es": "catalog:frontend",
     "lucide-vue-next": "catalog:frontend",
     "monaco-editor": "catalog:frontend",
     "nanoid": "catalog:frontend",
@@ -39,6 +40,7 @@
     "zod": "catalog:frontend"
   },
   "devDependencies": {
+    "@types/lodash-es": "catalog:frontend",
     "@vitejs/plugin-vue": "catalog:frontend",
     "@vue/tsconfig": "catalog:frontend",
     "shiki": "catalog:frontend",

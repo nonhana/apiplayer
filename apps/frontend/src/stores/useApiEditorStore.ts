@@ -1,6 +1,7 @@
 import type { ApiBaseInfoForm, ApiReqData } from '@/components/workbench/api-editor/editor/types'
 import type { ApiDetail, ApiParam, LocalApiRequestBody, LocalApiResItem, ParamCategory, UpdateApiReq } from '@/types/api'
 import type { LocalSchemaNode } from '@/types/json-schema'
+import { cloneDeep } from 'lodash-es'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
@@ -73,8 +74,19 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   /** 当前 API 路径 */
   const currentPath = computed(() => data.value.basicInfo.path)
 
-  // ========== 通用方法 ==========
+  // ========== 脏状态管理 ==========
 
+  /** 标记为已修改 */
+  function markDirty() {
+    isDirty.value = true
+  }
+
+  /** 设置脏状态 */
+  function setIsDirty(dirty: boolean) {
+    isDirty.value = dirty
+  }
+
+  // ========== 通用方法 ==========
   /**
    * 从 API 详情初始化编辑器
    * @param api API 详情
@@ -89,16 +101,16 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
       method: api.method,
       path: api.path,
       status: api.status,
-      tags: api.tags ?? [],
+      tags: [...api.tags],
       description: api.description,
       ownerId: api.owner?.id,
     }
 
-    // 请求参数
+    // 请求参数（深拷贝，避免与 props.api 共享引用）
     data.value.paramsData = {
-      pathParams: api.pathParams ?? [],
-      queryParams: api.queryParams ?? [],
-      requestHeaders: api.requestHeaders ?? [],
+      pathParams: cloneDeep(api.pathParams),
+      queryParams: cloneDeep(api.queryParams),
+      requestHeaders: cloneDeep(api.requestHeaders),
     }
 
     // 请求体
@@ -182,18 +194,6 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
       target[key] = value
       markDirty()
     }
-  }
-
-  // ========== 脏状态管理 ==========
-
-  /** 标记为已修改 */
-  function markDirty() {
-    isDirty.value = true
-  }
-
-  /** 设置脏状态 */
-  function setIsDirty(dirty: boolean) {
-    isDirty.value = dirty
   }
 
   // ========== 基本信息更新 ==========
