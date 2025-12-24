@@ -1,4 +1,4 @@
-import type { TeamItem, TeamMember } from '@/types/team'
+import type { TeamItem } from '@/types/team'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { teamApi } from '@/api/team'
@@ -9,9 +9,6 @@ export const useTeamStore = defineStore('team', () => {
 
   /** 当前选中的团队 ID */
   const curTeamId = ref<string | null>(null)
-
-  /** 当前选中团队的团队成员 */
-  const curTeamMembers = ref<TeamMember[]>([])
 
   /** 是否正在加载团队列表 */
   const isLoading = ref(false)
@@ -42,8 +39,6 @@ export const useTeamStore = defineStore('team', () => {
     const team = teams.value.find(t => t.id === teamId)
     if (team) {
       curTeamId.value = teamId
-      // 切换团队后，需要获取当前团队的团队成员列表
-      await fetchCurTeamMembers()
     }
   }
 
@@ -77,19 +72,10 @@ export const useTeamStore = defineStore('team', () => {
     }
   }
 
-  /** 获取当前选中团队的团队成员 */
-  async function fetchCurTeamMembers() {
-    if (!curTeamId.value)
-      return
-
-    curTeamMembers.value = await teamApi.getAllTeamMembers(curTeamId.value)
-  }
-
   /** 重置状态 */
   function reset() {
     teams.value = []
     curTeamId.value = null
-    curTeamMembers.value = []
     isLoading.value = false
   }
 
@@ -103,7 +89,6 @@ export const useTeamStore = defineStore('team', () => {
     addTeam,
     updateTeam,
     removeTeam,
-    fetchCurTeamMembers,
     reset,
   }
 }, {

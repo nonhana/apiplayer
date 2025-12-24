@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UserSearchItem } from '@/types/user'
+import type { UserBriefInfo } from '@/types/user'
 import { useDebounceFn } from '@vueuse/core'
 import { Check, Loader2, X } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
@@ -20,15 +20,9 @@ import { getUserFallbackIcon } from '@/lib/utils'
 import Input from '../ui/input/Input.vue'
 import UserBadge from '../UserBadge.vue'
 
-/**
- * - 多选：string[]（用户 ID 数组）
- * - 单选：string | undefined（单个用户 ID）
- */
-type ModelValue = string | string[] | undefined
-
 const props = withDefaults(defineProps<{
-  /** 需要排除的用户 ID 列表（比如已是成员的用户） */
-  excludeUserIds?: string[]
+  /** 需要排除的用户 ID 列表 */
+  excludeIds?: string[]
   /** 占位符文本 */
   placeholder?: string
   /** 是否禁用 */
@@ -37,108 +31,86 @@ const props = withDefaults(defineProps<{
   max?: number
   /** 是否开启多选，默认 true */
   multiple?: boolean
-  /** 已选用户信息（用于回显） */
-  selectedUserInfo?: UserSearchItem | UserSearchItem[]
+  /** 本地搜索选项，若存在，则直接在 options 中进行筛选而非调用 API */
+  options?: UserBriefInfo[]
+  /** 自定义空状态提示文本（本地模式下无可选项时显示） */
+  emptyText?: string
 }>(), {
   placeholder: '搜索用户...',
   multiple: true,
 })
 
-const emit = defineEmits<{
-  (e: 'change', users: UserSearchItem[]): void
-}>()
+/**
+ * v-model 绑定值：直接绑定用户对象
+ * - 多选：UserBriefInfo[]
+ * - 单选：UserBriefInfo | undefined
+ */
+type ModelValue = UserBriefInfo | UserBriefInfo[] | undefined
 
 const modelValue = defineModel<ModelValue>('modelValue')
 
 const isOpen = ref(false)
 const searchQuery = ref('')
-const searchResults = ref<UserSearchItem[]>([])
+const searchResults = ref<UserBriefInfo[]>([])
 const isSearching = ref(false)
 
-const userCache = ref<Map<string, UserSearchItem>>(new Map())
+/** 是否使用本地搜索模式 */
+const isLocalMode = computed(() => Array.isArray(props.options))
 
-function initUserCache() {
-  if (!props.selectedUserInfo)
-    return
-
-  const users = Array.isArray(props.selectedUserInfo)
-    ? props.selectedUserInfo
-    : [props.selectedUserInfo]
-
-  users.forEach(user => userCache.value.set(user.id, user))
+/** 将 modelValue 统一转换为数组形式 */
+function normalizeToArray(val: ModelValue): UserBriefInfo[] {
+  if (!val)
+    return []
+  return Array.isArray(val) ? val : [val]
 }
 
-// 监听 selectedUserInfo 变化，更新缓存
-watch(
-  () => props.selectedUserInfo,
-  () => initUserCache(),
-  { immediate: true, deep: true },
-)
+/** 当前选中的用户列表 */
+const selectedUsers = computed<UserBriefInfo[]>(() => normalizeToArray(modelValue.value))
 
-/** 将搜索结果加入缓存 */
-watch(searchResults, (results) => {
-  results.forEach(user => userCache.value.set(user.id, user))
-})
-
-const selectedIds = computed<string[]>(() => {
-  if (props.multiple) {
-    return (modelValue.value as string[] | undefined) ?? []
-  }
-  const val = modelValue.value as string | undefined
-  return val ? [val] : []
-})
-
-const selectedUsers = computed<UserSearchItem[]>(() => {
-  return selectedIds.value
-    .map(id => userCache.value.get(id))
-    .filter((u): u is UserSearchItem => !!u)
-})
-
-type ComboboxValue = UserSearchItem[] | UserSearchItem | undefined
-
-function isUserSearchItem(val: unknown): val is UserSearchItem {
-  return val !== null && typeof val === 'object' && 'id' in val && 'email' in val
-}
-
-function normalizeToArray(val: ComboboxValue): UserSearchItem[] {
-  if (Array.isArray(val))
-    return val
-  if (isUserSearchItem(val))
-    return [val]
-  return []
-}
-
-const internalSelected = computed<ComboboxValue>({
+/** Combobox 内部绑定值 */
+const internalSelected = computed<ModelValue>({
   get: () => props.multiple ? selectedUsers.value : selectedUsers.value[0],
   set: (newV) => {
     const users = normalizeToArray(newV)
-
-    // 更新缓存
-    users.forEach(user => userCache.value.set(user.id, user))
-
-    // 更新 modelValue
-    if (props.multiple) {
-      modelValue.value = users.map(u => u.id)
-    }
-    else {
-      modelValue.value = users[0]?.id
-    }
-
-    emit('change', users)
+    modelValue.value = props.multiple ? users : users[0]
   },
 })
 
-/** 过滤掉已排除的用户（不过滤已选择的，因为 Combobox 会自动处理） */
+/** 本地模式下的搜索结果 */
+const localSearchResults = computed(() => {
+  if (!isLocalMode.value || !props.options)
+    return []
+
+  const query = searchQuery.value?.toLowerCase().trim()
+
+  if (!query)
+    return props.options
+
+  return props.options.filter(user =>
+    user.name?.toLowerCase().includes(query)
+    || user.email?.toLowerCase().includes(query)
+    || user.username?.toLowerCase().includes(query),
+  )
+})
+
+/** 过滤掉已排除的用户和已选择的用户 */
 const filteredResults = computed(() => {
-  const excludeIds = new Set(props.excludeUserIds ?? [])
-  return searchResults.value.filter(user => !excludeIds.has(user.id))
+  const excludeIds = new Set([
+    ...(props.excludeIds ?? []),
+    ...selectedUsers.value.map(u => u.id),
+  ])
+  const results = isLocalMode.value ? localSearchResults.value : searchResults.value
+  return results.filter(user => !excludeIds.has(user.id))
 })
 
 /** 搜索用户 */
 async function searchUsers(query?: string) {
   isSearching.value = true
   try {
-    const res = await userApi.searchUsers({ search: query, limit: 10 })
+    const res = await userApi.searchUsers({
+      search: query,
+      limit: 100,
+    })
     searchResults.value = res.users
   }
   finally {
@@ -146,11 +118,12 @@ async function searchUsers(query?: string) {
   }
 }
 
-/** 防抖搜索 */
 const debouncedSearch = useDebounceFn(searchUsers, 300)
 
-/** 监听搜索输入变化 */
 watch(searchQuery, (query) => {
+  if (isLocalMode.value)
+    return
+
   const isQueryValid = query?.trim()
   if (isQueryValid) {
     isSearching.value = true
@@ -163,19 +136,14 @@ watch(searchQuery, (query) => {
 
 /** 移除已经选择的用户 */
 function removeSelectedUser(userId: string) {
-  if (props.multiple) {
-    modelValue.value = selectedIds.value.filter(id => id !== userId)
-  }
-  else {
-    modelValue.value = undefined
-  }
-  emit('change', selectedUsers.value.filter(u => u.id !== userId))
+  const filtered = selectedUsers.value.filter(u => u.id !== userId)
+  modelValue.value = props.multiple ? filtered : undefined
 }
 
-watch(selectedIds, (newVal) => {
-  if (props.multiple && props.max !== undefined && newVal.length > props.max) {
+watch(selectedUsers, (users) => {
+  if (props.multiple && props.max !== undefined && users.length > props.max) {
     toast.error(`最多只能选择 ${props.max} 个用户`)
-    modelValue.value = newVal.slice(0, props.max)
+    modelValue.value = users.slice(0, props.max)
   }
 })
 </script>
@@ -232,22 +200,22 @@ watch(selectedIds, (newVal) => {
         :side-offset="4"
       >
         <ComboboxViewport class="max-h-60">
-          <!-- 搜索中状态 -->
-          <div v-if="isSearching && filteredResults.length === 0" class="py-6 text-center">
+          <!-- 远程模式：搜索中状态 -->
+          <div v-if="!isLocalMode && isSearching && filteredResults.length === 0" class="py-6 text-center">
             <Loader2 class="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
             <p class="text-sm text-muted-foreground mt-2">
               搜索中...
             </p>
           </div>
 
-          <!-- 空状态提示 -->
-          <ComboboxEmpty v-else-if="!searchQuery?.trim()">
+          <!-- 远程模式：未输入搜索词 -->
+          <ComboboxEmpty v-else-if="!isLocalMode && !searchQuery?.trim()">
             输入关键词搜索用户
           </ComboboxEmpty>
 
           <!-- 无结果状态 -->
-          <ComboboxEmpty v-else-if="!isSearching && filteredResults.length === 0">
-            未找到匹配的用户
+          <ComboboxEmpty v-else-if="filteredResults.length === 0">
+            {{ emptyText ?? '未找到匹配的用户' }}
           </ComboboxEmpty>
 
           <!-- 搜索结果列表 -->

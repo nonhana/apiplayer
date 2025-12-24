@@ -171,7 +171,8 @@ watch(() => props.project, async () => {
     <InviteMemberDialog
       v-model:open="isInviteDialogOpen"
       type="project"
-      :resource-id="project.id"
+      :team-id="project.team.id"
+      :project-id="project.id"
       :resource-name="project.name"
       :existing-member-ids="existingMemberIds"
       @invited="handleMembersInvited"

@@ -28,9 +28,9 @@ export class TeamMemberService {
 
       // 批量获取所有要邀请的用户
       const users = await Promise.all(
-        members.map(m => this.userService.getUserByEmail(m.email)),
+        members.map(m => this.userService.getUserById(m.userId)),
       )
-      const userMap = new Map(users.map(user => [user.email, user]))
+      const userMap = new Map(users.map(user => [user.id, user]))
 
       // 批量验证角色是否存在（去重后验证，避免重复查询）
       const uniqueRoleIds = [...new Set(members.map(m => m.roleId))]
@@ -41,7 +41,7 @@ export class TeamMemberService {
       const newMembers = await this.prisma.$transaction(async (tx) => {
         // 先进行所有验证
         for (const member of members) {
-          const user = userMap.get(member.email)!
+          const user = userMap.get(member.userId)!
 
           // 检查用户是否已经是团队成员
           const existingMember = await tx.teamMember.findUnique({
@@ -55,7 +55,7 @@ export class TeamMemberService {
 
           if (existingMember) {
             throw new HanaException(
-              `用户 ${user.email} 已经是团队成员`,
+              `用户 ${user.username} 已经是团队成员`,
               ErrorCode.USER_ALREADY_TEAM_MEMBER,
             )
           }
@@ -64,7 +64,7 @@ export class TeamMemberService {
         // 验证通过后，批量创建所有成员
         return Promise.all(
           members.map((member) => {
-            const user = userMap.get(member.email)!
+            const user = userMap.get(member.userId)!
             return tx.teamMember.create({
               data: {
                 userId: user.id,

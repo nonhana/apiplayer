@@ -1,3 +1,5 @@
+import type { BasePaginatedQuery } from '.'
+
 export interface UserBriefInfo {
   id: string
   email: string
@@ -28,6 +30,11 @@ export interface UpdateUserProfileReq {
   verificationCode?: string
 }
 
+export interface SearchUsersReq extends BasePaginatedQuery {
+  teamId?: string
+  projectId?: string
+}
+
 export interface UserSession {
   sessionId: string
   createdAt: string
@@ -37,21 +44,9 @@ export interface UserSession {
   isCurrent: boolean
 }
 
-/** 用户搜索项 */
-export interface UserSearchItem {
-  id: string
-  email: string
-  username: string
-  name: string
-  avatar?: string
-  bio?: string
-  isActive: boolean
-  createdAt: string
-}
-
 /** 用户搜索响应 */
 export interface SearchUsersResponse {
-  users: UserSearchItem[]
+  users: UserBriefInfo[]
   total: number
   pagination: {
     page: number

@@ -129,7 +129,7 @@ export interface ProjectMembersResponse {
 
 /** 邀请项目成员 Item */
 export interface InviteProjectMemberItem {
-  email: string
+  userId: string
   roleId: string
 }
 

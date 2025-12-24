@@ -1,5 +1,10 @@
-import type { BasePaginatedQuery } from '@/types'
-import type { SearchUsersResponse, UpdateUserProfileReq, UserFullInfo } from '@/types/user'
+import type { SearchParamsOption } from 'ky'
+import type {
+  SearchUsersReq,
+  SearchUsersResponse,
+  UpdateUserProfileReq,
+  UserFullInfo,
+} from '@/types/user'
 import http from '@/service'
 
 export const userApi = {
@@ -15,6 +20,6 @@ export const userApi = {
     http.post('user/profile/verification-code').json<void>(),
 
   /** 搜索用户 */
-  searchUsers: (params?: BasePaginatedQuery) =>
-    http.get('user/search', { searchParams: params as Record<string, string | number> }).json<SearchUsersResponse>(),
+  searchUsers: (params?: SearchUsersReq) =>
+    http.get('user/search', { searchParams: params as SearchParamsOption }).json<SearchUsersResponse>(),
 } as const

@@ -2,12 +2,12 @@
 import type { ProjectMember } from '@/types/project'
 import type { RoleItem } from '@/types/role'
 import type { TeamMember } from '@/types/team'
-import type { UserSearchItem } from '@/types/user'
+import type { UserBriefInfo } from '@/types/user'
 import { Loader2 } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { computed, ref, watch, watchEffect } from 'vue'
 import { toast } from 'vue-sonner'
 import { projectApi } from '@/api/project'
-import { roleApi } from '@/api/role'
 import { teamApi } from '@/api/team'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,6 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -27,6 +28,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ROLE_NAME } from '@/constants/roles'
+import { useGlobalStore } from '@/stores/useGlobalStore'
 import UserSearchSelect from './UserSearchSelect.vue'
 
 /** 邀请类型 */
@@ -36,13 +38,10 @@ export type InviteType = 'team' | 'project'
 export type MemberResult = TeamMember | ProjectMember
 
 const props = defineProps<{
-  /** 邀请类型：team 或 project */
   type: InviteType
-  /** 资源 ID（teamId 或 projectId） */
-  resourceId: string
-  /** 资源名称（团队名或项目名） */
+  teamId?: string
+  projectId?: string
   resourceName: string
-  /** 已有成员的用户 ID 列表，用于在搜索时排除 */
   existingMemberIds: string[]
 }>()
 
@@ -50,91 +49,73 @@ const emits = defineEmits<{
   (e: 'invited', members: MemberResult[]): void
 }>()
 
+const { teamRoles, projectRoles } = storeToRefs(useGlobalStore())
+
 const isOpen = defineModel<boolean>('open', { required: true })
 
 // 是否为团队模式
 const isTeamMode = computed(() => props.type === 'team')
 
+const teamMemberOptions = ref<UserBriefInfo[]>([])
+
+// 如果当前为“邀请项目成员”模式，需要获取当前团队的成员列表
+watchEffect(async () => {
+  if (!isTeamMode.value) {
+    if (!props.teamId) {
+      console.warn('无 team id，暂无法获取团队成员列表')
+      return
+    }
+    const teamMembers = await teamApi.getAllTeamMembers(props.teamId)
+    teamMemberOptions.value = teamMembers.map(member => member.user)
+  }
+  else {
+    teamMemberOptions.value = []
+  }
+})
+
 // 表单状态
-const selectedUserIds = ref<string[]>([])
-const selectedUsers = ref<UserSearchItem[]>([])
+const selectedUsers = ref<UserBriefInfo[]>([])
 const selectedRoleId = ref('')
 const nickname = ref('')
 const isSubmitting = ref(false)
 
-/** 处理用户选择变化 */
-function handleUsersChange(users: UserSearchItem[]) {
-  selectedUsers.value = users
-}
-
-// 角色列表
-const roles = ref<RoleItem[]>([])
-const isLoadingRoles = ref(false)
-
-/** 可选角色列表（Team 模式下排除 Owner） */
-const selectableRoles = computed(() => {
+const roleList = computed<RoleItem[]>(() => {
   if (isTeamMode.value) {
-    return roles.value.filter(r => r.name !== ROLE_NAME.TEAM_OWNER)
+    return teamRoles.value.filter(r => r.name !== ROLE_NAME.TEAM_OWNER)
   }
-  return roles.value
+  return projectRoles.value
 })
 
-/** 默认角色 ID */
 const defaultRoleId = computed(() => {
   if (isTeamMode.value) {
-    const memberRole = roles.value.find(r => r.name === ROLE_NAME.TEAM_MEMBER)
-    return memberRole?.id ?? ''
+    return teamRoles.value.find(r => r.name === ROLE_NAME.TEAM_MEMBER)!.id
   }
-  // Project 模式默认是 viewer
-  const viewerRole = roles.value.find(r => r.name === 'project:viewer')
-  return viewerRole?.id ?? ''
+  return projectRoles.value.find(r => r.name === ROLE_NAME.PROJECT_VIEWER)!.id
 })
 
-/** 是否可以提交 */
 const canSubmit = computed(() =>
   selectedUsers.value.length > 0 && selectedRoleId.value && !isSubmitting.value,
 )
 
-/** 获取角色列表 */
-async function fetchRoles() {
-  isLoadingRoles.value = true
-  try {
-    const response = await roleApi.getRoles({
-      type: isTeamMode.value ? 'TEAM' : 'PROJECT',
-    })
-    roles.value = response.roles
-    // 设置默认角色
-    if (!selectedRoleId.value) {
-      selectedRoleId.value = defaultRoleId.value
-    }
-  }
-  finally {
-    isLoadingRoles.value = false
-  }
-}
-
-/** 邀请团队成员 */
 async function inviteTeamMembers(): Promise<TeamMember[]> {
-  return await teamApi.inviteTeamMembers(props.resourceId, {
+  return await teamApi.inviteTeamMembers(props.teamId!, {
     members: selectedUsers.value.map(user => ({
-      email: user.email,
+      userId: user.id,
       roleId: selectedRoleId.value,
       nickname: nickname.value || undefined,
     })),
   })
 }
 
-/** 邀请项目成员 */
 async function inviteProjectMembers(): Promise<ProjectMember[]> {
-  return await projectApi.inviteProjectMembers(props.resourceId, {
+  return await projectApi.inviteProjectMembers(props.projectId!, {
     members: selectedUsers.value.map(user => ({
-      email: user.email,
+      userId: user.id,
       roleId: selectedRoleId.value,
     })),
   })
 }
 
-/** 提交邀请 */
 async function handleSubmit() {
   if (!canSubmit.value)
     return
@@ -160,28 +141,19 @@ async function handleSubmit() {
   }
 }
 
-/** 重置表单 */
 function resetForm() {
-  selectedUserIds.value = []
   selectedUsers.value = []
   selectedRoleId.value = defaultRoleId.value
   nickname.value = ''
 }
 
-/** 打开时获取角色列表 */
-watch(isOpen, async (open) => {
-  if (open) {
-    await fetchRoles()
-  }
-  else {
-    resetForm()
-  }
-})
+// 关闭时重置表单
+watch(isOpen, open => !open && resetForm())
 </script>
 
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-[480px]">
+    <DialogContent class="sm:max-w-120">
       <DialogHeader>
         <DialogTitle>邀请成员</DialogTitle>
         <DialogDescription>
@@ -191,32 +163,32 @@ watch(isOpen, async (open) => {
       </DialogHeader>
 
       <div class="space-y-4 py-2">
-        <!-- 用户搜索选择 -->
         <div class="space-y-2">
-          <label class="text-sm font-medium leading-none">
+          <Label class="text-sm font-medium leading-none">
             选择用户 <span class="text-destructive">*</span>
-          </label>
+          </Label>
           <UserSearchSelect
-            v-model="selectedUserIds"
-            :exclude-user-ids="existingMemberIds"
-            placeholder="搜索用户名、邮箱或昵称..."
+            v-model="selectedUsers"
+            :exclude-ids="existingMemberIds"
+            :placeholder="isTeamMode ? '搜索用户名、邮箱...' : '从团队成员中选择...'"
             :disabled="isSubmitting"
-            @change="handleUsersChange"
+            :options="isTeamMode ? undefined : teamMemberOptions"
+            :empty-text="isTeamMode ? undefined : '当前团队没有可邀请的成员'"
           />
         </div>
 
         <!-- 角色选择 -->
         <div class="space-y-2">
-          <label class="text-sm font-medium leading-none">
+          <Label class="text-sm font-medium leading-none">
             分配角色 <span class="text-destructive">*</span>
-          </label>
-          <Select v-model="selectedRoleId" :disabled="isSubmitting || isLoadingRoles">
+          </Label>
+          <Select v-model="selectedRoleId" :disabled="isSubmitting">
             <SelectTrigger>
               <SelectValue placeholder="选择角色" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem
-                v-for="role in selectableRoles"
+                v-for="role in roleList"
                 :key="role.id"
                 :value="role.id"
               >
@@ -228,9 +200,9 @@ watch(isOpen, async (open) => {
 
         <!-- 团队内昵称（仅团队模式可用） -->
         <div v-if="isTeamMode" class="space-y-2">
-          <label class="text-sm font-medium leading-none">
+          <Label class="text-sm font-medium leading-none">
             团队昵称
-          </label>
+          </Label>
           <Input
             v-model="nickname"
             placeholder="成员在团队内的昵称（可选）"

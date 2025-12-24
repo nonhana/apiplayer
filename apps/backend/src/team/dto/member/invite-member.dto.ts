@@ -2,7 +2,6 @@ import { Type } from 'class-transformer'
 import {
   ArrayNotEmpty,
   IsArray,
-  IsEmail,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -11,9 +10,9 @@ import {
 } from 'class-validator'
 
 export class InviteMemberItemDto {
-  @IsNotEmpty({ message: '邮箱不能为空' })
-  @IsEmail({}, { message: '邮箱格式不正确' })
-  email: string
+  @IsNotEmpty({ message: '用户 ID 不能为空' })
+  @IsString({ message: '用户 ID 必须是字符串' })
+  userId: string
 
   @IsNotEmpty({ message: '角色 ID 不能为空' })
   @IsString({ message: '角色 ID 必须是字符串' })

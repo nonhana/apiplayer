@@ -1,3 +1,4 @@
+import type { UserBriefInfo } from './user'
 import type { RoleName } from '@/constants/roles'
 
 /** 团队简要信息 */
@@ -26,15 +27,6 @@ export interface TeamItem extends TeamBrief {
   currentUserRole?: RoleBrief
 }
 
-/** 成员用户信息 */
-export interface MemberInfo {
-  id: string
-  name: string
-  email: string
-  username: string
-  avatar?: string
-}
-
 /** 成员角色信息 */
 export interface MemberRole {
   id: string
@@ -44,7 +36,7 @@ export interface MemberRole {
 /** 团队成员 */
 export interface TeamMember {
   id: string
-  user: MemberInfo
+  user: UserBriefInfo
   role: MemberRole
   nickname?: string
   joinedAt: string
@@ -107,7 +99,7 @@ export interface UpdateTeamReq {
 
 /** 邀请团队成员 Item */
 export interface InviteTeamMemberItem {
-  email: string
+  userId: string
   roleId: string
   nickname?: string
 }

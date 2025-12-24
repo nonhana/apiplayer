@@ -11,7 +11,7 @@ const userStore = useUserStore()
 // App init
 onMounted(() => {
   if (userStore.isAuthenticated) {
-    globalStore.initProjectRoles()
+    globalStore.initRoles()
   }
 })
 </script>

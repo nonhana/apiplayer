@@ -209,6 +209,27 @@ export class UserService {
     }
   }
 
+  /** 根据用户 ID 获取用户 */
+  async getUserById(id: string) {
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id } })
+      if (!user) {
+        throw new HanaException('用户不存在', ErrorCode.USER_NOT_FOUND, 404)
+      }
+      if (!user.isActive) {
+        throw new HanaException('用户账号已被禁用', ErrorCode.ACCOUNT_DISABLED, 403)
+      }
+      return user
+    }
+    catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
+      this.logger.error('获取用户失败:', error)
+      throw new HanaException('获取用户失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+    }
+  }
+
   /** 根据邮箱获取用户 */
   async getUserByEmail(email: string) {
     try {
@@ -217,7 +238,7 @@ export class UserService {
         throw new HanaException('被邀请的用户不存在', ErrorCode.USER_NOT_FOUND, 404)
       }
       if (!user.isActive) {
-        throw new HanaException('被邀请的用户账号已被禁用', ErrorCode.ACCOUNT_DISABLED)
+        throw new HanaException('被邀请的用户账号已被禁用', ErrorCode.ACCOUNT_DISABLED, 403)
       }
       return user
     }
@@ -225,13 +246,14 @@ export class UserService {
       if (error instanceof HanaException) {
         throw error
       }
+      this.logger.error('获取用户失败:', error)
       throw new HanaException('获取用户失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
     }
   }
 
   /** 分页搜索用户 */
   async searchUsers(dto: SearchUsersReqDto) {
-    const { page = 1, limit = 10, search } = dto
+    const { page = 1, limit = 10, search, teamId, projectId } = dto
 
     try {
       const skip = (page - 1) * limit
@@ -245,6 +267,9 @@ export class UserService {
             { email: { contains: search, mode: 'insensitive' } },
           ],
         }),
+        // 如果包含团队 ID 或项目 ID，则只查询这些团队或项目中的用户
+        ...(teamId && { teamMembers: { some: { teamId } } }),
+        ...(projectId && { projectMembers: { some: { projectId } } }),
       }
 
       const [users, total] = await Promise.all([
