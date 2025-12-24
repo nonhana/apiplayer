@@ -132,6 +132,10 @@ catalogs:
     winston-daily-rotate-file:
       specifier: ^5.0.0
       version: 5.0.0
+  default:
+    nanoid:
+      specifier: ^5.1.6
+      version: 5.1.6
   frontend:
     '@tailwindcss/vite':
       specifier: ^4.1.18
@@ -431,6 +435,9 @@ importers:
       monaco-editor:
         specifier: catalog:frontend
         version: 0.55.1
+      nanoid:
+        specifier: 'catalog:'
+        version: 5.1.6
       pinia:
         specifier: catalog:frontend
         version: 3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
@@ -4664,6 +4671,11 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
+  nanoid@5.1.6:
+    resolution: {integrity: sha512-c7+7RQ+dMB5dPwwCp4ee1/iV/q2P6aK1mTZcfr1BTuVlyW9hJYiMPybJCcnBlQtuSmTIWNeazm/zqNoZSSElBg==}
+    engines: {node: ^18 || >=20}
+    hasBin: true
+
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
@@ -8505,7 +8517,7 @@ snapshots:
 
   '@unocss/eslint-plugin@66.5.9(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)':
     dependencies:
-      '@typescript-eslint/utils': 8.49.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
+      '@typescript-eslint/utils': 8.50.1(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
       '@unocss/config': 66.5.9
       '@unocss/core': 66.5.9
       '@unocss/rule-utils': 66.5.9
@@ -10878,6 +10890,8 @@ snapshots:
       lru-cache: 7.18.3
 
   nanoid@3.3.11: {}
+
+  nanoid@5.1.6: {}
 
   natural-compare@1.4.0: {}
 

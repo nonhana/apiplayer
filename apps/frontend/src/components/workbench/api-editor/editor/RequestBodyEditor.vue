@@ -83,14 +83,21 @@ function handleSchemaChange(schema: LocalSchemaNode) {
   apiEditorStore.updateRequestBodySchema(schema)
 }
 
-/** 更新表单字段 */
-function handleFormFieldsChange(fields: ApiParam[]) {
-  apiEditorStore.updateRequestBodyFormFields(fields)
-}
-
 /** 更新描述 */
 function handleDescriptionChange(description: string) {
   apiEditorStore.updateRequestBodyDescription(description)
+}
+
+function handleAddFormField() {
+  apiEditorStore.addParam('request-body')
+}
+
+function handleRemoveFormField(index: number) {
+  apiEditorStore.removeParam('request-body', index)
+}
+
+function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiParam[keyof ApiParam]) {
+  apiEditorStore.updateParam('request-body', index, key, value)
 }
 </script>
 
@@ -158,13 +165,14 @@ function handleDescriptionChange(description: string) {
         <span>表单字段定义</span>
       </div>
       <EditableParamTable
-        v-if="requestBody?.formFields"
-        :params="requestBody.formFields"
+        :params="requestBody?.formFields ?? []"
         :disabled="disabled"
         :param-type-options="isFormData ? FORM_DATA_TYPES : PARAM_TYPES"
         empty-text="暂无表单字段，点击添加"
         add-button-text="添加表单字段"
-        @update:params="handleFormFieldsChange"
+        @add="handleAddFormField"
+        @remove="handleRemoveFormField"
+        @update="handleUpdateFormField"
       />
     </div>
 

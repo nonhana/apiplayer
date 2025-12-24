@@ -33,11 +33,6 @@ export function getUserFallbackIcon(name: string) {
   return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'U'
 }
 
-/** 生成唯一 key */
-export function generateKey() {
-  return `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
-}
-
 /**
  * 从 API 路径中提取路径参数名
  * 支持 {paramName} 和 :paramName 两种格式

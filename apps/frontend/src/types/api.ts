@@ -1,12 +1,15 @@
 import type { LocalSchemaNode } from './json-schema'
 import type { UserBriefInfo } from './user'
 
+/** 需要进行参数列表配置的类型 */
+export type ParamCategory = 'request-query' | 'request-header' | 'request-body'
+
 /** 标签页类型 */
 export type TabType = 'api' | 'overview' | 'settings' | 'schema' | 'group'
 
 /** 标签页数据结构 */
 export interface Tab {
-  /** 唯一标识（API ID 或其他标识） */
+  /** API ID */
   id: string
   /** 显示标题 */
   title: string
@@ -35,6 +38,8 @@ export type ParamType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 
 
 /** API 参数定义（请求头/路径参数/查询参数通用） */
 export interface ApiParam {
+  /** 唯一标识 */
+  id: string
   /** 参数名 */
   name: string
   /** 参数类型 */

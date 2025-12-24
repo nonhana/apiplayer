@@ -1,5 +1,5 @@
 import type { LocalSchemaNode } from '@/types/json-schema'
-import { generateKey } from '@/lib/utils'
+import { nanoid } from 'nanoid'
 
 /** JSON Schema 支持的字段类型 */
 export type SchemaFieldType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'null'
@@ -35,7 +35,7 @@ function schemaPropertyToNode(
   const type = getSchemaFieldType(prop.type, 'string')
 
   const node: LocalSchemaNode = {
-    id: generateKey(),
+    id: nanoid(),
     name,
     type,
     required: isRequired,
@@ -72,7 +72,7 @@ function schemaItemsToNode(items: Record<string, unknown>): LocalSchemaNode {
   const itemType = getSchemaFieldType(items.type, 'string')
 
   const node: LocalSchemaNode = {
-    id: generateKey(),
+    id: nanoid(),
     isArrayItem: true,
     name: 'ITEMS',
     type: itemType,
@@ -244,7 +244,7 @@ export function nodeToSchema(node: LocalSchemaNode): Record<string, unknown> {
 export function genRootSchemaNode(): LocalSchemaNode {
   return {
     isRoot: true,
-    id: generateKey(),
+    id: nanoid(),
     name: '根节点',
     type: 'string',
     required: true,
@@ -256,7 +256,7 @@ export function genRootSchemaNode(): LocalSchemaNode {
 /** 生成新节点 */
 export function genNewNode(): LocalSchemaNode {
   return {
-    id: generateKey(),
+    id: nanoid(),
     name: '',
     type: 'string',
     required: false,
@@ -267,7 +267,7 @@ export function genNewNode(): LocalSchemaNode {
 /** 生成 array item 节点 */
 export function genArrayItemNode(): LocalSchemaNode {
   return {
-    id: generateKey(),
+    id: nanoid(),
     isArrayItem: true,
     name: 'ITEMS',
     type: 'string',

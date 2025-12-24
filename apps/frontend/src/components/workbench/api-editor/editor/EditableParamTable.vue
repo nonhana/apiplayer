@@ -2,7 +2,7 @@
 import type { Option } from '@/types'
 import type { ApiParam, ParamType } from '@/types/api'
 import { GripVertical, Plus, Trash2 } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import SearchInput from '@/components/common/SearchInput.vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -23,13 +23,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { paramTypeColors } from '@/constants/api'
-import { cn, generateKey } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import ParamTableValueForm from './ParamTableValueForm.vue'
-
-/** 内部使用的参数项（带唯一 key） */
-interface ParamItem extends ApiParam {
-  _key: string
-}
 
 const props = withDefaults(defineProps<{
   /** 参数列表 */
@@ -71,23 +66,13 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  (e: 'update:params', params: ApiParam[]): void
+  /** 添加参数 */
+  (e: 'add'): void
+  /** 删除参数 */
+  (e: 'remove', index: number): void
+  /** 更新参数字段 */
+  (e: 'update', index: number, key: keyof ApiParam, value: ApiParam[keyof ApiParam]): void
 }>()
-
-/** 内部参数列表（带 _key） */
-const internalParams = ref<ParamItem[]>([])
-
-/** 同步外部参数到内部 */
-watch(
-  () => props.params,
-  (newParams) => {
-    internalParams.value = newParams.map(p => ({
-      ...p,
-      _key: generateKey(),
-    }))
-  },
-  { immediate: true, deep: true },
-)
 
 /** 表格列数 */
 const columnCount = computed(() => {
@@ -105,50 +90,6 @@ const columnCount = computed(() => {
   count++ // 操作列
   return count
 })
-
-/** 通知外部参数变化 */
-function emitChange() {
-  const params = internalParams.value.map(({ _key, ...rest }) => rest)
-  emit('update:params', params)
-}
-
-/** 添加参数 */
-function handleAdd() {
-  if (props.disabled)
-    return
-
-  internalParams.value.push({
-    _key: generateKey(),
-    name: '',
-    type: 'string',
-    required: false,
-    description: '',
-    defaultValue: '',
-    example: '',
-  })
-  emitChange()
-}
-
-/** 删除参数 */
-function handleRemove(index: number) {
-  if (props.disabled)
-    return
-
-  internalParams.value.splice(index, 1)
-  emitChange()
-}
-
-/** 更新参数字段 */
-function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: ApiParam[K]) {
-  if (props.disabled)
-    return
-
-  const param = internalParams.value[index]
-  if (param) {
-    (param as ApiParam)[key] = value
-    emitChange()
-  }
-}
 </script>
 
 <template>
@@ -183,10 +124,10 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
           </TableRow>
         </TableHeader>
         <TableBody>
-          <template v-if="internalParams.length > 0">
+          <template v-if="props.params.length > 0">
             <TableRow
-              v-for="(param, index) in internalParams"
-              :key="param._key"
+              v-for="(param, index) in props.params"
+              :key="param.id"
               class="group"
             >
               <!-- 拖拽手柄 -->
@@ -205,7 +146,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                   placeholder="参数名"
                   :disabled="disabled"
                   class="h-8 font-mono text-sm"
-                  @update:model-value="handleUpdate(index, 'name', String($event))"
+                  @update:model-value="emit('update', index, 'name', String($event))"
                 />
                 <!-- 普通输入框 -->
                 <Input
@@ -214,7 +155,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                   placeholder="参数名"
                   :disabled="disabled"
                   class="h-8 font-mono text-sm"
-                  @update:model-value="handleUpdate(index, 'name', String($event))"
+                  @update:model-value="emit('update', index, 'name', String($event))"
                 />
               </TableCell>
 
@@ -223,7 +164,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                 <Select
                   :model-value="param.type"
                   :disabled="disabled"
-                  @update:model-value="handleUpdate(index, 'type', $event as ParamType)"
+                  @update:model-value="emit('update', index, 'type', $event as ParamType)"
                 >
                   <SelectTrigger class="h-8 text-xs">
                     <SelectValue placeholder="类型">
@@ -252,7 +193,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                   <Checkbox
                     :checked="param.required ?? false"
                     :disabled="disabled"
-                    @update:checked="handleUpdate(index, 'required', $event)"
+                    @update:checked="emit('update', index, 'required', $event)"
                   />
                 </div>
               </TableCell>
@@ -263,7 +204,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                   :type="param.type"
                   :model-value="param.defaultValue ?? ''"
                   :disabled="disabled"
-                  @update:model-value="handleUpdate(index, 'defaultValue', $event)"
+                  @update:model-value="emit('update', index, 'defaultValue', $event)"
                 />
               </TableCell>
 
@@ -273,7 +214,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                   :type="param.type"
                   :model-value="param.example ?? ''"
                   :disabled="disabled"
-                  @update:model-value="handleUpdate(index, 'example', $event)"
+                  @update:model-value="emit('update', index, 'example', $event)"
                 />
               </TableCell>
 
@@ -284,7 +225,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                   placeholder="参数说明"
                   :disabled="disabled"
                   class="h-8 text-sm"
-                  @update:model-value="handleUpdate(index, 'description', String($event))"
+                  @update:model-value="emit('update', index, 'description', String($event))"
                 />
               </TableCell>
 
@@ -295,7 +236,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
                   size="icon"
                   :disabled="disabled"
                   class="h-7 w-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                  @click="handleRemove(index)"
+                  @click="emit('remove', index)"
                 >
                   <Trash2 class="h-4 w-4" />
                 </Button>
@@ -322,7 +263,7 @@ function handleUpdate<K extends keyof ApiParam>(index: number, key: K, value: Ap
       size="sm"
       :disabled="disabled"
       class="w-full border-dashed"
-      @click="handleAdd"
+      @click="emit('add')"
     >
       <Plus class="h-4 w-4 mr-1.5" />
       {{ addButtonText }}

@@ -24,21 +24,6 @@ const { paramsData } = storeToRefs(apiEditorStore)
 /** 当前激活的 Tab */
 const activeTab = ref('query')
 
-/** 更新路径参数（仅更新类型、示例值、说明等，不改变参数名和数量） */
-function handlePathParamsChange(params: ApiParam[]) {
-  apiEditorStore.updatePathParams(params)
-}
-
-/** 更新查询参数 */
-function handleQueryParamsChange(params: ApiParam[]) {
-  apiEditorStore.updateQueryParams(params)
-}
-
-/** 更新请求头 */
-function handleHeadersChange(params: ApiParam[]) {
-  apiEditorStore.updateRequestHeaders(params)
-}
-
 /** Tab 项配置 */
 const tabItems = computed(() => [
   {
@@ -60,6 +45,34 @@ const tabItems = computed(() => [
     count: paramsData.value.requestHeaders.length,
   },
 ])
+
+function handleAddQueryParam() {
+  apiEditorStore.addParam('request-query')
+}
+
+function handleRemoveQueryParam(index: number) {
+  apiEditorStore.removeParam('request-query', index)
+}
+
+function handleUpdateQueryParam(index: number, key: keyof ApiParam, value: ApiParam[keyof ApiParam]) {
+  apiEditorStore.updateParam('request-query', index, key, value)
+}
+
+function handleAddHeaderParam() {
+  apiEditorStore.addParam('request-header')
+}
+
+function handleRemoveHeaderParam(index: number) {
+  apiEditorStore.removeParam('request-header', index)
+}
+
+function handleUpdateHeaderParam(index: number, key: keyof ApiParam, value: ApiParam[keyof ApiParam]) {
+  apiEditorStore.updateParam('request-header', index, key, value)
+}
+
+function handleUpdatePathParams(params: ApiParam[]) {
+  apiEditorStore.updatePathParams(params)
+}
 </script>
 
 <template>
@@ -92,7 +105,9 @@ const tabItems = computed(() => [
           :param-type-options="PARAM_TYPES"
           empty-text="暂无查询参数，点击添加"
           add-button-text="添加 Query 参数"
-          @update:params="handleQueryParamsChange"
+          @add="handleAddQueryParam"
+          @remove="handleRemoveQueryParam"
+          @update="handleUpdateQueryParam"
         />
       </TabsContent>
 
@@ -110,7 +125,7 @@ const tabItems = computed(() => [
             :params="paramsData.pathParams"
             :disabled="disabled"
             empty-text="暂无路径参数，请在接口路径中使用 {paramName} 格式定义"
-            @update:params="handlePathParamsChange"
+            @update:params="handleUpdatePathParams"
           />
         </div>
       </TabsContent>
@@ -126,7 +141,9 @@ const tabItems = computed(() => [
           :param-name-options="buildOptionList(HEADER_PARAMS)"
           empty-text="暂无请求头，点击添加"
           add-button-text="添加请求头"
-          @update:params="handleHeadersChange"
+          @add="handleAddHeaderParam"
+          @remove="handleRemoveHeaderParam"
+          @update="handleUpdateHeaderParam"
         />
       </TabsContent>
     </Tabs>

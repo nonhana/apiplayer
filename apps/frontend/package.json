@@ -23,6 +23,7 @@
     "ky": "catalog:frontend",
     "lucide-vue-next": "catalog:frontend",
     "monaco-editor": "catalog:frontend",
+    "nanoid": "catalog:frontend",
     "pinia": "catalog:frontend",
     "pinia-plugin-persistedstate": "catalog:frontend",
     "reka-ui": "catalog:frontend",

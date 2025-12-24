@@ -1,13 +1,14 @@
 import type { ApiBaseInfoForm, ApiReqData } from '@/components/workbench/api-editor/editor/types'
-import type { ApiDetail, ApiParam, LocalApiRequestBody, LocalApiResItem, UpdateApiReq } from '@/types/api'
+import type { ApiDetail, ApiParam, LocalApiRequestBody, LocalApiResItem, ParamCategory, UpdateApiReq } from '@/types/api'
 import type { LocalSchemaNode } from '@/types/json-schema'
+import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
 import { toast } from 'vue-sonner'
 import { apiApi } from '@/api/api'
 import { toApiReqBody, toApiResList, toLocalReqBody, toLocalResList } from '@/lib/api-editor'
 import { genRootSchemaNode } from '@/lib/json-schema'
-import { extractPathParamNames, generateKey } from '@/lib/utils'
+import { extractPathParamNames } from '@/lib/utils'
 import { useApiTreeStore } from './useApiTreeStore'
 import { useTabStore } from './useTabStore'
 
@@ -72,7 +73,7 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   /** 当前 API 路径 */
   const currentPath = computed(() => data.value.basicInfo.path)
 
-  // ========== 初始化方法 ==========
+  // ========== 通用方法 ==========
 
   /**
    * 从 API 详情初始化编辑器
@@ -117,6 +118,70 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     data.value = createEmptyEditorData()
     isDirty.value = false
     isSaving.value = false
+  }
+
+  /** 添加参数 */
+  function addParam(category: ParamCategory) {
+    const newParam: ApiParam = {
+      id: nanoid(),
+      name: '',
+      type: 'string',
+      required: false,
+      description: '',
+      defaultValue: '',
+      example: '',
+    }
+    switch (category) {
+      case 'request-query':
+        data.value.paramsData.queryParams.push(newParam)
+        break
+      case 'request-header':
+        data.value.paramsData.requestHeaders.push(newParam)
+        break
+      case 'request-body':
+        data.value.requestBody?.formFields?.push(newParam)
+        break
+    }
+    markDirty()
+  }
+
+  /** 删除参数 */
+  function removeParam(category: ParamCategory, index: number) {
+    switch (category) {
+      case 'request-query':
+        data.value.paramsData.queryParams.splice(index, 1)
+        break
+      case 'request-header':
+        data.value.paramsData.requestHeaders.splice(index, 1)
+        break
+      case 'request-body':
+        data.value.requestBody?.formFields?.splice(index, 1)
+        break
+    }
+    markDirty()
+  }
+
+  /** 更新参数 */
+  function updateParam<K extends keyof ApiParam>(category: ParamCategory, index: number, key: K, value: ApiParam[K]) {
+    let targetList: ApiParam[] | undefined
+
+    switch (category) {
+      case 'request-query':
+        targetList = data.value.paramsData.queryParams
+        break
+      case 'request-header':
+        targetList = data.value.paramsData.requestHeaders
+        break
+      case 'request-body':
+        targetList = data.value.requestBody?.formFields
+        break
+    }
+
+    const target = targetList?.[index]
+    if (target) {
+      target[key] = value
+      markDirty()
+    }
   }
 
   // ========== 脏状态管理 ==========
@@ -169,7 +234,7 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     }
 
     // 根据提取的参数名生成新列表
-    const newPathParams: ApiParam[] = extractedNames.map((name) => {
+    const curPathParams = extractedNames.map((name) => {
       const existing = existingMap.get(name)
       if (existing) {
         return { ...existing, required: true }
@@ -183,12 +248,16 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
       }
     })
 
-    // 检查是否有变化
     const hasChanged
-      = newPathParams.length !== data.value.paramsData.pathParams.length
-        || newPathParams.some((p, i) => p.name !== data.value.paramsData.pathParams[i]?.name)
+      = curPathParams.length !== data.value.paramsData.pathParams.length
+        // 如果 name 变化，说明用户为 path 参数赋予的语义不同了
+        || curPathParams.some((p, i) => p.name !== data.value.paramsData.pathParams[i]?.name)
 
     if (hasChanged) {
+      const newPathParams = curPathParams.map(p => ({
+        ...p,
+        id: nanoid(),
+      })) as ApiParam[]
       data.value.paramsData.pathParams = newPathParams
     }
   }
@@ -196,18 +265,6 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   /** 更新路径参数 */
   function updatePathParams(params: ApiParam[]) {
     data.value.paramsData.pathParams = params
-    markDirty()
-  }
-
-  /** 更新查询参数 */
-  function updateQueryParams(params: ApiParam[]) {
-    data.value.paramsData.queryParams = params
-    markDirty()
-  }
-
-  /** 更新请求头 */
-  function updateRequestHeaders(params: ApiParam[]) {
-    data.value.paramsData.requestHeaders = params
     markDirty()
   }
 
@@ -260,14 +317,6 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     }
   }
 
-  /** 更新请求体表单字段 */
-  function updateRequestBodyFormFields(fields: ApiParam[]) {
-    if (data.value.requestBody) {
-      data.value.requestBody.formFields = fields
-      markDirty()
-    }
-  }
-
   /** 更新请求体描述 */
   function updateRequestBodyDescription(description: string) {
     if (data.value.requestBody) {
@@ -281,7 +330,7 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   /** 添加响应 */
   function addResponse() {
     const newResponse: LocalApiResItem = {
-      id: generateKey(),
+      id: nanoid(),
       name: '成功响应',
       httpStatus: 200,
       description: '',
@@ -428,9 +477,12 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     responses,
     currentPath,
 
-    // 初始化
+    // 通用方法
     initFromApi,
     reset,
+    addParam,
+    removeParam,
+    updateParam,
 
     // 脏状态
     markDirty,
@@ -443,14 +495,11 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     // 请求参数
     syncPathParams,
     updatePathParams,
-    updateQueryParams,
-    updateRequestHeaders,
 
     // 请求体
     updateRequestBody,
     updateRequestBodyType,
     updateRequestBodySchema,
-    updateRequestBodyFormFields,
     updateRequestBodyDescription,
 
     // 响应
