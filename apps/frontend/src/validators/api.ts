@@ -76,6 +76,6 @@ export const localResListSchema = z.array(localResItemSchema)
 export const apiEditorDataSchema = z.object({
   basicInfo: basicInfoSchema,
   paramsData: paramsDataSchema,
-  requestBody: localReqBodySchema.optional(),
+  requestBody: localReqBodySchema.nullable(),
   responses: localResListSchema,
 })

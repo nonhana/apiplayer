@@ -1,5 +1,3 @@
-import type { ApiStatus, ParamType, RequestBodyType } from '@/types/api'
-
 /** HTTP 方法选项 */
 export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
 
@@ -29,7 +27,7 @@ export const methodBadgeColors = {
 export const API_STATUSES = ['DRAFT', 'PUBLISHED', 'DEPRECATED', 'DELETED'] as const
 
 /** API 状态显示文案 */
-export const statusLabels: Record<ApiStatus, string> = {
+export const statusLabels = {
   DRAFT: '开发中',
   PUBLISHED: '已发布',
   DEPRECATED: '已废弃',
@@ -37,7 +35,7 @@ export const statusLabels: Record<ApiStatus, string> = {
 } as const
 
 /** API 状态对应的样式 */
-export const statusColors: Record<ApiStatus, string> = {
+export const statusColors = {
   DRAFT: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
   PUBLISHED: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
   DEPRECATED: 'bg-slate-500/15 text-slate-600 border-slate-500/30',
@@ -51,7 +49,7 @@ export const PARAM_TYPES = ['string', 'number', 'integer', 'boolean', 'array', '
 export const FORM_DATA_TYPES = [...PARAM_TYPES, 'file'] as const
 
 /** 参数类型显示文案 */
-export const paramTypeLabels: Record<ParamType, string> = {
+export const paramTypeLabels = {
   string: 'string',
   number: 'number',
   integer: 'integer',
@@ -62,7 +60,7 @@ export const paramTypeLabels: Record<ParamType, string> = {
 } as const
 
 /** 参数类型颜色 */
-export const paramTypeColors: Record<ParamType, string> = {
+export const paramTypeColors = {
   string: 'text-emerald-600',
   number: 'text-blue-600',
   integer: 'text-blue-600',
@@ -76,7 +74,7 @@ export const paramTypeColors: Record<ParamType, string> = {
 export const REQUEST_BODY_TYPES = ['none', 'json', 'form-data', 'x-www-form-urlencoded', 'binary', 'raw'] as const
 
 /** 请求体类型显示文案 */
-export const requestBodyTypeLabels: Record<RequestBodyType, string> = {
+export const requestBodyTypeLabels = {
   'none': '无',
   'json': 'JSON',
   'form-data': 'form-data',
@@ -94,7 +92,7 @@ export const HTTP_STATUS_CATEGORIES = {
 } as const
 
 /** HTTP 状态码描述 */
-export const httpStatusLabels: Record<number, string> = {
+export const httpStatusLabels = {
   200: 'OK',
   201: 'Created',
   204: 'No Content',
