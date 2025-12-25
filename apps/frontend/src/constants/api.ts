@@ -1,7 +1,7 @@
-import type { ApiStatus, HttpMethod, ParamType, RequestBodyType } from '@/types/api'
+import type { ApiStatus, ParamType, RequestBodyType } from '@/types/api'
 
 /** HTTP 方法选项 */
-export const HTTP_METHODS: HttpMethod[] = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
+export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
 
 /** HTTP 方法对应的主题色 */
 export const methodColors = {
@@ -26,7 +26,7 @@ export const methodBadgeColors = {
 } as const
 
 /** API 状态选项 */
-export const API_STATUSES: ApiStatus[] = ['DRAFT', 'PUBLISHED', 'DEPRECATED', 'DELETED']
+export const API_STATUSES = ['DRAFT', 'PUBLISHED', 'DEPRECATED', 'DELETED'] as const
 
 /** API 状态显示文案 */
 export const statusLabels: Record<ApiStatus, string> = {
@@ -45,10 +45,10 @@ export const statusColors: Record<ApiStatus, string> = {
 } as const
 
 /** 参数类型选项 */
-export const PARAM_TYPES: ParamType[] = ['string', 'number', 'integer', 'boolean', 'array', 'object']
+export const PARAM_TYPES = ['string', 'number', 'integer', 'boolean', 'array', 'object'] as const
 
 /** form-data 参数类型选项 */
-export const FORM_DATA_TYPES: ParamType[] = [...PARAM_TYPES, 'file']
+export const FORM_DATA_TYPES = [...PARAM_TYPES, 'file'] as const
 
 /** 参数类型显示文案 */
 export const paramTypeLabels: Record<ParamType, string> = {
@@ -73,7 +73,7 @@ export const paramTypeColors: Record<ParamType, string> = {
 } as const
 
 /** 请求体类型选项 */
-export const REQUEST_BODY_TYPES: RequestBodyType[] = ['none', 'json', 'form-data', 'x-www-form-urlencoded', 'binary', 'raw']
+export const REQUEST_BODY_TYPES = ['none', 'json', 'form-data', 'x-www-form-urlencoded', 'binary', 'raw'] as const
 
 /** 请求体类型显示文案 */
 export const requestBodyTypeLabels: Record<RequestBodyType, string> = {
@@ -139,4 +139,4 @@ export const HEADER_PARAMS = [
   'X-Requested-With',
   'X-Forwarded-For',
   'X-API-Key',
-]
+] as const

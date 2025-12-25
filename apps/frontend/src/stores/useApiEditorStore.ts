@@ -1,5 +1,5 @@
-import type { ApiBaseInfoForm, ApiReqData } from '@/components/workbench/api-editor/editor/types'
-import type { ApiDetail, ApiParam, LocalApiRequestBody, LocalApiResItem, ParamCategory, UpdateApiReq } from '@/types/api'
+import type { ApiBaseInfoForm, ApiReqData, LocalApiRequestBody, LocalApiResItem } from '@/components/workbench/api-editor/editor/types'
+import type { ApiDetail, ApiParam, ParamCategory, UpdateApiReq } from '@/types/api'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { cloneDeep } from 'lodash-es'
 import { nanoid } from 'nanoid'
@@ -10,6 +10,7 @@ import { apiApi } from '@/api/api'
 import { toApiReqBody, toApiResList, toLocalReqBody, toLocalResList } from '@/lib/api-editor'
 import { genRootSchemaNode } from '@/lib/json-schema'
 import { extractPathParamNames } from '@/lib/utils'
+import { apiEditorDataSchema } from '@/validators/api'
 import { useApiTreeStore } from './useApiTreeStore'
 import { useTabStore } from './useTabStore'
 
@@ -405,12 +406,10 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   }
 
   /** 验证表单 */
-  function validate(): { valid: boolean, message?: string, field?: string } {
-    if (!data.value.basicInfo.name?.trim()) {
-      return { valid: false, message: '请输入接口名称', field: 'basic' }
-    }
-    if (!data.value.basicInfo.path?.trim()) {
-      return { valid: false, message: '请输入接口路径', field: 'basic' }
+  function validate(): { valid: boolean, message?: string } {
+    const { success, error } = apiEditorDataSchema.safeParse(data.value)
+    if (!success) {
+      return { valid: false, message: error.errors[0]?.message ?? '验证失败' }
     }
     return { valid: true }
   }

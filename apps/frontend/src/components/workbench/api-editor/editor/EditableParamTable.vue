@@ -50,7 +50,7 @@ const props = withDefaults(defineProps<{
   /** 参数名建议列表 */
   paramNameOptions?: Option[]
   /** 参数类型建议列表 */
-  paramTypeOptions?: ParamType[]
+  paramTypeOptions?: readonly ParamType[]
 }>(), {
   showType: true,
   showRequired: true,

@@ -1,4 +1,3 @@
-import type { LocalSchemaNode } from './json-schema'
 import type { UserBriefInfo } from './user'
 
 /** 需要进行参数列表配置的类型 */
@@ -81,12 +80,6 @@ export interface ApiRequestBody {
   description?: string
 }
 
-/** 本地请求体定义 */
-export interface LocalApiRequestBody extends Omit<ApiRequestBody, 'jsonSchema'> {
-  /** 本地 JSON Schema */
-  jsonSchema?: LocalSchemaNode
-}
-
 /** 响应定义 */
 export interface ApiResItem {
   /** 唯一标识 */
@@ -103,12 +96,6 @@ export interface ApiResItem {
   headers?: ApiParam[]
   /** 示例数据 */
   example?: unknown
-}
-
-/** 本地响应定义 */
-export interface LocalApiResItem extends Omit<ApiResItem, 'body'> {
-  /** 本地响应体 Schema */
-  body?: LocalSchemaNode
 }
 
 /** Mock 配置 */

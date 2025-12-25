@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid'
 export type SchemaFieldType = 'string' | 'number' | 'integer' | 'boolean' | 'array' | 'object' | 'null'
 
 /** JSON Schema 支持的字段类型 */
-export const SCHEMA_FIELD_TYPES: SchemaFieldType[] = ['string', 'number', 'integer', 'boolean', 'array', 'object', 'null']
+export const SCHEMA_FIELD_TYPES = ['string', 'number', 'integer', 'boolean', 'array', 'object', 'null'] as const
 
 /** 验证是否为有效的 Schema 字段类型 */
 function isValidSchemaFieldType(type: unknown): type is SchemaFieldType {
