@@ -133,6 +133,10 @@ function nodeToSchemaProperty(node: LocalSchemaNode): Record<string, unknown> {
     type: node.type,
   }
 
+  if (node.schemaChanged) {
+    prop.schemaChanged = true
+  }
+
   // 只添加非空描述
   if (node.description && node.description.trim()) {
     prop.description = node.description.trim()

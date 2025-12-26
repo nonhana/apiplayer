@@ -275,6 +275,30 @@ export class ApiService {
         })
 
         // 新建快照信息
+
+        // 为 JSON Schema 添加 examples
+        if (dto.coreInfo?.requestBody?.jsonSchema) {
+          const schema = dto.coreInfo.requestBody.jsonSchema
+          const needUpdate = dto.coreInfo.requestBody.jsonSchema?.schemaChanged as boolean
+          if (!schema.examples || !schema.examples.length || needUpdate) {
+            const example = await this.apiUtilsService.genSchemaExample(schema)
+            schema.examples = [example]
+          }
+        }
+
+        if (dto.coreInfo?.responses) {
+          for (const response of dto.coreInfo.responses) {
+            if (response.body) {
+              const schema = response.body
+              const needUpdate = response.body?.schemaChanged as boolean
+              if (!schema.examples || !schema.examples.length || needUpdate) {
+                const example = await this.apiUtilsService.genSchemaExample(schema)
+                schema.examples = [example]
+              }
+            }
+          }
+        }
+
         const prevSnap = api.currentVersion?.snapshot
         await tx.aPISnapshot.create({
           data: {

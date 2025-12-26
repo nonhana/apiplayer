@@ -65,6 +65,7 @@ function pathToArr(path: string): string[] {
  * 只有 object 类型的节点才能添加子节点
  */
 function handleAddNode({ newNode, path }: { newNode: LocalSchemaNode, path: string }) {
+  root.value.schemaChanged = true
   const pathArr = pathToArr(path)
   const node = getPathNode(root.value, pathArr)
 
@@ -88,6 +89,10 @@ function handleAddNode({ newNode, path }: { newNode: LocalSchemaNode, path: stri
  * 支持更新节点的任意属性
  */
 function handleUpdateNode({ patch, path }: { patch: { key: string, value: unknown }, path: string }) {
+  if (patch.key !== 'description' && patch.key !== 'example') {
+    root.value.schemaChanged = true
+  }
+
   const pathArr = pathToArr(path)
   const node = getPathNode(root.value, pathArr)
 
@@ -106,6 +111,7 @@ function handleUpdateNode({ patch, path }: { patch: { key: string, value: unknow
  * 根节点和数组项节点不可删除
  */
 function handleDeleteNode({ path }: { path: string }) {
+  root.value.schemaChanged = true
   const pathArr = pathToArr(path)
 
   // 不能删除根节点
