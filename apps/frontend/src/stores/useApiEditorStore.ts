@@ -287,25 +287,23 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
         description: '',
       }
     }
-    else {
-      const prevType = data.value.requestBody.type
-      data.value.requestBody.type = type
+    const prevType = data.value.requestBody.type
+    data.value.requestBody.type = type
 
-      // 根据类型初始化默认值
-      if (type === 'json' && !data.value.requestBody.jsonSchema) {
-        data.value.requestBody.jsonSchema = genRootSchemaNode()
-      }
-      if ((type === 'form-data' || type === 'x-www-form-urlencoded') && !data.value.requestBody.formFields) {
-        data.value.requestBody.formFields = []
-      }
+    // 根据类型初始化默认值
+    if (type === 'json' && !data.value.requestBody.jsonSchema) {
+      data.value.requestBody.jsonSchema = genRootSchemaNode()
+    }
+    if ((type === 'form-data' || type === 'x-www-form-urlencoded') && !data.value.requestBody.formFields) {
+      data.value.requestBody.formFields = []
+    }
 
-      // form-data -> x-www-form-urlencoded：重置 file 类型
-      if (prevType === 'form-data' && type === 'x-www-form-urlencoded' && data.value.requestBody.formFields) {
-        data.value.requestBody.formFields.forEach((field) => {
-          if (field.type === 'file')
-            field.type = 'string'
-        })
-      }
+    // form-data -> x-www-form-urlencoded：重置 file 类型
+    if (prevType === 'form-data' && type === 'x-www-form-urlencoded' && data.value.requestBody.formFields) {
+      data.value.requestBody.formFields.forEach((field) => {
+        if (field.type === 'file')
+          field.type = 'string'
+      })
     }
     markDirty()
   }
