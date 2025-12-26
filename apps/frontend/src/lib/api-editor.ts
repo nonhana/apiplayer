@@ -1,4 +1,5 @@
-import type { ApiRequestBody, ApiResItem, LocalApiRequestBody, LocalApiResItem } from '@/types/api'
+import type { LocalApiRequestBody, LocalApiResItem } from '@/components/workbench/api-editor/editor/types'
+import type { ApiRequestBody, ApiResItem } from '@/types/api'
 import { nodeToSchema, schemaToNode } from './json-schema'
 
 /** ApiRequestBody -> LocalApiRequestBody */
@@ -17,8 +18,6 @@ export function toApiReqBody(body: LocalApiRequestBody): ApiRequestBody {
   const result: ApiRequestBody = { ...rest }
   if (jsonSchema) {
     result.jsonSchema = nodeToSchema(jsonSchema)
-    // console.log(result.jsonSchema)
-    console.log(JSON.stringify(result.jsonSchema, null, 2))
   }
   return result
 }

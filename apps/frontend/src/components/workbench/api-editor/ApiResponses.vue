@@ -66,7 +66,7 @@ function getStatusClass(status: number) {
 
 /** 获取状态码描述 */
 function getStatusLabel(status: number) {
-  return httpStatusLabels[status] ?? ''
+  return httpStatusLabels[status as keyof typeof httpStatusLabels] ?? ''
 }
 
 /** 状态码图标 */

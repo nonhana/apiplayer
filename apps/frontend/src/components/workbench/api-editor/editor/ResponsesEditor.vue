@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { LocalApiResItem } from '@/types/api'
+import type { LocalApiResItem } from '@/components/workbench/api-editor/editor/types'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
@@ -78,7 +78,7 @@ function getStatusClass(status: number) {
 
 /** 获取状态码描述 */
 function getStatusLabel(status: number) {
-  return httpStatusLabels[status] ?? ''
+  return httpStatusLabels[status as keyof typeof httpStatusLabels] ?? ''
 }
 
 /** 状态码图标 */
