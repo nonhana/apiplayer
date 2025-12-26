@@ -12,6 +12,7 @@ packages:
 catalogs:
   backend:
     '@aws-sdk/client-s3': ^3.957.0
+    '@faker-js/faker': ^10.1.0
     '@fastify/cookie': ^11.0.2
     '@fastify/multipart': ^9.3.0
     '@fastify/session': ^11.1.1
@@ -42,6 +43,7 @@ catalogs:
     fastify: ^5.6.2
     ioredis: ^5.8.2
     joi: ^18.0.2
+    json-schema-faker: ^0.5.9
     pg: ^8.16.3
     prisma: ^7.2.0
     reflect-metadata: ^0.2.2
@@ -51,6 +53,7 @@ catalogs:
     ts-loader: ^9.5.4
     tsconfig-paths: ^4.2.0
     tsdown: ^0.18.2
+    type-fest: ^5.3.1
     winston: ^3.19.0
     winston-daily-rotate-file: ^5.0.0
   frontend:

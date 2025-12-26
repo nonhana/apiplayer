@@ -36,14 +36,17 @@
     "fastify": "catalog:backend",
     "ioredis": "catalog:backend",
     "joi": "catalog:backend",
+    "json-schema-faker": "catalog:backend",
     "pg": "catalog:backend",
     "reflect-metadata": "catalog:backend",
     "resend": "catalog:backend",
     "rxjs": "catalog:backend",
+    "type-fest": "catalog:backend",
     "winston": "catalog:backend",
     "winston-daily-rotate-file": "catalog:backend"
   },
   "devDependencies": {
+    "@faker-js/faker": "catalog:backend",
     "@nestjs/cli": "catalog:backend",
     "@nestjs/schematics": "catalog:backend",
     "@nestjs/testing": "catalog:backend",

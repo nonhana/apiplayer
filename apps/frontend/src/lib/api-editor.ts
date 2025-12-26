@@ -17,6 +17,8 @@ export function toApiReqBody(body: LocalApiRequestBody): ApiRequestBody {
   const result: ApiRequestBody = { ...rest }
   if (jsonSchema) {
     result.jsonSchema = nodeToSchema(jsonSchema)
+    // console.log(result.jsonSchema)
+    console.log(JSON.stringify(result.jsonSchema, null, 2))
   }
   return result
 }

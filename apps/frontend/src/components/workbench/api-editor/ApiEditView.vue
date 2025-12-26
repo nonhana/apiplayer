@@ -5,6 +5,7 @@ import { useRouteQuery } from '@vueuse/router'
 import { FileText, Hash, Loader2, MessageSquare, Save, Settings } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { watch } from 'vue'
+import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -25,18 +26,18 @@ const emits = defineEmits<{
   (e: 'updated'): void
 }>()
 
-type TabType = 'basic' | 'params' | 'body' | 'responses'
+type TabType = 'basicInfo' | 'paramsData' | 'requestBody' | 'responses'
 const tabItems: TabPageItem<TabType>[] = [
-  { value: 'basic', label: '基本信息', icon: Settings },
-  { value: 'params', label: '请求参数', icon: Hash },
-  { value: 'body', label: '请求体', icon: FileText },
+  { value: 'basicInfo', label: '基本信息', icon: Settings },
+  { value: 'paramsData', label: '请求参数', icon: Hash },
+  { value: 'requestBody', label: '请求体', icon: FileText },
   { value: 'responses', label: '响应定义', icon: MessageSquare },
 ]
 
 const apiTreeStore = useApiTreeStore()
 const apiEditorStore = useApiEditorStore()
 const tabStore = useTabStore()
-const activeTab = useRouteQuery<TabType>('editing', 'basic')
+const activeTab = useRouteQuery<TabType>('editing', 'basicInfo')
 
 const { isDirty, isSaving, basicInfo } = storeToRefs(apiEditorStore)
 
@@ -62,9 +63,10 @@ async function handleSave() {
     return
 
   // 验证失败时切换到对应 Tab
-  const validation = apiEditorStore.validate()
-  if (!validation.valid && validation.field) {
-    activeTab.value = validation.field as TabType
+  const result = apiEditorStore.validate()
+  if (!result.valid && result.path) {
+    activeTab.value = result.path as TabType
+    toast.error(result.message ?? '验证失败')
     return
   }
 
@@ -121,15 +123,15 @@ async function handleSave() {
 
       <ScrollArea class="flex-1">
         <div class="w-full p-6">
-          <TabsContent value="basic" class="mt-0">
+          <TabsContent value="basicInfo" class="mt-0">
             <BasicInfoEditor />
           </TabsContent>
 
-          <TabsContent value="params" class="mt-0">
+          <TabsContent value="paramsData" class="mt-0">
             <ParamsEditor />
           </TabsContent>
 
-          <TabsContent value="body" class="mt-0">
+          <TabsContent value="requestBody" class="mt-0">
             <RequestBodyEditor />
           </TabsContent>
 

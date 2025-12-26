@@ -406,10 +406,12 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   }
 
   /** 验证表单 */
-  function validate(): { valid: boolean, message?: string } {
+  function validate(): { valid: boolean, message?: string, path?: string } {
     const { success, error } = apiEditorDataSchema.safeParse(data.value)
     if (!success) {
-      return { valid: false, message: error.errors[0]?.message ?? '验证失败' }
+      const firstError = error.errors[0]
+      const firstPath = String(firstError?.path[0])
+      return { valid: false, message: firstError?.message ?? '验证失败', path: firstPath }
     }
     return { valid: true }
   }
