@@ -41,15 +41,15 @@ const activeTab = useRouteQuery<TabType>('editing', 'basicInfo')
 
 const { isDirty, isSaving, basicInfo } = storeToRefs(apiEditorStore)
 
-/** 监听 API 变化，初始化编辑器 */
+/** 监听 API ID 变化，初始化编辑器 */
 watch(
-  () => props.api,
-  (newApi) => {
-    if (newApi) {
-      apiEditorStore.initFromApi(newApi)
+  () => props.api.id,
+  () => {
+    if (props.api) {
+      apiEditorStore.initFromApi(props.api)
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 
 /** 监听脏状态变化，更新 Tab 标记 */

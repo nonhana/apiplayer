@@ -1,25 +1,26 @@
 import type { LocalApiRequestBody, LocalApiResItem } from '@/components/workbench/api-editor/editor/types'
 import type { ApiRequestBody, ApiResItem } from '@/types/api'
+import { cloneDeep } from 'lodash-es'
 import { nodeToSchema, schemaToNode } from './json-schema'
 
 /** ApiRequestBody -> LocalApiRequestBody */
 export function toLocalReqBody(body: ApiRequestBody): LocalApiRequestBody {
   const { jsonSchema, ...rest } = body
-  const result: LocalApiRequestBody = { ...rest }
+  const res: LocalApiRequestBody = { ...rest }
   if (jsonSchema) {
-    result.jsonSchema = schemaToNode(jsonSchema)
+    res.jsonSchema = schemaToNode(jsonSchema)
   }
-  return result
+  return cloneDeep(res)
 }
 
 /** LocalApiRequestBody -> ApiRequestBody */
 export function toApiReqBody(body: LocalApiRequestBody): ApiRequestBody {
   const { jsonSchema, ...rest } = body
-  const result: ApiRequestBody = { ...rest }
+  const res: ApiRequestBody = { ...rest }
   if (jsonSchema) {
-    result.jsonSchema = nodeToSchema(jsonSchema)
+    res.jsonSchema = nodeToSchema(jsonSchema)
   }
-  return result
+  return cloneDeep(res)
 }
 
 /** ApiResItem[] -> LocalApiResItem[] */
@@ -30,7 +31,7 @@ export function toLocalResList(responses: ApiResItem[]): LocalApiResItem[] {
     if (body) {
       res.body = schemaToNode(body)
     }
-    return res
+    return cloneDeep(res)
   })
 }
 
@@ -42,6 +43,6 @@ export function toApiResList(responses: LocalApiResItem[]): ApiResItem[] {
     if (body) {
       res.body = nodeToSchema(body)
     }
-    return res
+    return cloneDeep(res)
   })
 }
