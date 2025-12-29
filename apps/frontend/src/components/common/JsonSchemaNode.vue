@@ -52,7 +52,7 @@ const currentDepth = computed(() => props.depth ?? 0)
 const currentPath = computed(() => {
   if (!props.path)
     return props.node.id
-  return `${props.path}-${props.node.id}`
+  return `${props.path}.${props.node.id}`
 })
 
 /** 父节点路径（用于添加相邻节点） */

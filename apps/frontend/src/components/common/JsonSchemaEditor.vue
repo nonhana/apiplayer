@@ -10,7 +10,7 @@ const root = defineModel<LocalSchemaNode>({ required: true })
 
 /**
  * 根据 id 路径获取指定节点的引用
- * 路径格式：'rootId-childId-grandchildId'
+ * 路径格式：'rootId.childId.grandchildId'
  *
  * 查找逻辑：
  * 1. 如果当前节点 id 匹配路径第一个元素，继续处理剩余路径
@@ -21,24 +21,20 @@ const root = defineModel<LocalSchemaNode>({ required: true })
  * @returns 目标节点或 null
  */
 function getPathNode(node: LocalSchemaNode | null, pathArr: string[]): LocalSchemaNode | null {
-  // 边界：节点为空
   if (!node) {
     return null
   }
 
-  // 边界：路径为空，返回当前节点
   if (!pathArr.length) {
     return node
   }
 
   const [curId, ...rest] = pathArr
 
-  // 当前节点 id 匹配路径第一个元素，继续处理剩余路径
   if (node.id === curId) {
     return getPathNode(node, rest)
   }
 
-  // 在子节点中查找匹配的节点
   let targetNode: LocalSchemaNode | null = null
 
   if (node.type === 'object' && Array.isArray(node.children)) {
@@ -48,16 +44,14 @@ function getPathNode(node: LocalSchemaNode | null, pathArr: string[]): LocalSche
     targetNode = node.item.id === curId ? node.item : null
   }
 
-  // 递归处理剩余路径
   return getPathNode(targetNode, rest)
 }
 
-/** 将路径字符串转换为数组 */
 function pathToArr(path: string): string[] {
   if (!path || typeof path !== 'string') {
     return []
   }
-  return path.split('-').filter(Boolean)
+  return path.split('.').filter(Boolean)
 }
 
 /**
