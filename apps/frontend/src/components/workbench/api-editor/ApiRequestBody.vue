@@ -5,7 +5,6 @@ import { computed } from 'vue'
 import JsonSchemaPreviewer from '@/components/common/JsonSchemaPreviewer.vue'
 import { Badge } from '@/components/ui/badge'
 import { requestBodyTypeLabels } from '@/constants/api'
-import JsonPreview from './JsonPreview.vue'
 import ParamTable from './ParamTable.vue'
 
 const props = defineProps<{
@@ -86,13 +85,6 @@ const contentType = computed(() => {
             <span>JSON Schema</span>
           </div>
           <JsonSchemaPreviewer :schema="body.jsonSchema" max-height="300px" />
-        </div>
-
-        <div v-if="body?.example" class="space-y-2">
-          <div class="text-sm text-muted-foreground">
-            示例
-          </div>
-          <JsonPreview :data="body.example" max-height="200px" />
         </div>
       </div>
 

@@ -12,7 +12,6 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { httpStatusLabels } from '@/constants/api'
 import { cn } from '@/lib/utils'
-import JsonPreview from './JsonPreview.vue'
 
 const props = defineProps<{
   /** 响应定义列表 */
@@ -138,14 +137,6 @@ function getStatusIcon(status: number) {
                 响应体
               </div>
               <JsonSchemaPreviewer :schema="response.body" max-height="300px" />
-            </div>
-
-            <!-- 示例数据 -->
-            <div v-if="response.example" class="space-y-2">
-              <div class="text-sm font-medium">
-                示例数据
-              </div>
-              <JsonPreview :data="response.example" max-height="200px" />
             </div>
 
             <!-- 响应头 -->
