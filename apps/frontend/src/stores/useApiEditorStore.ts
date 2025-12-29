@@ -4,7 +4,7 @@ import type { LocalSchemaNode } from '@/types/json-schema'
 import { cloneDeep } from 'lodash-es'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { apiApi } from '@/api/api'
 import { toApiReqBody, toApiResList, toLocalReqBody, toLocalResList } from '@/lib/api-editor'
@@ -45,9 +45,6 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
 
   /** 当前编辑的 API ID */
   const currentApiId = ref<string | null>(null)
-
-  /** 原始 API 数据（用于对比是否有变更） */
-  const originalApi = shallowRef<ApiDetail | null>(null)
 
   /** 编辑器数据 */
   const data = ref<ApiEditorData>(createEmptyEditorData())
@@ -94,7 +91,6 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
    */
   function initFromApi(api: ApiDetail) {
     currentApiId.value = api.id
-    originalApi.value = api
 
     // 基本信息
     data.value.basicInfo = {
@@ -108,11 +104,11 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     }
 
     // 请求参数
-    data.value.paramsData = {
-      pathParams: cloneDeep(api.pathParams),
-      queryParams: cloneDeep(api.queryParams),
-      requestHeaders: cloneDeep(api.requestHeaders),
-    }
+    data.value.paramsData = cloneDeep({
+      pathParams: api.pathParams,
+      queryParams: api.queryParams,
+      requestHeaders: api.requestHeaders,
+    })
 
     // 同步路径参数
     syncPathParams(data.value.basicInfo.path)
@@ -130,7 +126,6 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   /** 重置编辑器 */
   function reset() {
     currentApiId.value = null
-    originalApi.value = null
     data.value = createEmptyEditorData()
     isDirty.value = false
     isSaving.value = false
@@ -467,7 +462,6 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   return {
     // 状态
     currentApiId,
-    originalApi,
     data,
     isDirty,
     isSaving,
