@@ -3,6 +3,7 @@ import type { SchemaFieldType } from '@/lib/json-schema'
 import type { LocalSchemaNode } from '@/types/json-schema'
 import { ChevronRight, Plus, Trash2 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
+import Code from '@/components/common/Code.vue'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -26,7 +27,6 @@ import {
 } from '@/components/ui/tooltip'
 import { genArrayItemNode, genNewNode, SCHEMA_FIELD_TYPES } from '@/lib/json-schema'
 import { cn } from '@/lib/utils'
-import Code from './Code.vue'
 
 const props = defineProps<{
   /** Schema 节点 */

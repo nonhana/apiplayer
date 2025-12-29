@@ -4,7 +4,7 @@ import type { LocalSchemaNode } from '@/types/json-schema'
 import { Check, ChevronDown, Plus, Trash2, X } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { ref, watch } from 'vue'
-import JsonSchemaEditor from '@/components/common/JsonSchemaEditor.vue'
+import JsonSchemaEditor from '@/components/json-schema/JsonSchemaEditor.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
+import CodeBlock from '@/components/common/CodeBlock.vue'
 import { schemaToNode } from '@/lib/json-schema'
-import CodeBlock from './CodeBlock.vue'
 import JsonSchemaPreviewNode from './JsonSchemaPreviewNode.vue'
 
 const props = defineProps<{

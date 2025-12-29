@@ -2,7 +2,7 @@
 import type { ApiResItem } from '@/types/api'
 import { Check, ChevronDown, X } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
-import JsonSchemaPreviewer from '@/components/common/JsonSchemaPreviewer.vue'
+import JsonSchemaPreviewer from '@/components/json-schema/JsonSchemaPreviewer.vue'
 import { Badge } from '@/components/ui/badge'
 import {
   Collapsible,

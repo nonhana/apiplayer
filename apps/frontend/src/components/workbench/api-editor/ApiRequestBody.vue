@@ -2,7 +2,7 @@
 import type { ApiRequestBody } from '@/types/api'
 import { FileJson, FormInput } from 'lucide-vue-next'
 import { computed } from 'vue'
-import JsonSchemaPreviewer from '@/components/common/JsonSchemaPreviewer.vue'
+import JsonSchemaPreviewer from '@/components/json-schema/JsonSchemaPreviewer.vue'
 import { Badge } from '@/components/ui/badge'
 import { requestBodyTypeLabels } from '@/constants/api'
 import ParamTable from './ParamTable.vue'

@@ -3,6 +3,8 @@ import type { FastifyRequest } from 'fastify'
 import type { MailProvider } from '@/infra/email/email.types'
 import type { UploadMode } from '@/infra/upload/upload.types'
 import { Body, Controller, Post, Query, Req, UseGuards } from '@nestjs/common'
+import { Schema } from 'json-schema-faker'
+import { JsonValue } from 'type-fest'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { AuthGuard } from '@/common/guards/auth.guard'
@@ -73,5 +75,18 @@ export class UtilController {
       id: result.id,
       provider: result.provider,
     }
+  }
+
+  /**
+   * 生成 Schema mock 数据
+   *
+   * @description 根据 Schema 生成 mock 数据
+   */
+  @Post('mock')
+  async getSchemaMockData(
+    @Body() body: Schema,
+  ): Promise<JsonValue> {
+    const result = await this.utilService.getSchemaMockData(body)
+    return result
   }
 }

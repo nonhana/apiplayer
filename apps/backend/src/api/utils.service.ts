@@ -1,8 +1,4 @@
-import type { Schema } from 'json-schema-faker'
-import type { JsonValue } from 'type-fest'
-import faker from '@faker-js/faker'
 import { Injectable } from '@nestjs/common'
-import { JSONSchemaFaker } from 'json-schema-faker'
 import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
@@ -121,11 +117,5 @@ export class ApiUtilsService {
     ].forEach(field => compareField('coreInfo', field))
 
     return result
-  }
-
-  /** 根据 JSON Schema 生成示例数据 */
-  async genSchemaExample(schema: Schema): Promise<JsonValue> {
-    JSONSchemaFaker.extend('faker', () => faker)
-    return await JSONSchemaFaker.resolve(schema)
   }
 }

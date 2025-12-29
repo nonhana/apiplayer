@@ -1,7 +1,10 @@
 import type { MultipartFile } from '@fastify/multipart'
 import type { AbstractMailService, MailProvider, SendMailInput, SendMailResult } from '@/infra/email/email.types'
 import type { AbstractUploadService, UploadFileInput, UploadFileResult, UploadMode } from '@/infra/upload/upload.types'
+import faker from '@faker-js/faker'
 import { Injectable, Optional } from '@nestjs/common'
+import { JSONSchemaFaker, Schema } from 'json-schema-faker'
+import { JsonValue } from 'type-fest'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { ResendMailService } from '@/infra/email/resend-mail.service'
@@ -75,5 +78,11 @@ export class UtilService {
     }
 
     return service.sendMail(input)
+  }
+
+  /** 根据 JSON Schema 生成示例数据 */
+  async getSchemaMockData(schema: Schema): Promise<JsonValue> {
+    JSONSchemaFaker.extend('faker', () => faker)
+    return await JSONSchemaFaker.resolve(schema)
   }
 }

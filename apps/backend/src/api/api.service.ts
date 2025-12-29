@@ -4,6 +4,7 @@ import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ProjectUtilsService } from '@/project/utils.service'
+import { UtilService } from '@/util/util.service'
 import {
   CloneApiReqDto,
   CreateApiReqDto,
@@ -22,6 +23,7 @@ export class ApiService {
     private readonly prisma: PrismaService,
     private readonly projectUtilsService: ProjectUtilsService,
     private readonly apiUtilsService: ApiUtilsService,
+    private readonly utilService: UtilService,
   ) {}
 
   /** 创建 API */
@@ -281,7 +283,7 @@ export class ApiService {
           const schema = dto.coreInfo.requestBody.jsonSchema
           const needUpdate = dto.coreInfo.requestBody.jsonSchema?.schemaChanged as boolean
           if (!schema.examples || !schema.examples.length || needUpdate) {
-            const example = await this.apiUtilsService.genSchemaExample(schema)
+            const example = await this.utilService.getSchemaMockData(schema)
             schema.examples = [example]
           }
         }
@@ -292,7 +294,7 @@ export class ApiService {
               const schema = response.body
               const needUpdate = response.body?.schemaChanged as boolean
               if (!schema.examples || !schema.examples.length || needUpdate) {
-                const example = await this.apiUtilsService.genSchemaExample(schema)
+                const example = await this.utilService.getSchemaMockData(schema)
                 schema.examples = [example]
               }
             }
