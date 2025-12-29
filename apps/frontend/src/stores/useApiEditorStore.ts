@@ -114,6 +114,9 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
       requestHeaders: cloneDeep(api.requestHeaders),
     }
 
+    // 同步路径参数
+    syncPathParams(data.value.basicInfo.path)
+
     // 请求体
     data.value.requestBody = api.requestBody ? toLocalReqBody(api.requestBody) : null
 
