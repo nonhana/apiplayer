@@ -81,7 +81,7 @@ export class UtilService {
   }
 
   /** 根据 JSON Schema 生成示例数据 */
-  async getSchemaMockData(schema: Schema): Promise<JsonValue> {
+  async getSchemaMock(schema: Schema): Promise<JsonValue> {
     JSONSchemaFaker.extend('faker', () => faker)
     return await JSONSchemaFaker.resolve(schema)
   }

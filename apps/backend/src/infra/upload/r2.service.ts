@@ -39,7 +39,13 @@ export class R2Service extends AbstractUploadService {
       domain: this.configService.get('R2_DOMAIN'),
     }
 
-    if (!tempConfig.accountId || !tempConfig.accessKeyId || !tempConfig.secretAccessKey || !tempConfig.bucket || !tempConfig.domain) {
+    if (
+      !tempConfig.accountId
+      || !tempConfig.accessKeyId
+      || !tempConfig.secretAccessKey
+      || !tempConfig.bucket
+      || !tempConfig.domain
+    ) {
       throw new HanaException('R2 configuration is not complete', ErrorCode.ENV_CONFIG_ERROR, 500)
     }
 

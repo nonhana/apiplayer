@@ -80,13 +80,13 @@ export class UtilController {
   /**
    * 生成 Schema mock 数据
    *
-   * @description 根据 Schema 生成 mock 数据
+   * @description 根据 JSON Schema 生成 mock 数据
    */
-  @Post('mock')
-  async getSchemaMockData(
+  @Post('schema-mock')
+  async getSchemaMock(
     @Body() body: Schema,
   ): Promise<JsonValue> {
-    const result = await this.utilService.getSchemaMockData(body)
+    const result = await this.utilService.getSchemaMock(body)
     return result
   }
 }

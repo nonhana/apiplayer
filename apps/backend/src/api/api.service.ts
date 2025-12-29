@@ -283,7 +283,7 @@ export class ApiService {
           const schema = dto.coreInfo.requestBody.jsonSchema
           const needUpdate = dto.coreInfo.requestBody.jsonSchema?.schemaChanged as boolean
           if (!schema.examples || !schema.examples.length || needUpdate) {
-            const example = await this.utilService.getSchemaMockData(schema)
+            const example = await this.utilService.getSchemaMock(schema)
             schema.examples = [example]
           }
         }
@@ -294,7 +294,7 @@ export class ApiService {
               const schema = response.body
               const needUpdate = response.body?.schemaChanged as boolean
               if (!schema.examples || !schema.examples.length || needUpdate) {
-                const example = await this.utilService.getSchemaMockData(schema)
+                const example = await this.utilService.getSchemaMock(schema)
                 schema.examples = [example]
               }
             }
