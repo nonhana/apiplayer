@@ -38,6 +38,7 @@ const exampleJson = computed(() => {
     <div v-if="exampleJson" class="border-t">
       <CodeBlock
         :code="exampleJson"
+        title="示例"
         lang="json"
         :show-header="true"
         max-height="280px"

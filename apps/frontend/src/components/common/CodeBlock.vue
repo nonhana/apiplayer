@@ -10,8 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { highlightCode, langDisplayNames } from '@/lib/highlighter'
-import { cn } from '@/lib/utils'
+import { highlightCode } from '@/lib/highlighter'
 
 const props = withDefaults(defineProps<{
   code: string
@@ -19,13 +18,22 @@ const props = withDefaults(defineProps<{
   showHeader?: boolean
   showCopy?: boolean
   maxHeight?: string
-  class?: string
+  title?: string
 }>(), {
   lang: 'json',
   showHeader: true,
   showCopy: true,
   maxHeight: '320px',
 })
+
+const langDisplayNames = {
+  json: 'JSON',
+  javascript: 'JavaScript',
+  typescript: 'TypeScript',
+  html: 'HTML',
+  css: 'CSS',
+  shell: 'Shell',
+} as const
 
 const html = ref('')
 const justCopied = ref(false)
@@ -58,16 +66,15 @@ watch(() => props.code, async () => {
 </script>
 
 <template>
-  <div
-    :class="cn(
-      'rounded-lg border bg-muted/30 overflow-hidden font-mono text-sm',
-      props.class,
-    )"
-  >
+  <div class="rounded-lg border bg-muted/30 overflow-hidden font-mono text-sm">
     <div
       v-if="showHeader"
-      class="flex items-center justify-between px-4 py-2 border-b bg-muted/50"
+      class="flex items-center px-4 py-2 border-b bg-muted/50 gap-2"
     >
+      <span v-if="title" class="text-xs font-medium text-muted-foreground select-none flex-1">
+        {{ title }}
+      </span>
+
       <span class="text-xs font-medium text-muted-foreground select-none">
         {{ langLabel }}
       </span>

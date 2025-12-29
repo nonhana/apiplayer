@@ -3,15 +3,6 @@ import { createHighlighter } from 'shiki'
 
 export type SupportedLang = 'json' | 'javascript' | 'typescript' | 'html' | 'css' | 'shell'
 
-export const langDisplayNames = {
-  json: 'JSON',
-  javascript: 'JavaScript',
-  typescript: 'TypeScript',
-  html: 'HTML',
-  css: 'CSS',
-  shell: 'Shell',
-} as const
-
 let highlighterInstance: Highlighter | null = null
 let highlighterPromise: Promise<Highlighter> | null = null
 
