@@ -6,6 +6,7 @@ import { AlertCircle, FileText, Loader2, Pencil, Play, Settings2 } from 'lucide-
 import { computed, ref, watch } from 'vue'
 import { apiApi } from '@/api/api'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import ApiRunnerView from '../api-runner/ApiRunnerView.vue'
 import ApiDocView from './ApiDocView.vue'
 import ApiEditView from './ApiEditView.vue'
 
@@ -16,7 +17,7 @@ type TabType = 'doc' | 'edit' | 'run' | 'settings'
 const tabItems: TabPageItem<TabType>[] = [
   { value: 'doc', label: '文档', icon: FileText },
   { value: 'edit', label: '编辑', icon: Pencil },
-  { value: 'run', label: '运行', icon: Play, disabled: true },
+  { value: 'run', label: '运行', icon: Play },
   { value: 'settings', label: '设置', icon: Settings2, disabled: true },
 ]
 
@@ -130,9 +131,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
       </TabsContent>
 
       <TabsContent value="run" class="flex-1 mt-0 overflow-hidden">
-        <div class="h-full flex items-center justify-center text-muted-foreground">
-          <span>运行功能开发中...</span>
-        </div>
+        <ApiRunnerView :api="apiDetail" />
       </TabsContent>
 
       <TabsContent value="settings" class="flex-1 mt-0 overflow-hidden">
