@@ -12,6 +12,7 @@ import { PrismaModule } from './infra/prisma/prisma.module'
 import { RedisModule } from './infra/redis/redis.module'
 import { PermissionModule } from './permission/permission.module'
 import { ProjectModule } from './project/project.module'
+import { ProxyModule } from './proxy/proxy.module'
 import { RoleModule } from './role/role.module'
 import { TeamModule } from './team/team.module'
 import { UserModule } from './user/user.module'
@@ -34,6 +35,7 @@ import { UtilModule } from './util/util.module'
     CookieModule,
     ApiModule,
     UtilModule,
+    ProxyModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,7 +1,7 @@
 import type { MultipartFile } from '@fastify/multipart'
 import type { AbstractMailService, MailProvider, SendMailInput, SendMailResult } from '@/infra/email/email.types'
 import type { AbstractUploadService, UploadFileInput, UploadFileResult, UploadMode } from '@/infra/upload/upload.types'
-import faker from '@faker-js/faker'
+import { faker } from '@faker-js/faker'
 import { Injectable, Optional } from '@nestjs/common'
 import { JSONSchemaFaker, Schema } from 'json-schema-faker'
 import { JsonValue } from 'type-fest'

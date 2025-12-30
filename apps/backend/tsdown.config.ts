@@ -4,7 +4,7 @@ export default defineConfig({
   entry: ['src/main.ts'],
   format: ['cjs'],
   outDir: 'dist',
-  sourcemap: true,
+  sourcemap: false,
   clean: true,
   target: 'node20',
   platform: 'node',
