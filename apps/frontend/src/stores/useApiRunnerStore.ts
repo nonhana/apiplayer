@@ -17,7 +17,7 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
   const method = ref<HttpMethod>('GET')
 
   /** 当前 API 的路径 */
-  const path = ref<string>('')
+  const path = ref('')
 
   /** 路径参数 */
   const pathParams = ref<RuntimeParam[]>([])

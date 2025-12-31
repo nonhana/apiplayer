@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import { ArrowLeft, Settings } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { toast } from 'vue-sonner'
 import {
   Avatar,
   AvatarFallback,
@@ -37,68 +36,30 @@ const userStore = useUserStore()
 const teamStore = useTeamStore()
 const projectStore = useProjectStore()
 
-const { projectDetail } = storeToRefs(projectStore)
+const { projectDetail, environments, curEnvId, curEnv } = storeToRefs(projectStore)
+const { setCurEnvId } = projectStore
 
-const environments = computed(() => projectDetail.value?.environments ?? [])
-
-const curEnvId = ref('')
-
-/** 当前环境 */
-const curEnv = computed(() =>
-  environments.value.find(e => e.id === curEnvId.value),
-)
-
-// 环境列表变更时，设置默认环境
-watch(environments, (newV) => {
-  // 设置默认环境
-  if (!curEnvId.value && newV.length > 0) {
-    const defaultEnv = newV.find(e => e.isDefault) ?? newV[0]
-    if (defaultEnv) {
-      curEnvId.value = defaultEnv.id
-    }
-  }
-}, { immediate: true, deep: true })
-
-// 用户手动切换时的逻辑
-watch(curEnvId, async (newV, oldV) => {
-  if (!newV || !oldV || newV === oldV)
-    return
-
-  try {
-    await projectStore.setDefaultEnv(newV)
-  }
-  catch {
-    toast.error('切换环境失败，请稍后再试')
-    curEnvId.value = oldV
-  }
-})
-/** 显示名称 */
 const displayName = computed(() => userStore.user?.name || userStore.user?.username || '未登录')
 
-/** 头像首字母 */
 const avatarInitials = computed(() => {
   const name = displayName.value
   return name.charAt(0).toUpperCase()
 })
 
-/** 返回仪表盘 */
 function goBack() {
   router.push({ name: 'Dashboard' })
 }
 
-/** 个人资料 */
 function goProfile() {
   router.push({ name: 'UserProfile' })
 }
 
-/** 退出登录 */
 function handleLogout() {
   teamStore.reset()
   userStore.logout()
   router.push('/auth/login')
 }
 
-// 项目设置抽屉
 const isSettingsSheetOpen = ref(false)
 </script>
 
@@ -129,12 +90,14 @@ const isSettingsSheetOpen = ref(false)
 
       <span class="text-muted-foreground">/</span>
 
-      <Select v-model="curEnvId" :disabled="environments.length === 0">
+      <Select
+        :disabled="environments.length === 0"
+        :model-value="curEnvId"
+        @update:model-value="setCurEnvId($event as string)"
+      >
         <SelectTrigger class="h-7 w-auto min-w-30 text-xs border-dashed">
           <SelectValue placeholder="选择环境">
-            <span v-if="curEnv">
-              {{ curEnv.name }}
-            </span>
+            <span v-if="curEnv">{{ curEnv.name }}</span>
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
@@ -201,7 +164,6 @@ const isSettingsSheetOpen = ref(false)
       </DropdownMenu>
     </div>
 
-    <!-- 项目设置抽屉 -->
     <ProjectSettingsSheet
       v-if="projectDetail"
       v-model:open="isSettingsSheetOpen"

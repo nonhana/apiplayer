@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import type { ProjectDetail, ProjectEnv } from '@/types/project'
+import type { ProjectEnv } from '@/types/project'
 import { Plus } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TabsContent } from '@/components/ui/tabs'
@@ -10,15 +11,12 @@ import CreateEnvDialog from './dialogs/CreateEnvDialog.vue'
 import DeleteEnvDialog from './dialogs/DeleteEnvDialog.vue'
 import ProjectEnvItem from './ProjectEnvItem.vue'
 
-const props = defineProps<{
-  project: ProjectDetail
+defineProps<{
   canEdit: boolean
 }>()
 
 const projectStore = useProjectStore()
-
-// 环境列表 - 从 props 获取
-const environments = computed(() => props.project.environments ?? [])
+const { projectId, environments } = storeToRefs(projectStore)
 
 // 创建/编辑对话框状态
 const isFormDialogOpen = ref(false)
@@ -104,7 +102,7 @@ async function handleSuccess() {
     <!-- 创建/编辑环境对话框 -->
     <CreateEnvDialog
       v-model:open="isFormDialogOpen"
-      :project-id="project.id"
+      :project-id="projectId"
       :env="editingEnv"
       :existing-envs-count="environments.length"
       @success="handleSuccess"
@@ -113,7 +111,7 @@ async function handleSuccess() {
     <!-- 删除确认对话框 -->
     <DeleteEnvDialog
       v-model:open="isDeleteDialogOpen"
-      :project-id="project.id"
+      :project-id="projectId"
       :env="envToDelete"
       @success="handleSuccess"
     />

@@ -34,29 +34,21 @@ import { ENV_TYPE_OPTIONS } from '@/constants/project'
 import { createProjectEnvFormSchema } from '@/validators/project-env'
 
 const props = defineProps<{
-  /** 项目 ID */
   projectId: string
-  /** 编辑模式下的环境数据，不传则为创建模式 */
   env?: ProjectEnv | null
-  /** 当前环境总数，用于判断是否默认勾选"设为默认" */
   existingEnvsCount?: number
 }>()
 
 const emits = defineEmits<{
-  /** 创建/编辑成功后触发 */
   (e: 'success'): void
 }>()
 
-/** 对话框开关状态 */
 const open = defineModel<boolean>('open', { default: false })
 
-/** 是否为编辑模式 */
 const isEditing = computed(() => !!props.env)
 
-/** 表单提交中状态 */
 const isSubmitting = ref(false)
 
-/** 表单实例 */
 const { handleSubmit, resetForm, setValues } = useForm({
   validationSchema: createProjectEnvFormSchema,
   initialValues: {
@@ -67,11 +59,9 @@ const { handleSubmit, resetForm, setValues } = useForm({
   },
 })
 
-/** 监听对话框打开/关闭，重置或填充表单 */
 watch(open, (isOpen) => {
   if (isOpen) {
     if (props.env) {
-      // 编辑模式：填充现有数据
       setValues({
         name: props.env.name,
         type: props.env.type,
@@ -80,7 +70,6 @@ watch(open, (isOpen) => {
       })
     }
     else {
-      // 创建模式：重置表单，如果没有任何环境则默认勾选
       resetForm({
         values: {
           name: '',
@@ -92,12 +81,10 @@ watch(open, (isOpen) => {
     }
   }
   else {
-    // 关闭时重置表单
     resetForm()
   }
 })
 
-/** 提交表单 */
 const onSubmit = handleSubmit(async (formValues) => {
   isSubmitting.value = true
   try {
@@ -137,7 +124,6 @@ const onSubmit = handleSubmit(async (formValues) => {
       </DialogHeader>
 
       <form class="space-y-4" @submit="onSubmit">
-        <!-- 环境名称 -->
         <FormField v-slot="{ componentField }" name="name">
           <FormItem>
             <FormLabel>环境名称 <span class="text-destructive">*</span></FormLabel>
@@ -152,7 +138,6 @@ const onSubmit = handleSubmit(async (formValues) => {
           </FormItem>
         </FormField>
 
-        <!-- 环境类型 -->
         <FormField v-slot="{ componentField }" name="type">
           <FormItem>
             <FormLabel>环境类型 <span class="text-destructive">*</span></FormLabel>
@@ -176,7 +161,6 @@ const onSubmit = handleSubmit(async (formValues) => {
           </FormItem>
         </FormField>
 
-        <!-- 基础 URL -->
         <FormField v-slot="{ componentField }" name="baseUrl">
           <FormItem>
             <FormLabel>基础 URL <span class="text-destructive">*</span></FormLabel>
@@ -191,7 +175,6 @@ const onSubmit = handleSubmit(async (formValues) => {
           </FormItem>
         </FormField>
 
-        <!-- 设为默认 -->
         <FormField v-slot="{ componentField }" type="checkbox" name="isDefault">
           <FormItem class="flex items-center justify-between rounded-lg border p-3">
             <FormLabel class="font-normal">

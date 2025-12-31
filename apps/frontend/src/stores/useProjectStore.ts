@@ -1,6 +1,6 @@
-import type { ProjectDetail, ProjectMember } from '@/types/project'
+import type { ProjectDetail, ProjectEnv, ProjectMember } from '@/types/project'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { projectApi } from '@/api/project'
 
 export const useProjectStore = defineStore('project', () => {
@@ -10,6 +10,8 @@ export const useProjectStore = defineStore('project', () => {
   const isRefreshing = ref(false) // 刷新状态
   const projectDetail = ref<ProjectDetail | null>(null)
   const projectMembers = ref<ProjectMember[]>([])
+  const environments = ref<ProjectEnv[]>([])
+  const curEnvId = ref<string | null>(null)
 
   // Setters
   function setProjectId(id: string) {
@@ -21,24 +23,43 @@ export const useProjectStore = defineStore('project', () => {
   function setProjectMembers(members: ProjectMember[]) {
     projectMembers.value = members
   }
+  function setEnvironments(envs: ProjectEnv[]) {
+    environments.value = envs
+  }
+  function setCurEnvId(id: string | null) {
+    curEnvId.value = id
+  }
+
+  // Computed
+  const curEnv = computed(() => {
+    if (!curEnvId.value)
+      return null
+    return environments.value.find(e => e.id === curEnvId.value) ?? null
+  })
 
   // 获取数据
   async function _fetchData() {
     if (!projectId.value)
       return
 
-    const [detail, members] = await Promise.all([
+    const [detail, members, envs] = await Promise.all([
       projectApi.getProjectDetail(projectId.value),
       projectApi.getAllProjectMembers(projectId.value),
+      projectApi.getProjectEnvs(projectId.value),
     ])
 
     setProjectDetail(detail)
     setProjectMembers(members)
+    setEnvironments(envs)
+
+    // effects
+    setCurEnvId(envs.find(e => e.isDefault)?.id ?? null)
   }
 
   async function init() {
     if (!projectId.value)
       return
+
     isLoading.value = true
     try {
       await _fetchData()
@@ -68,11 +89,11 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   async function setDefaultEnv(envId: string) {
-    if (!projectDetail.value)
+    if (!environments.value.length)
       return
 
-    const targetEnv = projectDetail.value.environments?.find(e => e.id === envId)
-    const oldDefault = projectDetail.value.environments?.find(e => e.isDefault)
+    const targetEnv = environments.value.find(e => e.id === envId)
+    const oldDefault = environments.value.find(e => e.isDefault)
 
     if (oldDefault)
       oldDefault.isDefault = false
@@ -97,6 +118,8 @@ export const useProjectStore = defineStore('project', () => {
     isLoading.value = false
     projectDetail.value = null
     projectMembers.value = []
+    environments.value = []
+    curEnvId.value = null
   }
 
   return {
@@ -106,10 +129,15 @@ export const useProjectStore = defineStore('project', () => {
     isRefreshing,
     projectDetail,
     projectMembers,
+    environments,
+    curEnvId,
+    curEnv,
 
     // setters
     setProjectId,
     setProjectMembers,
+    setEnvironments,
+    setCurEnvId,
 
     // actions
     init,

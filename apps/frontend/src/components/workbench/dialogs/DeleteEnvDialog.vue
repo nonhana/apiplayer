@@ -16,24 +16,18 @@ import {
 } from '@/components/ui/alert-dialog'
 
 const props = defineProps<{
-  /** 项目 ID */
   projectId: string
-  /** 要删除的环境 */
   env: ProjectEnv | null
 }>()
 
 const emits = defineEmits<{
-  /** 删除成功后触发 */
   (e: 'success'): void
 }>()
 
-/** 对话框开关状态 */
 const open = defineModel<boolean>('open', { default: false })
 
-/** 删除中状态 */
 const isDeleting = ref(false)
 
-/** 确认删除 */
 async function confirmDelete() {
   if (!props.env)
     return
