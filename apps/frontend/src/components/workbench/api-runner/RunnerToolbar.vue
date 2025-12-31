@@ -6,10 +6,14 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { methodBadgeColors } from '@/constants/api'
 import { useApiRunnerStore } from '@/stores/useApiRunnerStore'
+import { useProjectStore } from '@/stores/useProjectStore'
 
 const runnerStore = useApiRunnerStore()
-const { selectedEnvId, method, fullUrl, isLoading } = storeToRefs(runnerStore)
+const { method, fullUrl, isLoading } = storeToRefs(runnerStore)
 const { sendRequest } = runnerStore
+
+const projectStore = useProjectStore()
+const { curEnvId } = storeToRefs(projectStore)
 
 /** 请求方法的颜色样式 */
 const methodStyle = computed(() => {
@@ -29,7 +33,7 @@ const methodStyle = computed(() => {
     </div>
 
     <Button
-      :disabled="isLoading || !selectedEnvId"
+      :disabled="isLoading || !curEnvId"
       class="shrink-0"
       @click="sendRequest"
     >

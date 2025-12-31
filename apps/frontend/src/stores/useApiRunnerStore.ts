@@ -1,17 +1,16 @@
-import type { ApiDetail, ApiParam, HttpMethod, RequestBodyType } from '@/types/api'
-import type { ProjectEnv } from '@/types/project'
+import type { ApiDetail, HttpMethod, RequestBodyType } from '@/types/api'
 import type { AuthType, CurlOptions, ProxyResponse, RunnerStatus, RuntimeAuth, RuntimeBody, RuntimeParam } from '@/types/proxy'
-import { nanoid } from 'nanoid'
-import { defineStore } from 'pinia'
+import { defineStore, storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { proxyApi } from '@/api/proxy'
+import { convertToRuntimeParam, createEmptyRuntimeParam, generateCurl } from '@/lib/api-runner'
 import { useProjectStore } from './useProjectStore'
 
 export const useApiRunnerStore = defineStore('apiRunner', () => {
-  // ========== 状态 ==========
+  const projectStore = useProjectStore()
+  const { curEnv } = storeToRefs(projectStore)
 
-  /** 当前选中的环境 ID */
-  const selectedEnvId = ref<string | null>(null)
+  // ========== 状态 ==========
 
   /** 当前 API 的方法 */
   const method = ref<HttpMethod>('GET')
@@ -45,22 +44,9 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
 
   // ========== 计算属性 ==========
 
-  /** 当前选中的环境 */
-  const selectedEnv = computed<ProjectEnv | null>(() => {
-    const projectStore = useProjectStore()
-    const envs = projectStore.projectDetail?.environments ?? []
-    return envs.find(e => e.id === selectedEnvId.value) ?? null
-  })
-
-  /** 环境列表 */
-  const environments = computed<ProjectEnv[]>(() => {
-    const projectStore = useProjectStore()
-    return projectStore.projectDetail?.environments ?? []
-  })
-
   /** 完整的请求 URL */
   const fullUrl = computed<string>(() => {
-    const baseUrl = selectedEnv.value?.baseUrl ?? ''
+    const baseUrl = curEnv.value?.baseUrl ?? ''
     let resultPath = path.value
 
     // 替换路径参数
@@ -163,10 +149,7 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
 
   // ========== Actions ==========
 
-  /**
-   * 从 API 定义初始化运行时状态
-   * @param api API 详情
-   */
+  /** 从 API 详情初始化运行时状态 */
   function initFromApiDetail(api: ApiDetail) {
     // 重置状态
     reset()
@@ -198,34 +181,12 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
     else {
       body.value = { type: 'none' }
     }
-
-    // 设置默认环境
-    const projectStore = useProjectStore()
-    const defaultEnv = projectStore.projectDetail?.environments?.find(e => e.isDefault)
-    if (defaultEnv) {
-      selectedEnvId.value = defaultEnv.id
-    }
-    else {
-      const firstEnv = environments.value[0]
-      if (firstEnv) {
-        selectedEnvId.value = firstEnv.id
-      }
-    }
   }
 
-  /**
-   * 发送请求
-   */
+  /** 发送请求 */
   async function sendRequest() {
     if (status.value === 'loading')
       return
-
-    // 检查环境
-    if (!selectedEnvId.value) {
-      errorMessage.value = '请先选择一个环境'
-      status.value = 'error'
-      return
-    }
 
     status.value = 'loading'
     errorMessage.value = null
@@ -250,11 +211,8 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
     }
   }
 
-  /**
-   * 重置所有状态
-   */
+  /** 重置所有状态 */
   function reset() {
-    selectedEnvId.value = null
     method.value = 'GET'
     path.value = ''
     pathParams.value = []
@@ -267,9 +225,7 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
     errorMessage.value = null
   }
 
-  /**
-   * 清除响应
-   */
+  /** 清除响应 */
   function clearResponse() {
     response.value = null
     status.value = 'idle'
@@ -313,10 +269,6 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
 
   // ========== Setters ==========
 
-  function setSelectedEnvId(id: string | null) {
-    selectedEnvId.value = id
-  }
-
   function setBodyType(type: RequestBodyType) {
     body.value.type = type
     // 初始化对应类型的数据
@@ -351,7 +303,6 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
 
   return {
     // 状态
-    selectedEnvId,
     method,
     path,
     pathParams,
@@ -364,8 +315,6 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
     errorMessage,
 
     // 计算属性
-    selectedEnv,
-    environments,
     fullUrl,
     headersRecord,
     bodyContent,
@@ -387,7 +336,6 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
     removeFormField,
 
     // Setters
-    setSelectedEnvId,
     setBodyType,
     setJsonContent,
     setRawContent,
@@ -396,51 +344,3 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
     setBasicAuth,
   }
 })
-
-// ========== 工具函数 ==========
-
-/** 将 API 参数转换为运行时参数 */
-function convertToRuntimeParam(param: ApiParam, fromDefinition: boolean): RuntimeParam {
-  return {
-    id: nanoid(),
-    name: param.name,
-    value: param.example ?? param.defaultValue ?? '',
-    enabled: true,
-    fromDefinition,
-    type: param.type,
-    description: param.description,
-  }
-}
-
-/** 创建空的运行时参数 */
-function createEmptyRuntimeParam(): RuntimeParam {
-  return {
-    id: nanoid(),
-    name: '',
-    value: '',
-    enabled: true,
-    fromDefinition: false,
-  }
-}
-
-/** 生成 cURL 命令 */
-function generateCurl(options: CurlOptions): string {
-  const parts: string[] = [`curl -X ${options.method}`]
-
-  // 添加 URL（需要转义特殊字符）
-  parts.push(`'${options.url}'`)
-
-  // 添加 Headers
-  for (const [key, value] of Object.entries(options.headers)) {
-    parts.push(`-H '${key}: ${value}'`)
-  }
-
-  // 添加 Body
-  if (options.body && !['GET', 'HEAD'].includes(options.method)) {
-    // 转义单引号
-    const escapedBody = options.body.replace(/'/g, `'\\''`)
-    parts.push(`-d '${escapedBody}'`)
-  }
-
-  return parts.join(' \\\n  ')
-}

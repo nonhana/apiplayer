@@ -17,26 +17,24 @@ const tabItems = [
   { value: 'headers' as const, label: 'Headers', icon: Settings },
   { value: 'body' as const, label: 'Body', icon: FileText },
   { value: 'auth' as const, label: 'Auth', icon: Key },
-]
+] as const
 </script>
 
 <template>
   <div class="flex flex-col h-full border rounded-lg bg-card">
-    <!-- 标题栏 -->
     <div class="px-4 py-2 border-b bg-muted/20">
       <h3 class="text-sm font-medium">
         请求配置
       </h3>
     </div>
 
-    <!-- Tabs -->
     <Tabs v-model="activeTab" class="flex-1 flex flex-col overflow-hidden">
-      <TabsList class="h-10 bg-muted/30 rounded-none border-b justify-start px-2">
+      <TabsList class="bg-transparent m-2">
         <TabsTrigger
           v-for="tab in tabItems"
           :key="tab.value"
           :value="tab.value"
-          class="gap-1.5 px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          class="gap-1.5 px-3 data-[state=active]:text-primary"
         >
           <component :is="tab.icon" class="h-4 w-4" />
           {{ tab.label }}

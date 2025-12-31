@@ -14,15 +14,10 @@ import {
 } from '@/components/ui/table'
 
 defineProps<{
-  /** 参数列表 */
   params: RuntimeParam[]
-  /** 是否显示添加按钮 */
   showAdd?: boolean
-  /** 是否可以编辑参数名（路径参数不可编辑） */
   editableName?: boolean
-  /** 参数名占位符 */
   namePlaceholder?: string
-  /** 参数值占位符 */
   valuePlaceholder?: string
 }>()
 
@@ -57,15 +52,13 @@ const emit = defineEmits<{
           :key="param.id"
           class="hover:bg-muted/30"
         >
-          <!-- 启用复选框 -->
           <TableCell>
             <Checkbox
-              :checked="param.enabled"
-              @update:checked="emit('update', index, 'enabled', $event)"
+              :model-value="param.enabled"
+              @update:model-value="emit('update', index, 'enabled', $event)"
             />
           </TableCell>
 
-          <!-- 参数名 -->
           <TableCell>
             <Input
               :model-value="param.name"
@@ -76,7 +69,6 @@ const emit = defineEmits<{
             />
           </TableCell>
 
-          <!-- 参数值 -->
           <TableCell>
             <Input
               :model-value="param.value"
@@ -86,14 +78,12 @@ const emit = defineEmits<{
             />
           </TableCell>
 
-          <!-- 类型（只读） -->
           <TableCell v-if="!editableName">
             <span class="text-xs text-muted-foreground font-mono">
               {{ param.type ?? 'string' }}
             </span>
           </TableCell>
 
-          <!-- 删除按钮 -->
           <TableCell>
             <Button
               v-if="!param.fromDefinition"
@@ -107,7 +97,6 @@ const emit = defineEmits<{
           </TableCell>
         </TableRow>
 
-        <!-- 空状态 -->
         <TableRow v-if="params.length === 0">
           <TableCell :colspan="editableName ? 4 : 5" class="text-center text-muted-foreground py-8">
             暂无参数
@@ -116,7 +105,6 @@ const emit = defineEmits<{
       </TableBody>
     </Table>
 
-    <!-- 添加按钮 -->
     <Button
       v-if="showAdd"
       variant="outline"
