@@ -99,7 +99,7 @@ function formatSize(bytes: number): string {
       <!-- 空状态 -->
       <div
         v-else-if="runnerStore.status === 'idle'"
-        class="h-full flex flex-col items-center justify-center gap-3 text-muted-foreground"
+        class="h-full min-h-60 flex flex-col items-center justify-center gap-3 text-muted-foreground"
       >
         <Code class="h-8 w-8" />
         <span class="text-sm">点击「发送请求」获取响应</span>

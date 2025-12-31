@@ -20,4 +20,10 @@ export const utilApi = {
       searchParams,
     }).json<UploadFileResult>()
   },
+
+  getSchemaMock: (schema: Record<string, unknown>) => {
+    return http.post('util/schema-mock', {
+      json: schema,
+    }).json<Record<string, unknown>>()
+  },
 }

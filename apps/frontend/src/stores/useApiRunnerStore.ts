@@ -171,9 +171,8 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
     if (api.requestBody) {
       body.value = {
         type: api.requestBody.type as RuntimeBody['type'],
-        jsonContent: api.requestBody.type === 'json'
-          ? JSON.stringify(api.requestBody.example ?? {}, null, 2)
-          : undefined,
+        jsonSchema: api.requestBody.jsonSchema,
+        jsonContent: JSON.stringify(api.requestBody.example ?? {}, null, 2),
         formData: api.requestBody.formFields?.map(f => convertToRuntimeParam(f, true)),
         rawContent: '',
       }
@@ -272,12 +271,17 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
   function setBodyType(type: RequestBodyType) {
     body.value.type = type
     // 初始化对应类型的数据
-    if (type === 'json' && !body.value.jsonContent) {
+    if (type === 'json' && (!body.value.jsonContent || !body.value.jsonSchema)) {
       body.value.jsonContent = '{}'
+      body.value.jsonSchema = {}
     }
     if ((type === 'form-data' || type === 'x-www-form-urlencoded') && !body.value.formData) {
       body.value.formData = []
     }
+  }
+
+  function setJsonSchema(schema: Record<string, unknown>) {
+    body.value.jsonSchema = schema
   }
 
   function setJsonContent(content: string) {
@@ -337,6 +341,7 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
 
     // Setters
     setBodyType,
+    setJsonSchema,
     setJsonContent,
     setRawContent,
     setAuthType,

@@ -12,6 +12,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 defineProps<{
   params: RuntimeParam[]
@@ -85,15 +91,24 @@ const emit = defineEmits<{
           </TableCell>
 
           <TableCell>
-            <Button
-              v-if="!param.fromDefinition"
-              variant="ghost"
-              size="icon"
-              class="h-8 w-8 text-muted-foreground hover:text-destructive"
-              @click="emit('remove', index)"
-            >
-              <Trash2 class="h-4 w-4" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Button
+                    :disabled="param.fromDefinition"
+                    variant="ghost"
+                    size="icon"
+                    class="h-8 w-8 text-muted-foreground hover:text-destructive"
+                    @click="emit('remove', index)"
+                  >
+                    <Trash2 class="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {{ param.fromDefinition ? '该参数来自API定义，无法删除' : '删除参数' }}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </TableCell>
         </TableRow>
 

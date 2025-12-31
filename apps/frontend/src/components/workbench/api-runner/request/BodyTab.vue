@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import type { RuntimeParam } from '@/types/proxy'
+import { RefreshCcw } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
+import { toast } from 'vue-sonner'
+import { utilApi } from '@/api/util'
+import CodeEditor from '@/components/common/CodeEditor.vue'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -9,38 +15,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
 import { REQUEST_BODY_TYPES, requestBodyTypeLabels } from '@/constants/api'
 import { useApiRunnerStore } from '@/stores/useApiRunnerStore'
 import RunnerParamTable from '../RunnerParamTable.vue'
 
 const runnerStore = useApiRunnerStore()
+const { body } = storeToRefs(runnerStore)
 
 /** 当前请求体类型 */
 const bodyType = computed({
-  get: () => runnerStore.body.type,
+  get: () => body.value.type,
   set: (val) => {
-    runnerStore.setBodyType(val as typeof runnerStore.body.type)
+    runnerStore.setBodyType(val as typeof body.value.type)
   },
 })
 
 /** JSON 内容 */
 const jsonContent = computed({
-  get: () => runnerStore.body.jsonContent ?? '{}',
+  get: () => body.value.jsonContent ?? '{}',
   set: val => runnerStore.setJsonContent(val),
 })
 
 /** Raw 内容 */
 const rawContent = computed({
-  get: () => runnerStore.body.rawContent ?? '',
+  get: () => body.value.rawContent ?? '',
   set: val => runnerStore.setRawContent(val),
 })
 
 /** 更新表单字段 */
 function updateFormField(index: number, key: keyof RuntimeParam, value: string | boolean) {
-  const field = runnerStore.body.formData?.[index]
+  const field = body.value.formData?.[index]
   if (field) {
     (field as Record<string, unknown>)[key] = value
+  }
+}
+
+async function handleAutoMock() {
+  if (!body.value.jsonSchema)
+    return
+
+  try {
+    const res = await utilApi.getSchemaMock(body.value.jsonSchema)
+    runnerStore.setJsonContent(JSON.stringify(res, null, 2))
+  }
+  catch (error) {
+    console.error('Auto mock failed:', error)
+    toast.error('自动 Mock 失败')
   }
 }
 </script>
@@ -64,6 +84,16 @@ function updateFormField(index: number, key: keyof RuntimeParam, value: string |
           </SelectItem>
         </SelectContent>
       </Select>
+
+      <Button
+        v-if="bodyType === 'json'"
+        size="sm"
+        class="ml-auto"
+        @click="handleAutoMock"
+      >
+        <RefreshCcw class="h-4 w-4" />
+        自动 Mock
+      </Button>
     </div>
 
     <!-- none 类型 -->
@@ -73,11 +103,7 @@ function updateFormField(index: number, key: keyof RuntimeParam, value: string |
 
     <!-- JSON 编辑器 -->
     <div v-else-if="bodyType === 'json'" class="space-y-2">
-      <Textarea
-        v-model="jsonContent"
-        placeholder="{&quot;key&quot;: &quot;value&quot;}"
-        class="font-mono text-sm min-h-[200px] resize-y"
-      />
+      <CodeEditor v-model="jsonContent" language="json" />
       <p class="text-xs text-muted-foreground">
         提示：输入有效的 JSON 格式数据
       </p>
@@ -99,11 +125,7 @@ function updateFormField(index: number, key: keyof RuntimeParam, value: string |
 
     <!-- raw -->
     <div v-else-if="bodyType === 'raw'" class="space-y-2">
-      <Textarea
-        v-model="rawContent"
-        placeholder="输入原始请求体内容..."
-        class="font-mono text-sm min-h-[200px] resize-y"
-      />
+      <CodeEditor v-model="rawContent" language="plaintext" />
     </div>
 
     <!-- binary -->

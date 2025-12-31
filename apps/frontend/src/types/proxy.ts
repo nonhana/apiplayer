@@ -54,6 +54,8 @@ export interface RuntimeParam {
 export interface RuntimeBody {
   /** 请求体类型 */
   type: 'none' | 'json' | 'form-data' | 'x-www-form-urlencoded' | 'binary' | 'raw'
+  /** JSON Schema（用于自动 Mock JSON 数据） */
+  jsonSchema?: Record<string, unknown>
   /** JSON 字符串内容（json 类型） */
   jsonContent?: string
   /** 表单数据（form-data / x-www-form-urlencoded） */
