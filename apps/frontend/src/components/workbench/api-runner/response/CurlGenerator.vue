@@ -11,7 +11,6 @@ const runnerStore = useApiRunnerStore()
 
 const copied = ref(false)
 
-/** 复制到剪贴板 */
 async function copyToClipboard() {
   try {
     await navigator.clipboard.writeText(runnerStore.curlCommand)
@@ -31,7 +30,6 @@ async function copyToClipboard() {
 <template>
   <ScrollArea class="h-full">
     <div class="p-4 space-y-3">
-      <!-- 操作栏 -->
       <div class="flex items-center justify-between">
         <p class="text-sm text-muted-foreground">
           根据当前配置生成的 cURL 命令
@@ -48,7 +46,6 @@ async function copyToClipboard() {
         </Button>
       </div>
 
-      <!-- cURL 命令 -->
       <Textarea
         :model-value="runnerStore.curlCommand"
         readonly

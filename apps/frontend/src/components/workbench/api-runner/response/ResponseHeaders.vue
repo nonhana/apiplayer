@@ -13,7 +13,6 @@ import { useApiRunnerStore } from '@/stores/useApiRunnerStore'
 
 const runnerStore = useApiRunnerStore()
 
-/** 响应头列表 */
 const headersList = computed(() => {
   const headers = runnerStore.response?.headers ?? {}
   return Object.entries(headers).map(([key, value]) => ({ key, value }))
@@ -46,7 +45,6 @@ const headersList = computed(() => {
             </TableCell>
           </TableRow>
 
-          <!-- 空状态 -->
           <TableRow v-if="headersList.length === 0">
             <TableCell colspan="2" class="text-center text-muted-foreground py-8">
               暂无响应头

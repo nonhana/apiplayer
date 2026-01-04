@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TabPageItem } from '@/types'
 import { FileText, Key, Link, Settings } from 'lucide-vue-next'
 import { ref } from 'vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -12,12 +13,12 @@ type RequestTab = 'params' | 'headers' | 'body' | 'auth'
 
 const activeTab = ref<RequestTab>('params')
 
-const tabItems = [
-  { value: 'params' as const, label: 'Params', icon: Link },
-  { value: 'headers' as const, label: 'Headers', icon: Settings },
-  { value: 'body' as const, label: 'Body', icon: FileText },
-  { value: 'auth' as const, label: 'Auth', icon: Key },
-] as const
+const tabItems: TabPageItem<RequestTab>[] = [
+  { value: 'params', label: 'Params', icon: Link },
+  { value: 'headers', label: 'Headers', icon: Settings },
+  { value: 'body', label: 'Body', icon: FileText },
+  { value: 'auth', label: 'Auth', icon: Key },
+]
 </script>
 
 <template>

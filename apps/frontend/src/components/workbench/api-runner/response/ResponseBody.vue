@@ -6,11 +6,9 @@ import { useApiRunnerStore } from '@/stores/useApiRunnerStore'
 
 const runnerStore = useApiRunnerStore()
 
-/** 格式化后的响应体 */
 const formattedBody = computed(() => {
   const body = runnerStore.response?.body ?? ''
 
-  // 尝试格式化 JSON
   try {
     const parsed = JSON.parse(body)
     return JSON.stringify(parsed, null, 2)
@@ -20,7 +18,6 @@ const formattedBody = computed(() => {
   }
 })
 
-/** 是否为 JSON 响应 */
 const isJson = computed(() => {
   const contentType = runnerStore.response?.headers?.['content-type'] ?? ''
   return contentType.includes('application/json')

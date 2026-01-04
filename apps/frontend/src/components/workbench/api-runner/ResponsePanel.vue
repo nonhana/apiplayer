@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TabPageItem } from '@/types'
 import { AlertCircle, Clock, Code, FileText, Loader2, Settings } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
@@ -14,10 +15,10 @@ type ResponseTab = 'body' | 'headers' | 'curl'
 
 const activeTab = ref<ResponseTab>('body')
 
-const tabItems = [
-  { value: 'body' as const, label: 'Body', icon: FileText },
-  { value: 'headers' as const, label: 'Headers', icon: Settings },
-  { value: 'curl' as const, label: 'cURL', icon: Code },
+const tabItems: TabPageItem<ResponseTab>[] = [
+  { value: 'body', label: 'Body', icon: FileText },
+  { value: 'headers', label: 'Headers', icon: Settings },
+  { value: 'curl', label: 'cURL', icon: Code },
 ]
 
 /** 状态码颜色 */
@@ -50,35 +51,28 @@ function formatSize(bytes: number): string {
 
 <template>
   <div class="flex flex-col h-full border rounded-lg bg-card">
-    <!-- 标题栏 + 状态信息 -->
     <div class="px-4 py-2 border-b bg-muted/20 flex items-center justify-between">
       <h3 class="text-sm font-medium">
         响应结果
       </h3>
 
-      <!-- 状态信息 -->
       <div v-if="runnerStore.response" class="flex items-center gap-3 text-sm">
-        <!-- 状态码 -->
         <Badge :class="statusColor">
           {{ runnerStore.response.status }} {{ runnerStore.response.statusText }}
         </Badge>
 
-        <!-- 耗时 -->
         <div class="flex items-center gap-1 text-muted-foreground">
           <Clock class="h-3.5 w-3.5" />
           <span>{{ runnerStore.response.duration }}ms</span>
         </div>
 
-        <!-- 大小 -->
         <div class="text-muted-foreground">
           {{ formatSize(runnerStore.response.size) }}
         </div>
       </div>
     </div>
 
-    <!-- 内容区 -->
-    <div class="flex-1 overflow-hidden">
-      <!-- 加载中 -->
+    <div class="min-h-60 flex-1 overflow-hidden">
       <div
         v-if="runnerStore.isLoading"
         class="h-full flex flex-col items-center justify-center gap-3 text-muted-foreground"
@@ -87,7 +81,6 @@ function formatSize(bytes: number): string {
         <span class="text-sm">请求中...</span>
       </div>
 
-      <!-- 错误状态 -->
       <div
         v-else-if="runnerStore.status === 'error'"
         class="h-full flex flex-col items-center justify-center gap-3 text-destructive"
@@ -96,16 +89,14 @@ function formatSize(bytes: number): string {
         <span class="text-sm">{{ runnerStore.errorMessage ?? '请求失败' }}</span>
       </div>
 
-      <!-- 空状态 -->
       <div
         v-else-if="runnerStore.status === 'idle'"
-        class="h-full min-h-60 flex flex-col items-center justify-center gap-3 text-muted-foreground"
+        class="h-full flex flex-col items-center justify-center gap-3 text-muted-foreground"
       >
         <Code class="h-8 w-8" />
         <span class="text-sm">点击「发送请求」获取响应</span>
       </div>
 
-      <!-- 响应内容 -->
       <Tabs
         v-else
         v-model="activeTab"
