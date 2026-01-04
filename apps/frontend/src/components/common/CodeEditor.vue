@@ -22,7 +22,7 @@ const code = defineModel<string>({ required: true })
 
 const containerRef = useTemplateRef('containerRef')
 
-/** 编辑器实例（使用 shallowRef 避免深层响应式） */
+/** 编辑器实例（避免深层响应式） */
 const editorInstance = shallowRef<monaco.editor.IStandaloneCodeEditor>()
 
 /** 是否正在内部更新（防止循环） */
@@ -109,17 +109,6 @@ watch(
 
 onMounted(() => {
   createEditor()
-  const el = containerRef.value
-  if (!el)
-    return
-
-  el.addEventListener(
-    'keydown',
-    (e) => {
-      e.stopPropagation()
-    },
-    true,
-  )
 })
 
 onBeforeUnmount(() => {
@@ -134,10 +123,10 @@ defineExpose({
 </script>
 
 <template>
-  <div
-    ref="containerRef"
-    role="textbox"
-    class="border rounded-md overflow-hidden"
-    :style="{ minHeight: `${minHeight}px` }"
-  />
+  <section class="border rounded-md overflow-hidden">
+    <div
+      ref="containerRef"
+      :style="{ minHeight: `${minHeight}px` }"
+    />
+  </section>
 </template>
