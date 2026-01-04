@@ -1,24 +1,26 @@
 <script lang="ts" setup>
+import type { SupportedLanguage } from '@/types/code-editor'
 import * as monaco from 'monaco-editor'
 import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 import '@/lib/monaco'
-
-type SupportedLanguage = 'json' | 'javascript' | 'typescript' | 'html' | 'css' | 'xml' | 'plaintext'
 
 const props = withDefaults(defineProps<{
   language?: SupportedLanguage
   readonly?: boolean
   minHeight?: number
-  placeholder?: string
 }>(), {
-  modelValue: '',
   language: 'json',
   readonly: false,
   minHeight: 320,
-  placeholder: '',
 })
 
-const code = defineModel<string>({ required: true })
+const emit = defineEmits<{
+  (e: 'ready', editor: monaco.editor.IStandaloneCodeEditor): void
+  (e: 'focus'): void
+  (e: 'blur'): void
+}>()
+
+const code = defineModel<string>({ default: '' })
 
 const containerRef = useTemplateRef('containerRef')
 
@@ -32,34 +34,43 @@ function createEditor() {
   if (!containerRef.value)
     return
 
-  editorInstance.value = monaco.editor.create(containerRef.value, {
-    value: code.value,
-    language: props.language,
-    theme: 'vs', // 亮色主题，可以根据项目需要改成 'vs-dark'
-    readOnly: props.readonly,
-    minimap: { enabled: false },
-    fontSize: 13,
-    lineNumbers: 'on',
-    scrollBeyondLastLine: false,
-    wordWrap: 'on',
-    automaticLayout: true,
-    tabSize: 2,
-    folding: true,
-    formatOnPaste: true,
-    scrollbar: {
-      verticalScrollbarSize: 8,
-      horizontalScrollbarSize: 8,
-    },
-    padding: { top: 8, bottom: 8 },
-    acceptSuggestionOnEnter: 'on',
-  })
+  try {
+    editorInstance.value = monaco.editor.create(containerRef.value, {
+      value: code.value,
+      language: props.language,
+      theme: 'vs',
+      readOnly: props.readonly,
+      minimap: { enabled: false },
+      fontSize: 13,
+      lineNumbers: 'on',
+      scrollBeyondLastLine: false,
+      wordWrap: 'on',
+      automaticLayout: true,
+      tabSize: 2,
+      folding: true,
+      formatOnPaste: true,
+      scrollbar: {
+        verticalScrollbarSize: 8,
+        horizontalScrollbarSize: 8,
+      },
+      padding: { top: 8, bottom: 8 },
+      acceptSuggestionOnEnter: 'on',
+    })
 
-  editorInstance.value.onDidChangeModelContent(() => {
-    if (isInternalUpdate)
-      return
-    const value = editorInstance.value?.getValue() ?? ''
-    code.value = value
-  })
+    editorInstance.value.onDidChangeModelContent(() => {
+      if (isInternalUpdate)
+        return
+      code.value = editorInstance.value?.getValue() ?? ''
+    })
+
+    editorInstance.value.onDidFocusEditorWidget(() => emit('focus'))
+    editorInstance.value.onDidBlurEditorWidget(() => emit('blur'))
+
+    emit('ready', editorInstance.value)
+  }
+  catch (error) {
+    console.error('[CodeEditor] 编辑器创建失败:', error)
+  }
 }
 
 function disposeEditor() {
@@ -67,12 +78,31 @@ function disposeEditor() {
   editorInstance.value = undefined
 }
 
-async function formatDocument() {
-  await editorInstance.value?.getAction('editor.action.formatDocument')?.run()
+async function formatDocument(): Promise<boolean> {
+  try {
+    await editorInstance.value?.getAction('editor.action.formatDocument')?.run()
+    return true
+  }
+  catch (error) {
+    console.warn('[CodeEditor] 格式化失败:', error)
+    return false
+  }
 }
 
 function focus() {
   editorInstance.value?.focus()
+}
+
+function getValue(): string {
+  return editorInstance.value?.getValue() ?? ''
+}
+
+function setValue(value: string) {
+  if (!editorInstance.value)
+    return
+  isInternalUpdate = true
+  editorInstance.value.setValue(value)
+  isInternalUpdate = false
 }
 
 watch(code, (newValue) => {
@@ -80,11 +110,9 @@ watch(code, (newValue) => {
   if (!editor)
     return
 
-  // 如果值相同，不需要更新
   if (editor.getValue() === newValue)
     return
 
-  // 标记为内部更新，避免触发 onDidChangeModelContent
   isInternalUpdate = true
   editor.setValue(newValue)
   isInternalUpdate = false
@@ -119,6 +147,8 @@ defineExpose({
   formatDocument,
   focus,
   getEditor: () => editorInstance.value,
+  getValue,
+  setValue,
 })
 </script>
 
