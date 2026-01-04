@@ -2,22 +2,24 @@
 import type { TabPageItem } from '@/types'
 import type { ApiDetail } from '@/types/api'
 import { useRouteParams, useRouteQuery } from '@vueuse/router'
-import { AlertCircle, FileText, Loader2, Pencil, Play, Settings2 } from 'lucide-vue-next'
+import { AlertCircle, FileText, GitBranch, Loader2, Pencil, Play, Settings2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { apiApi } from '@/api/api'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ApiRunnerView from '../api-runner/ApiRunnerView.vue'
+import { VersionHistory } from '../version'
 import ApiDocView from './ApiDocView.vue'
 import ApiEditView from './ApiEditView.vue'
 
 const projectId = useRouteParams<string>('projectId')
 const apiId = useRouteParams<string>('apiId')
 
-type TabType = 'doc' | 'edit' | 'run' | 'settings'
+type TabType = 'doc' | 'edit' | 'run' | 'versions' | 'settings'
 const tabItems: TabPageItem<TabType>[] = [
   { value: 'doc', label: '文档', icon: FileText },
   { value: 'edit', label: '编辑', icon: Pencil },
   { value: 'run', label: '运行', icon: Play },
+  { value: 'versions', label: '版本', icon: GitBranch },
   { value: 'settings', label: '设置', icon: Settings2, disabled: true },
 ]
 
@@ -132,6 +134,15 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
 
       <TabsContent value="run" class="flex-1 mt-0 overflow-hidden">
         <ApiRunnerView :api="apiDetail" />
+      </TabsContent>
+
+      <TabsContent value="versions" class="flex-1 mt-0 overflow-hidden">
+        <VersionHistory
+          :project-id="projectId"
+          :api-id="apiId"
+          :current-version-id="apiDetail.currentVersionId"
+          @version-changed="refreshApiDetail"
+        />
       </TabsContent>
 
       <TabsContent value="settings" class="flex-1 mt-0 overflow-hidden">

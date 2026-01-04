@@ -19,6 +19,7 @@ const props = withDefaults(defineProps<{
   showHeader?: boolean
   showCopy?: boolean
   title?: string
+  maxHeight?: number
 }>(), {
   lang: 'json',
   showHeader: true,
@@ -66,7 +67,10 @@ watch(() => props.code, async () => {
 </script>
 
 <template>
-  <div class="rounded-lg border bg-muted/30 font-mono text-sm">
+  <div
+    class="rounded-lg border bg-muted/30 font-mono text-sm overflow-auto"
+    :style="{ maxHeight: `${maxHeight}px` }"
+  >
     <div
       v-if="showHeader"
       class="flex items-center px-4 py-2 border-b bg-muted/50 gap-2"

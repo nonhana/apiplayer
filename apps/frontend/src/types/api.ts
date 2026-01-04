@@ -134,6 +134,7 @@ export interface ApiDetail extends ApiBrief {
   responses: ApiResItem[]
   examples: Record<string, unknown>
   mockConfig?: ApiMockConfig
+  currentVersionId?: string
 }
 
 /** 分组简要信息 */

@@ -1,0 +1,6 @@
+export { default as RollbackConfirmDialog } from './RollbackConfirmDialog.vue'
+export { default as VersionCompareSheet } from './VersionCompareSheet.vue'
+export { default as VersionDetailSheet } from './VersionDetailSheet.vue'
+export { default as VersionHistory } from './VersionHistory.vue'
+export { default as VersionItem } from './VersionItem.vue'
+export { default as VersionQuickPanel } from './VersionQuickPanel.vue'
