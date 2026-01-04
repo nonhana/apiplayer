@@ -11,7 +11,7 @@ packages:
 
 catalogs:
   backend:
-    '@aws-sdk/client-s3': ^3.958.0
+    '@aws-sdk/client-s3': ^3.962.0
     '@faker-js/faker': ^10.1.0
     '@fastify/cookie': ^11.0.2
     '@fastify/multipart': ^9.3.0
@@ -19,20 +19,20 @@ catalogs:
     '@fastify/static': ^9.0.0
     '@nestjs/axios': ^4.0.1
     '@nestjs/cli': ^11.0.14
-    '@nestjs/common': ^11.1.10
+    '@nestjs/common': ^11.1.11
     '@nestjs/config': ^4.0.2
-    '@nestjs/core': ^11.1.10
+    '@nestjs/core': ^11.1.11
     '@nestjs/mapped-types': ^2.1.0
-    '@nestjs/platform-express': ^11.1.10
-    '@nestjs/platform-fastify': ^11.1.10
+    '@nestjs/platform-express': ^11.1.11
+    '@nestjs/platform-fastify': ^11.1.11
     '@nestjs/schematics': ^11.0.9
     '@nestjs/swagger': ^11.2.3
     '@nestjs/terminus': ^11.0.0
-    '@nestjs/testing': ^11.1.10
+    '@nestjs/testing': ^11.1.11
     '@prisma/adapter-pg': ^7.2.0
     '@prisma/client': ^7.2.0
     '@swc/cli': ^0.7.9
-    '@swc/core': ^1.15.7
+    '@swc/core': ^1.15.8
     '@types/bcrypt': ^6.0.0
     '@types/express': ^5.0.6
     '@types/pg': ^8.16.0
@@ -54,7 +54,7 @@ catalogs:
     source-map-support: ^0.5.21
     ts-loader: ^9.5.4
     tsconfig-paths: ^4.2.0
-    tsdown: ^0.18.3
+    tsdown: ^0.18.4
     type-fest: ^5.3.1
     winston: ^3.19.0
     winston-daily-rotate-file: ^5.0.0
