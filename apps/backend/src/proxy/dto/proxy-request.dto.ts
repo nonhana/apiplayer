@@ -7,7 +7,7 @@ import {
   Max,
   Min,
 } from 'class-validator'
-import { HttpMethod } from '@/common/types/http'
+import { HttpMethod } from '@/constants/https'
 
 export class ProxyRequestDto {
   /** 完整的目标 URL */

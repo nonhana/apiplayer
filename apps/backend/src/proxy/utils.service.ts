@@ -1,7 +1,8 @@
+import { Agent } from 'node:https'
 import { Injectable, Logger } from '@nestjs/common'
 import { AxiosError } from 'axios'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { HttpMethod } from '@/common/types/http'
+import { HttpMethod } from '@/constants/https'
 import { ProxyRequestDto } from './dto/proxy-request.dto'
 
 @Injectable()
@@ -10,8 +11,8 @@ export class ProxyUtilsService {
   private readonly ALLOWED_PROTOCOLS = ['http:', 'https:']
 
   /** 创建 HTTPS Agent，用于处理 SSL 证书问题 */
-  createHttpsAgent(): { rejectUnauthorized: boolean } | undefined {
-    return { rejectUnauthorized: false }
+  createHttpsAgent(): Agent {
+    return new Agent({ rejectUnauthorized: false })
   }
 
   /** 处理请求错误 */
