@@ -1,7 +1,7 @@
 import type { BundledLanguage, Highlighter } from 'shiki'
 import { createHighlighter } from 'shiki'
 
-export type SupportedLang = 'json' | 'javascript' | 'typescript' | 'html' | 'css' | 'shell'
+export type SupportedLang = 'json' | 'javascript' | 'typescript' | 'html' | 'css' | 'shell' | 'plaintext'
 
 let highlighterInstance: Highlighter | null = null
 let highlighterPromise: Promise<Highlighter> | null = null
@@ -30,6 +30,6 @@ export async function highlightCode(code: string, lang: SupportedLang = 'json') 
       light: 'github-light',
       dark: 'github-dark',
     },
-    rootStyle: false,
+    rootStyle: 'word-break: break-all; white-space: pre-wrap;',
   })
 }

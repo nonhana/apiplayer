@@ -11,19 +11,18 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { highlightCode } from '@/lib/highlighter'
+import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
   code: string
   lang?: SupportedLang
   showHeader?: boolean
   showCopy?: boolean
-  maxHeight?: string
   title?: string
 }>(), {
   lang: 'json',
   showHeader: true,
   showCopy: true,
-  maxHeight: '320px',
 })
 
 const langDisplayNames = {
@@ -33,6 +32,7 @@ const langDisplayNames = {
   html: 'HTML',
   css: 'CSS',
   shell: 'Shell',
+  plaintext: 'Plaintext',
 } as const
 
 const html = ref('')
@@ -66,7 +66,7 @@ watch(() => props.code, async () => {
 </script>
 
 <template>
-  <div class="rounded-lg border bg-muted/30 overflow-hidden font-mono text-sm">
+  <div class="rounded-lg border bg-muted/30 font-mono text-sm">
     <div
       v-if="showHeader"
       class="flex items-center px-4 py-2 border-b bg-muted/50 gap-2"
@@ -75,7 +75,7 @@ watch(() => props.code, async () => {
         {{ title }}
       </span>
 
-      <span class="text-xs font-medium text-muted-foreground select-none">
+      <span :class="cn('text-xs font-medium text-muted-foreground select-none', !title && 'flex-1')">
         {{ langLabel }}
       </span>
 
@@ -99,10 +99,7 @@ watch(() => props.code, async () => {
       </TooltipProvider>
     </div>
 
-    <ScrollArea
-      :style="{ maxHeight }"
-      class="code-block-content"
-    >
+    <ScrollArea>
       <div
         v-if="html"
         class="p-4"

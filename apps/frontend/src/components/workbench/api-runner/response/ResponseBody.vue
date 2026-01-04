@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Textarea } from '@/components/ui/textarea'
+import CodeBlock from '@/components/common/CodeBlock.vue'
 import { useApiRunnerStore } from '@/stores/useApiRunnerStore'
 
 const runnerStore = useApiRunnerStore()
@@ -25,16 +24,7 @@ const isJson = computed(() => {
 </script>
 
 <template>
-  <ScrollArea class="h-full">
-    <div class="p-4">
-      <Textarea
-        :model-value="formattedBody"
-        readonly
-        class="font-mono text-sm min-h-[300px] resize-none" :class="[
-          isJson ? 'text-emerald-600 dark:text-emerald-400' : '',
-        ]"
-        placeholder="响应内容将在这里显示..."
-      />
-    </div>
-  </ScrollArea>
+  <div class="m-2">
+    <CodeBlock :code="formattedBody" :lang="isJson ? 'json' : 'plaintext'" />
+  </div>
 </template>

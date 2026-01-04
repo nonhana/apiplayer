@@ -102,12 +102,12 @@ function formatSize(bytes: number): string {
         v-model="activeTab"
         class="h-full flex flex-col"
       >
-        <TabsList class="h-10 bg-muted/30 rounded-none border-b justify-start px-2">
+        <TabsList class="bg-transparent m-2">
           <TabsTrigger
             v-for="tab in tabItems"
             :key="tab.value"
             :value="tab.value"
-            class="gap-1.5 px-3 data-[state=active]:bg-background data-[state=active]:shadow-sm"
+            class="gap-1.5 px-3 data-[state=active]:text-primary"
           >
             <component :is="tab.icon" class="h-4 w-4" />
             {{ tab.label }}
