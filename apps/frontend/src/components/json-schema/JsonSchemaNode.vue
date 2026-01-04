@@ -31,7 +31,7 @@ import { cn } from '@/lib/utils'
 const props = defineProps<{
   /** Schema 节点 */
   node: LocalSchemaNode
-  /** 当前节点路径（格式：'parentId-currentId'） */
+  /** 当前节点路径（格式：'parentId.currentId'） */
   path: string
   /** 嵌套层级 */
   depth?: number
