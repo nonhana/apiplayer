@@ -17,8 +17,8 @@ import {
   ComboboxViewport,
 } from '@/components/ui/combobox'
 import { getUserFallbackIcon } from '@/lib/utils'
+import UserBadge from '../common/UserBadge.vue'
 import Input from '../ui/input/Input.vue'
-import UserBadge from '../UserBadge.vue'
 
 const props = withDefaults(defineProps<{
   /** 需要排除的用户 ID 列表 */

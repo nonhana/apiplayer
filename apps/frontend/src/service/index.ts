@@ -1,74 +1,97 @@
 import type { Hooks, KyInstance, Options } from 'ky'
 import type { IApiResponse } from './types'
 import ky from 'ky'
+import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { useUserStore } from '@/stores/useUserStore'
 import { HanaError } from './error'
 
+let isReLogin = false
+
 const hooks: Hooks = {
   afterResponse: [
     async (_, __, response) => {
+      // 204 No Content 直接放行
       if (response.status === 204) {
         return response
       }
 
-      const resJson = await response.json() as IApiResponse
-      const parsed = {
-        ...resJson,
-        message: Array.isArray(resJson.message) ? resJson.message[0] ?? '' : resJson.message,
+      // 克隆响应避免 body lock
+      const responseClone = response.clone()
+
+      let resJson: IApiResponse
+      try {
+        resJson = await responseClone.json()
+      }
+      catch {
+        // 如果不是 JSON，说明存在一些外界副作用，直接返回原响应
+        return response
       }
 
-      if (parsed.code !== 0 && parsed.code !== 200) {
-        // 10012 为 cookie 失效
-        if (parsed.code === 401 && parsed.errorCode === 10012) {
-          const userStore = useUserStore()
-          userStore.logout()
-          window.location.href = '/auth/login'
-        }
-        else {
-          toast.error(parsed.message)
+      // 处理 message 为数组的情况（class-validator）
+      const message = Array.isArray(resJson.message)
+        ? resJson.message[0] ?? '未知错误'
+        : resJson.message
+
+      if (resJson.code !== 0 && resJson.code !== 200) {
+        if (resJson.code === 401 || resJson.errorCode === 10012) {
+          if (!isReLogin) {
+            isReLogin = true
+            const userStore = useUserStore()
+            userStore.logout()
+            toast.error('登录已过期，请重新登录')
+
+            const router = useRouter()
+            await router.push({
+              name: 'Login',
+              query: { redirect: router.currentRoute.value.fullPath },
+            })
+
+            setTimeout(() => isReLogin = false, 1000)
+          }
+          throw new HanaError(message, resJson.code)
         }
 
-        throw new HanaError(parsed.message, parsed.code)
+        toast.error(message)
+        throw new HanaError(message, resJson.code)
       }
 
-      const body = JSON.stringify(parsed.data)
-      return new Response(body, {
-        ...response,
-        headers: new Headers(response.headers),
-      })
+      return response
     },
   ],
 
   beforeError: [
     async (error) => {
       const { response } = error
-      let message = ''
-      let description = ''
+      let message = '网络异常'
+      let description = '连接失败，请稍后重试'
 
       if (response) {
         message = `请求失败：${response.status}`
         description = response.statusText
 
-        const errorData = await response.json() as any
-        if (errorData && errorData.message) {
-          // message 为数组（例如 class-validator），拼接为字符串
-          if (Array.isArray(errorData.message)) {
-            description = errorData.message.join(', ')
-          }
-          else {
-            description = errorData.message
+        try {
+          const errorResponse = await response.clone().json()
+          if (errorResponse) {
+            if (errorResponse.message) {
+              description = Array.isArray(errorResponse.message)
+                ? errorResponse.message.join(', ')
+                : errorResponse.message
+            }
           }
         }
+        catch {}
       }
-      else {
-        message = '网络异常'
-        description = '连接失败，请稍后重试'
+      else if (error.request) {
+        if (error.name === 'TimeoutError') {
+          message = '请求超时'
+          description = '服务器响应时间过长'
+        }
       }
 
-      toast.error(message, {
-        description,
-      })
+      if (response?.status !== 401) {
+        toast.error(message, { description })
+      }
 
       return error
     },
@@ -79,7 +102,11 @@ const options: Options = {
   prefixUrl: import.meta.env.DEV ? '/api' : import.meta.env.VITE_API_BASE_URL,
   timeout: 10000,
   hooks,
-  credentials: 'include',
+  retry: {
+    limit: 1,
+    methods: ['get'],
+    statusCodes: [408, 413, 429, 500, 502, 503, 504],
+  },
 }
 
 const service: KyInstance = ky.create(options)

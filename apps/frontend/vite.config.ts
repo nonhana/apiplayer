@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(import.meta.dirname, './src'),
       },
     },
+    // dev mode available
     server: {
       proxy: {
         '/api': {

@@ -1,9 +1,5 @@
 import http from '@/service'
 
-export interface UploadFileResult {
-  url: string
-}
-
 export type UploadMode = 'local' | 'r2'
 
 export const utilApi = {
@@ -18,7 +14,7 @@ export const utilApi = {
     return http.post('util/upload', {
       body: formData,
       searchParams,
-    }).json<UploadFileResult>()
+    }).json<{ url: string }>()
   },
 
   getSchemaMock: (schema: Record<string, unknown>) => {

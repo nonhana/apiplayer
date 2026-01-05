@@ -65,7 +65,7 @@ async function handleConfirm() {
         </DialogDescription>
       </DialogHeader>
 
-      <div class="p-4 flex-1 min-h-[260px]">
+      <div class="p-4 flex-1 min-h-65">
         <VuePictureCropper
           v-if="sourceUrl"
           :img="sourceUrl"

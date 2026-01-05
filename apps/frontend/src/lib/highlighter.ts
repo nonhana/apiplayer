@@ -1,7 +1,7 @@
 import type { BundledLanguage, Highlighter } from 'shiki'
 import { createHighlighter } from 'shiki'
 
-export type SupportedLang = 'json' | 'javascript' | 'typescript' | 'html' | 'css' | 'shell' | 'plaintext'
+export type SupportedHighlightLang = 'json' | 'javascript' | 'typescript' | 'html' | 'css' | 'shell' | 'plaintext'
 
 let highlighterInstance: Highlighter | null = null
 let highlighterPromise: Promise<Highlighter> | null = null
@@ -22,7 +22,7 @@ async function getHighlighter(): Promise<Highlighter> {
   return highlighterInstance
 }
 
-export async function highlightCode(code: string, lang: SupportedLang = 'json') {
+export async function highlightCode(code: string, lang: SupportedHighlightLang = 'json') {
   const highlighter = await getHighlighter()
   return highlighter.codeToHtml(code, {
     lang,

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { SupportedLang } from '@/lib/highlighter'
+import type { SupportedHighlightLang } from '@/lib/highlighter'
 import { Check, Copy } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
   code: string
-  lang?: SupportedLang
+  lang?: SupportedHighlightLang
   showHeader?: boolean
   showCopy?: boolean
   title?: string
@@ -26,20 +26,21 @@ const props = withDefaults(defineProps<{
   showCopy: true,
 })
 
-const langDisplayNames = {
-  json: 'JSON',
-  javascript: 'JavaScript',
-  typescript: 'TypeScript',
-  html: 'HTML',
-  css: 'CSS',
-  shell: 'Shell',
-  plaintext: 'Plaintext',
-} as const
+const langNameMap: Record<SupportedHighlightLang, string>
+  = {
+    json: 'JSON',
+    javascript: 'JavaScript',
+    typescript: 'TypeScript',
+    html: 'HTML',
+    css: 'CSS',
+    shell: 'Shell',
+    plaintext: 'Plaintext',
+  }
 
 const html = ref('')
 const justCopied = ref(false)
 
-const langLabel = computed(() => langDisplayNames[props.lang] ?? props.lang.toUpperCase())
+const langLabel = computed(() => langNameMap[props.lang] ?? props.lang.toUpperCase())
 
 async function handleCopy() {
   if (!props.code)
@@ -48,12 +49,10 @@ async function handleCopy() {
   try {
     await navigator.clipboard.writeText(props.code)
     justCopied.value = true
-    setTimeout(() => {
-      justCopied.value = false
-    }, 2000)
+    setTimeout(() => justCopied.value = false, 2000)
   }
-  catch (err) {
-    console.error('复制失败:', err)
+  catch (error) {
+    console.error('复制失败:', error)
   }
 }
 
