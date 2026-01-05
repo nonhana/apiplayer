@@ -41,7 +41,7 @@ const exampleJson = computed(() => {
         title="示例"
         lang="json"
         :show-header="true"
-        max-height="280px"
+        :max-height="280"
         class="rounded-none border-0"
       />
     </div>

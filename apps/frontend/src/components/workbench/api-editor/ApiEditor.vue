@@ -10,6 +10,7 @@ import ApiRunnerView from '../api-runner/ApiRunnerView.vue'
 import { VersionHistory } from '../version'
 import ApiDocView from './ApiDocView.vue'
 import ApiEditView from './ApiEditView.vue'
+import ApiSettingsView from './ApiSettingsView.vue'
 
 const projectId = useRouteParams<string>('projectId')
 const apiId = useRouteParams<string>('apiId')
@@ -20,7 +21,7 @@ const tabItems: TabPageItem<TabType>[] = [
   { value: 'edit', label: '编辑', icon: Pencil },
   { value: 'run', label: '运行', icon: Play },
   { value: 'versions', label: '版本', icon: GitBranch },
-  { value: 'settings', label: '设置', icon: Settings2, disabled: true },
+  { value: 'settings', label: '设置', icon: Settings2 },
 ]
 
 const activeTab = useRouteQuery<TabType>('mode', 'doc')
@@ -146,9 +147,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
       </TabsContent>
 
       <TabsContent value="settings" class="flex-1 mt-0 overflow-hidden">
-        <div class="h-full flex items-center justify-center text-muted-foreground">
-          <span>设置功能开发中...</span>
-        </div>
+        <ApiSettingsView :api="apiDetail" />
       </TabsContent>
     </Tabs>
 
