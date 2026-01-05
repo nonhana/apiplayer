@@ -112,7 +112,7 @@ watch(isOpen, (open) => {
           <div class="flex items-center gap-2">
             <Checkbox
               id="confirm-rollback"
-              v-model:checked="isConfirmed"
+              v-model="isConfirmed"
             />
             <Label
               for="confirm-rollback"
