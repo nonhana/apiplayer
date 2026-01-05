@@ -88,19 +88,6 @@ onMounted(() => {
       <TeamSwitcher @create-team="isCreateTeamDialogOpen = true" />
     </div>
 
-    <!-- 中间：全局搜索 -->
-    <div class="flex-1 max-w-md mx-8 hidden md:block">
-      <div class="relative">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          v-model="searchQuery"
-          placeholder="搜索项目..."
-          class="pl-9 bg-muted/50"
-          @keyup.enter="handleSearch"
-        />
-      </div>
-    </div>
-
     <!-- 右侧：用户菜单 -->
     <div class="ml-auto flex items-center gap-4">
       <Button
