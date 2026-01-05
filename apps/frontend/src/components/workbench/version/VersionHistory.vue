@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ApiVersionBrief, ApiVersionDetail } from '@/types/version'
 import { AlertCircle, GitBranch, Loader2, RefreshCw } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 import { toast } from 'vue-sonner'
 import { versionApi } from '@/api/version'
 import { Button } from '@/components/ui/button'
@@ -184,8 +184,9 @@ async function handleConfirmRollback() {
 /** 关闭比较面板时清空选择 */
 function handleCloseCompare() {
   isCompareSheetOpen.value = false
-  compareVersionIds.value = [null, null]
 }
+
+watchEffect(() => !isCompareSheetOpen.value && (compareVersionIds.value = [null, null]))
 
 /** 详情面板中获取到的完整版本数据 */
 const detailVersionData = ref<ApiVersionDetail | null>(null)
@@ -317,6 +318,7 @@ defineExpose({
           :is-selected="selectedVersionId === version.id"
           :is-current="version.id === currentVersionId"
           :show-compare="true"
+          :is-comparing="compareVersionIds.includes(version.id)"
           @view="handleViewVersion(version)"
           @compare="handleCompareVersion(version)"
           @publish="handlePublishVersion(version)"

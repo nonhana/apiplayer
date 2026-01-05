@@ -44,6 +44,8 @@ const props = defineProps<{
   isCurrent?: boolean
   /** 是否显示比较按钮 */
   showCompare?: boolean
+  /** 是否正在比较 */
+  isComparing?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -89,7 +91,7 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
 <template>
   <div
     :class="cn(
-      'group relative flex gap-3 p-3 rounded-lg border transition-colors cursor-pointer',
+      'relative flex gap-3 p-3 rounded-lg border transition-colors cursor-pointer',
       'hover:bg-muted/50',
       isSelected && 'bg-primary/5 border-primary/30',
       isCurrent && 'ring-1 ring-primary/20',
@@ -179,7 +181,7 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
 
     <!-- 右侧操作按钮 -->
     <div
-      class="flex items-start gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+      class="flex items-start gap-1 shrink-0"
       @click.stop
     >
       <!-- 比较按钮 -->
@@ -192,7 +194,7 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
               class="h-7 w-7"
               @click="emits('compare')"
             >
-              <GitCompare class="h-3.5 w-3.5" />
+              <GitCompare class="h-3.5 w-3.5" :color="isComparing ? 'var(--primary)' : 'currentColor'" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>选择比较</TooltipContent>
