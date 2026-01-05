@@ -66,8 +66,7 @@ export interface ApiVersionsResponse {
 }
 
 /** 字段差异项 */
-export interface DiffField {
-  field: string
+export interface DiffItem {
   from: unknown
   to: unknown
 }
@@ -76,7 +75,7 @@ export interface DiffField {
 export interface ApiVersionComparison {
   from: ApiVersionDetail
   to: ApiVersionDetail
-  diff: Record<string, DiffField>
+  diff: Record<string, DiffItem>
 }
 
 /** 创建版本请求 */

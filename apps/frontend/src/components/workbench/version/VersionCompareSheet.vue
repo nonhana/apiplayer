@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ApiVersionComparison, DiffField } from '@/types/version'
+import type { ApiVersionComparison, DiffItem } from '@/types/version'
 import {
   ArrowRight,
   Check,
@@ -9,7 +9,7 @@ import {
   Plus,
   X,
 } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, toRaw, watch } from 'vue'
 import { versionApi } from '@/api/version'
 import CodeBlock from '@/components/common/CodeBlock.vue'
 import { Badge } from '@/components/ui/badge'
@@ -41,6 +41,8 @@ defineEmits<{
   (e: 'close'): void
 }>()
 
+type DiffField = DiffItem & { field: string }
+
 interface ComparisonResult {
   baseInfo: DiffField[]
   params: DiffField[]
@@ -64,7 +66,18 @@ const loadError = ref<string | null>(null)
 const diffItems = computed<DiffField[]>(() => {
   if (!comparison.value?.diff)
     return []
-  return Object.values(comparison.value.diff)
+  const diffItems = Object.values(toRaw(comparison.value.diff))
+
+  const result: DiffField[] = []
+
+  for (const diffItem of diffItems) {
+    result.push(...Object.entries(diffItem).map(([field, value]) => ({
+      field,
+      ...value,
+    })))
+  }
+
+  return result
 })
 
 /** 是否有差异 */
@@ -209,7 +222,7 @@ watch(isOpen, (open) => {
       </div>
 
       <!-- 比较结果 -->
-      <ScrollArea v-else-if="comparison" class="flex-1">
+      <ScrollArea v-else-if="comparison" class="h-[calc(100dvh-8.25rem)]">
         <div class="p-6 space-y-6">
           <!-- 版本信息对比 -->
           <div class="grid grid-cols-2 gap-4">
