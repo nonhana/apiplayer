@@ -1,9 +1,8 @@
 <script lang="ts" setup>
-import type { RoleName } from '@/constants/roles'
 import type { ProjectMember } from '@/types/project'
-import type { RoleItem } from '@/types/role'
 import type { TeamMember } from '@/types/team'
 import { Crown, Trash2 } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { projectApi } from '@/api/project'
@@ -20,13 +19,13 @@ import {
 } from '@/components/ui/select'
 import { ROLE_DISPLAY_MAP, ROLE_NAME } from '@/constants/roles'
 import { cn, getAbbreviation } from '@/lib/utils'
+import { useGlobalStore } from '@/stores/useGlobalStore'
 import { useUserStore } from '@/stores/useUserStore'
 
 export type MemberType = 'team' | 'project'
 
 const props = defineProps<{
   type: MemberType
-  roles: RoleItem[]
   isAdmin: boolean
   member: TeamMember | ProjectMember
   teamId?: string
@@ -39,97 +38,68 @@ const emits = defineEmits<{
   (e: 'deleteMember', member: TeamMember | ProjectMember): void
 }>()
 
+const userStore = useUserStore()
+const { user } = storeToRefs(userStore)
+
+const globalStore = useGlobalStore()
+const { projectRoles, teamRoles } = storeToRefs(globalStore)
+
 const isTeamMode = computed(() => props.type === 'team')
-const isProjectMode = computed(() => props.type === 'project')
+
+const curRoles = computed(() => isTeamMode.value ? teamRoles.value : projectRoles.value)
 
 const teamMember = computed(() => props.member as TeamMember)
 
-const { user } = useUserStore()
-
-const isMe = computed(() => props.member.user.id === user!.id)
+const isMe = computed(() => props.member.user.id === user.value?.id)
 
 const isTeamOwner = computed(() => isTeamMode.value && props.isOwner)
 
 const isUpdatingRole = ref(false)
 
-/** 获取角色显示名称 */
-function getRoleDisplayName(roleName: RoleName) {
-  const role = props.roles.find(r => r.name === roleName)
-  if (role?.description)
-    return role.description
-  return ROLE_DISPLAY_MAP[roleName] ?? roleName
-}
-
-/** 获取角色徽章样式 */
-function getRoleBadgeVariant(roleName: string): 'default' | 'secondary' | 'outline' {
-  // 最高权限角色
+function getRoleBadgeVariant(roleName: string) {
   if (roleName === ROLE_NAME.TEAM_OWNER || roleName === ROLE_NAME.PROJECT_ADMIN)
     return 'default'
-  // 次高权限角色
   if (roleName === ROLE_NAME.TEAM_ADMIN || roleName === ROLE_NAME.PROJECT_EDITOR)
     return 'secondary'
   return 'outline'
 }
 
-/** 获取可选角色列表（排除 Owner 角色，Owner 不可被分配） */
+/** 获取可选角色列表（排除 Owner） */
 const selectableRoles = computed(() =>
-  props.roles.filter(r => r.name !== ROLE_NAME.TEAM_OWNER),
+  curRoles.value.filter(r => r.name !== ROLE_NAME.TEAM_OWNER),
 )
-
-/** 更新 Project 成员角色 */
-async function updateProjectRole(memberId: string, newRoleId: string) {
-  if (!isProjectMode.value)
-    return
-
-  isUpdatingRole.value = true
-  try {
-    const updatedMember = await projectApi.updateProjectMember(
-      props.projectId!,
-      memberId,
-      { roleId: newRoleId },
-    )
-
-    emits('updateMember', updatedMember)
-
-    toast.success('角色已更新')
-  }
-  finally {
-    isUpdatingRole.value = false
-  }
-}
-
-/** 更新 Team 成员角色 */
-async function updateTeamRole(memberId: string, newRoleId: string) {
-  if (!isTeamMode.value)
-    return
-
-  isUpdatingRole.value = true
-  try {
-    const updatedMember = await teamApi.updateTeamMember(
-      props.teamId!,
-      memberId,
-      { roleId: newRoleId },
-    )
-
-    emits('updateMember', updatedMember)
-
-    toast.success('角色已更新')
-  }
-  finally {
-    isUpdatingRole.value = false
-  }
-}
 
 /** 处理角色更新 */
 async function handleUpdateRole(newRoleId: string) {
   if (props.member.role.id === newRoleId)
     return
 
-  if (isProjectMode.value) {
-    await updateProjectRole(props.member.id, newRoleId)
+  isUpdatingRole.value = true
+  try {
+    let updatedMember: TeamMember | ProjectMember
+    if (isTeamMode.value) {
+      updatedMember = await teamApi.updateTeamMember(
+        props.teamId!,
+        props.member.id,
+        { roleId: newRoleId },
+      )
+    }
+    else {
+      updatedMember = await projectApi.updateProjectMember(
+        props.projectId!,
+        props.member.id,
+        { roleId: newRoleId },
+      )
+    }
+    emits('updateMember', updatedMember)
+    toast.success('角色已更新')
   }
-  else if (isTeamMode.value) {
-    await updateTeamRole(props.member.id, newRoleId)
+  catch (error) {
+    console.error('更新角色失败', error)
+    toast.error('更新角色失败，请重试')
+  }
+  finally {
+    isUpdatingRole.value = false
   }
 }
 </script>
@@ -159,7 +129,7 @@ async function handleUpdateRole(newRoleId: string) {
         </span>
         <Badge :variant="getRoleBadgeVariant(member.role.name)" class="shrink-0">
           <Crown v-if="isTeamOwner" class="h-3 w-3 mr-1" />
-          {{ getRoleDisplayName(member.role.name) }}
+          {{ ROLE_DISPLAY_MAP[member.role.name] }}
         </Badge>
       </div>
       <p class="text-sm text-muted-foreground truncate">

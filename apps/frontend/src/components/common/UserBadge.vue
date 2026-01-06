@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { getAbbreviation } from '@/lib/utils'
 
-const props = defineProps<{
+defineProps<{
   user: UserBriefInfo
   disabled?: boolean
 }>()
@@ -13,10 +13,6 @@ const props = defineProps<{
 const emits = defineEmits<{
   (e: 'removeUser', userId: string): void
 }>()
-
-function removeUser() {
-  emits('removeUser', props.user.id)
-}
 </script>
 
 <template>
@@ -35,7 +31,7 @@ function removeUser() {
       type="button"
       class="rounded-sm hover:bg-muted p-0.5 transition-colors"
       :disabled="disabled"
-      @click="removeUser"
+      @click="emits('removeUser', user.id)"
     >
       <X class="h-3 w-3" />
     </button>

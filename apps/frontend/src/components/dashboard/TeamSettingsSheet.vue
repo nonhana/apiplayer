@@ -27,6 +27,8 @@ const props = defineProps<{
   team: TeamItem
 }>()
 
+type TabType = 'info' | 'members'
+
 const isOpen = defineModel<boolean>('open', { required: true })
 
 /** 当前用户是否为管理员（owner 或 admin） */
@@ -40,8 +42,7 @@ const isOwner = computed(() =>
   props.team.currentUserRole?.name === ROLE_NAME.TEAM_OWNER,
 )
 
-// Tab 状态
-const activeTab = ref('info')
+const activeTab = ref<TabType>('info')
 
 watch(isOpen, (open) => {
   if (open) {
@@ -87,7 +88,6 @@ watch(isOpen, (open) => {
           </TabsTrigger>
         </TabsList>
 
-        <!-- 基本信息 Tab -->
         <TeamBasicInfoTab
           :team="team"
           :is-admin="isAdmin"
@@ -95,7 +95,6 @@ watch(isOpen, (open) => {
           @deleted="isOpen = false"
         />
 
-        <!-- 成员管理 Tab -->
         <TeamMemberTab
           :team="team"
           :is-admin="isAdmin"

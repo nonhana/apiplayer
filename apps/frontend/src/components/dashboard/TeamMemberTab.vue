@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { RoleItem } from '@/types/role'
 import type { TeamItem, TeamMember } from '@/types/team'
 import {
   Loader2,
@@ -8,7 +7,6 @@ import {
 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
-import { roleApi } from '@/api/role'
 import { teamApi } from '@/api/team'
 import {
   AlertDialog,
@@ -26,7 +24,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TabsContent } from '@/components/ui/tabs'
 import { useTeamStore } from '@/stores/useTeamStore'
-import InviteMemberDialog from './InviteMemberDialog.vue'
+import InviteMemberDialog from './dialogs/InviteMemberDialog.vue'
 import MemberItem from './MemberItem.vue'
 
 const props = defineProps<{
@@ -37,25 +35,18 @@ const props = defineProps<{
 
 const teamStore = useTeamStore()
 
-// 成员管理状态
 const members = ref<TeamMember[]>([])
 const isLoadingMembers = ref(false)
 const memberSearchQuery = ref('')
-const teamRoles = ref<RoleItem[]>([])
-const isLoadingRoles = ref(false)
 
-// 邀请成员对话框
 const isInviteDialogOpen = ref(false)
 
-// 删除成员确认
 const isDeleteMemberDialogOpen = ref(false)
 const memberToDelete = ref<TeamMember | null>(null)
 const isDeletingMember = ref(false)
 
-/** 已有成员的用户 ID 列表 */
 const existingMemberIds = computed(() => members.value.map(m => m.user.id))
 
-/** 过滤后的成员列表 */
 const filteredMembers = computed(() => {
   if (!memberSearchQuery.value)
     return members.value
@@ -68,41 +59,28 @@ const filteredMembers = computed(() => {
   )
 })
 
-/** 获取团队角色列表 */
-async function fetchTeamRoles() {
-  isLoadingRoles.value = true
-  try {
-    const response = await roleApi.getRoles({ type: 'TEAM' })
-    teamRoles.value = response.roles
-  }
-  finally {
-    isLoadingRoles.value = false
-  }
-}
-
-/** 获取团队成员列表 */
 async function fetchMembers() {
   isLoadingMembers.value = true
   try {
     members.value = await teamApi.getAllTeamMembers(props.team.id)
+  }
+  catch (error) {
+    console.error('获取团队成员失败', error)
   }
   finally {
     isLoadingMembers.value = false
   }
 }
 
-/** 更新成员 */
 function handleUpdateMember(member: TeamMember) {
   members.value = members.value.map(m => m.id === member.id ? member : m)
 }
 
-/** 打开删除成员确认 */
 function handleDeleteMember(member: TeamMember) {
   memberToDelete.value = member
   isDeleteMemberDialogOpen.value = true
 }
 
-/** 确认删除成员 */
 async function confirmDeleteMember() {
   if (!memberToDelete.value)
     return
@@ -123,12 +101,14 @@ async function confirmDeleteMember() {
     isDeleteMemberDialogOpen.value = false
     memberToDelete.value = null
   }
+  catch (error) {
+    console.error('删除成员失败', error)
+  }
   finally {
     isDeletingMember.value = false
   }
 }
 
-/** 成员邀请成功 */
 function handleMembersInvited(newMembers: TeamMember[]) {
   members.value.push(...newMembers)
 
@@ -138,19 +118,14 @@ function handleMembersInvited(newMembers: TeamMember[]) {
   })
 }
 
-watch(() => props.team, async () => {
-  await Promise.all([
-    fetchTeamRoles(),
-    fetchMembers(),
-  ])
+watch(() => props.team, () => {
+  fetchMembers()
   memberSearchQuery.value = ''
 }, { immediate: true })
 </script>
 
 <template>
-  <!-- 成员管理 Tab -->
   <TabsContent value="members" force-mount class="flex-1 flex flex-col overflow-hidden px-6 py-4 data-[state=inactive]:hidden">
-    <!-- 搜索和邀请 -->
     <div class="flex items-center gap-2 mb-4">
       <div class="relative flex-1">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -170,9 +145,7 @@ watch(() => props.team, async () => {
       </Button>
     </div>
 
-    <!-- 成员列表 -->
     <ScrollArea class="flex-1 -mx-6 px-6">
-      <!-- 加载状态 -->
       <div v-if="isLoadingMembers" class="space-y-3">
         <div v-for="i in 5" :key="i" class="flex items-center gap-3 p-3 rounded-lg">
           <Skeleton class="h-10 w-10 rounded-full" />
@@ -184,7 +157,6 @@ watch(() => props.team, async () => {
         </div>
       </div>
 
-      <!-- 成员列表 -->
       <div v-else class="space-y-2">
         <MemberItem
           v-for="member in filteredMembers"
@@ -192,14 +164,12 @@ watch(() => props.team, async () => {
           type="team"
           :team-id="team.id"
           :member="member"
-          :roles="teamRoles"
           :is-admin="isAdmin"
           :is-owner="isOwner"
           @update-member="handleUpdateMember"
           @delete-member="handleDeleteMember"
         />
 
-        <!-- 空状态 -->
         <div
           v-if="filteredMembers.length === 0 && !isLoadingMembers"
           class="py-8 text-center text-muted-foreground"
@@ -209,12 +179,10 @@ watch(() => props.team, async () => {
       </div>
     </ScrollArea>
 
-    <!-- 成员统计 -->
     <div class="text-xs text-muted-foreground text-center pt-4 border-t mt-4">
       共 {{ members.length }} 名成员
     </div>
 
-    <!-- 邀请成员对话框 -->
     <InviteMemberDialog
       v-model:open="isInviteDialogOpen"
       type="team"
@@ -224,7 +192,6 @@ watch(() => props.team, async () => {
       @invited="handleMembersInvited"
     />
 
-    <!-- 删除成员确认 -->
     <AlertDialog v-model:open="isDeleteMemberDialogOpen">
       <AlertDialogContent>
         <AlertDialogHeader>

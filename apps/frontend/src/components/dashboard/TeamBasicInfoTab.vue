@@ -24,7 +24,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { getAbbreviation } from '@/lib/utils'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { updateTeamFormSchema } from '@/validators/team'
-import DeleteTeamDialog from './DeleteTeamDialog.vue'
+import DeleteTeamDialog from './dialogs/DeleteTeamDialog.vue'
 
 const props = defineProps<{
   team: TeamItem

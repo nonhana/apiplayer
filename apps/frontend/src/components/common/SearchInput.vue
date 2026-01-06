@@ -12,8 +12,6 @@ import {
 import Input from '@/components/ui/input/Input.vue'
 
 const props = withDefaults(defineProps<{
-  /** 当前值 */
-  modelValue: string
   /** 选项列表 */
   options: Option[]
   /** 占位符 */
@@ -27,69 +25,52 @@ const props = withDefaults(defineProps<{
   disabled: false,
 })
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string | number): void
-}>()
+const bindValue = defineModel<string | number>({ required: true })
 
-/** 下拉框是否打开 */
 const open = ref(false)
+const keyword = ref('')
 
-/** 搜索关键词（用于过滤选项列表） */
-const searchTerm = ref('')
-
-/** 根据 value 找到对应的 label 用于显示 */
-function getDisplayLabel(value: string): string {
-  const option = props.options.find(opt => String(opt.value) === String(value))
-  return option ? option.label : value
+function getDisplayLabel(val: string | number) {
+  const option = props.options.find(opt => opt.value === val)
+  return option ? option.label : String(val)
 }
 
-/** 同步外部值到搜索框（显示 label 而非 value） */
+// 同步外部值到搜索框，显示 label
 watch(
-  [() => props.modelValue, () => props.options],
-  ([newValue]) => {
-    // 如果当前没有在输入状态，则根据 value 找到对应的 label 显示
+  [bindValue, () => props.options],
+  ([newV]) => {
     if (!open.value) {
-      searchTerm.value = getDisplayLabel(newValue)
+      keyword.value = getDisplayLabel(newV)
     }
   },
   { immediate: true },
 )
 
-/** 过滤后的选项列表 */
 const filteredOptions = computed(() => {
-  const term = searchTerm.value.toLowerCase()
+  const term = keyword.value.toLowerCase()
   if (!term)
     return props.options
   return props.options.filter(s => s.label.toLowerCase().includes(term))
 })
 
-/** 处理输入变化 */
 function handleInputChange(event: Event) {
   const target = event.target as HTMLInputElement
-  searchTerm.value = target.value
-  emit('update:modelValue', target.value)
+  keyword.value = target.value
+  bindValue.value = target.value
 }
 
-/** 类型守卫，验证 item 是否为 Option */
-function isOption(item: unknown): item is Option {
-  return typeof item === 'object' && item !== null && 'label' in item && 'value' in item
+function handleSelect(item: Option) {
+  keyword.value = item.label
+  bindValue.value = item.value
+  open.value = false
 }
 
-/** 处理选择选项项 */
-function handleSelect(item: unknown) {
-  if (isOption(item)) {
-    searchTerm.value = item.label
-    emit('update:modelValue', item.value)
-    open.value = false
-  }
-}
-
-/** 处理失焦：恢复显示当前 modelValue 对应的 label */
+// 失焦时，恢复显示当前 bindValue 对应的 label
 function handleBlur() {
-  // 延迟执行，确保 select 事件先触发
+  // 确保先触发 select
   setTimeout(() => {
     if (!open.value) {
-      searchTerm.value = getDisplayLabel(props.modelValue)
+      keyword.value = getDisplayLabel(bindValue.value)
     }
   }, 150)
 }
@@ -100,7 +81,7 @@ function handleBlur() {
     v-model:open="open"
     :model-value="modelValue"
     :disabled="disabled"
-    @update:model-value="handleSelect"
+    @update:model-value="handleSelect($event as Option)"
   >
     <ComboboxAnchor as-child>
       <ComboboxInput
@@ -108,7 +89,7 @@ function handleBlur() {
         @input="handleInputChange"
       >
         <Input
-          :model-value="searchTerm"
+          :model-value="keyword"
           :placeholder="placeholder"
           :disabled="disabled"
           @focus="open = true"
@@ -119,7 +100,7 @@ function handleBlur() {
 
     <ComboboxList
       v-if="open && filteredOptions.length > 0"
-      class="max-h-[200px] overflow-y-auto p-1"
+      class="max-h-50 overflow-y-auto p-1"
     >
       <ComboboxEmpty class="py-2 text-center text-sm text-muted-foreground">
         无匹配结果

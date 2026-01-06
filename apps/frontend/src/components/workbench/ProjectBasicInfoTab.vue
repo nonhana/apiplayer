@@ -8,7 +8,7 @@ import { toast } from 'vue-sonner'
 import { projectApi } from '@/api/project'
 import { utilApi } from '@/api/util'
 import ImageCropper from '@/components/common/ImageCropper.vue'
-import DeleteProjectDialog from '@/components/dashboard/DeleteProjectDialog.vue'
+import DeleteProjectDialog from '@/components/dashboard/dialogs/DeleteProjectDialog.vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {

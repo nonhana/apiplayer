@@ -9,7 +9,7 @@ import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { projectApi } from '@/api/project'
-import InviteMemberDialog from '@/components/dashboard/InviteMemberDialog.vue'
+import InviteMemberDialog from '@/components/dashboard/dialogs/InviteMemberDialog.vue'
 import MemberItem from '@/components/dashboard/MemberItem.vue'
 import {
   AlertDialog,
@@ -25,7 +25,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TabsContent } from '@/components/ui/tabs'
-import { useGlobalStore } from '@/stores/useGlobalStore'
 import { useProjectStore } from '@/stores/useProjectStore'
 
 const props = defineProps<{
@@ -33,10 +32,8 @@ const props = defineProps<{
   isAdmin: boolean
 }>()
 
-const globalStore = useGlobalStore()
 const projectStore = useProjectStore()
 
-const { projectRoles } = storeToRefs(globalStore)
 const { projectMembers: members } = storeToRefs(projectStore)
 
 // 成员管理状态
@@ -146,7 +143,6 @@ watch(() => props.project, async () => {
           type="project"
           :project-id="project.id"
           :member="member"
-          :roles="projectRoles"
           :is-admin="isAdmin"
           @update-member="handleUpdateMember"
           @delete-member="handleDeleteMember"

@@ -64,10 +64,8 @@ function normalizeToArray(val: ModelValue): UserBriefInfo[] {
   return Array.isArray(val) ? val : [val]
 }
 
-/** 当前选中的用户列表 */
 const selectedUsers = computed<UserBriefInfo[]>(() => normalizeToArray(modelValue.value))
 
-/** Combobox 内部绑定值 */
 const internalSelected = computed<ModelValue>({
   get: () => props.multiple ? selectedUsers.value : selectedUsers.value[0],
   set: (newV) => {
@@ -93,7 +91,6 @@ const localSearchResults = computed(() => {
   )
 })
 
-/** 过滤掉已排除的用户和已选择的用户 */
 const filteredResults = computed(() => {
   const excludeIds = new Set([
     ...(props.excludeIds ?? []),
@@ -103,7 +100,6 @@ const filteredResults = computed(() => {
   return results.filter(user => !excludeIds.has(user.id))
 })
 
-/** 搜索用户 */
 async function searchUsers(query?: string) {
   isSearching.value = true
   try {
@@ -112,6 +108,9 @@ async function searchUsers(query?: string) {
       limit: 100,
     })
     searchResults.value = res.users
+  }
+  catch (error) {
+    console.error('搜索用户失败', error)
   }
   finally {
     isSearching.value = false
@@ -134,7 +133,6 @@ watch(searchQuery, (query) => {
   }
 })
 
-/** 移除已经选择的用户 */
 function removeSelectedUser(userId: string) {
   const filtered = selectedUsers.value.filter(u => u.id !== userId)
   modelValue.value = props.multiple ? filtered : undefined
@@ -160,7 +158,6 @@ watch(selectedUsers, (users) => {
       />
     </div>
 
-    <!-- Combobox 搜索选择器 -->
     <Combobox
       v-model="internalSelected"
       v-model:open="isOpen"
@@ -200,7 +197,6 @@ watch(selectedUsers, (users) => {
         :side-offset="4"
       >
         <ComboboxViewport class="max-h-60">
-          <!-- 远程模式：搜索中状态 -->
           <div v-if="!isLocalMode && isSearching && filteredResults.length === 0" class="py-6 text-center">
             <Loader2 class="h-5 w-5 animate-spin mx-auto text-muted-foreground" />
             <p class="text-sm text-muted-foreground mt-2">
@@ -208,17 +204,14 @@ watch(selectedUsers, (users) => {
             </p>
           </div>
 
-          <!-- 远程模式：未输入搜索词 -->
           <ComboboxEmpty v-else-if="!isLocalMode && !searchQuery?.trim()">
             输入关键词搜索用户
           </ComboboxEmpty>
 
-          <!-- 无结果状态 -->
           <ComboboxEmpty v-else-if="filteredResults.length === 0">
             {{ emptyText ?? '未找到匹配的用户' }}
           </ComboboxEmpty>
 
-          <!-- 搜索结果列表 -->
           <template v-else>
             <ComboboxItem
               v-for="user in filteredResults"

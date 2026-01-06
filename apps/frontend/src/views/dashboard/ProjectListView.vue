@@ -1,13 +1,12 @@
 <script lang="ts" setup>
-import type { ProjectFormMode } from '@/components/dashboard/ProjectFormDialog.vue'
 import type { ProjectVisibility } from '@/constants'
 import type { ProjectItem } from '@/types/project'
 import { FolderKanban, Inbox, Plus, RefreshCw, Search } from 'lucide-vue-next'
 import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
 import { projectApi } from '@/api/project'
-import DeleteProjectDialog from '@/components/dashboard/DeleteProjectDialog.vue'
+import DeleteProjectDialog from '@/components/dashboard/dialogs/DeleteProjectDialog.vue'
+import ProjectFormDialog from '@/components/dashboard/dialogs/ProjectFormDialog.vue'
 import ProjectCard from '@/components/dashboard/ProjectCard.vue'
-import ProjectFormDialog from '@/components/dashboard/ProjectFormDialog.vue'
 import RecentProjects from '@/components/dashboard/RecentProjects.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,7 +31,7 @@ const visibilityFilter = ref<ProjectVisibility>('all')
 
 // 对话框状态
 const isProjectFormDialogOpen = ref(false)
-const projectFormMode = ref<ProjectFormMode>('create')
+const projectFormMode = ref<'create' | 'edit'>('create')
 const isDeleteProjectDialogOpen = ref(false)
 
 // 当前操作的项目

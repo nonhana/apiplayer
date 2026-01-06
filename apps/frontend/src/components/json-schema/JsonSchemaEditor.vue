@@ -54,22 +54,16 @@ function pathToArr(path: string): string[] {
   return path.split('.').filter(Boolean)
 }
 
-/**
- * 处理添加节点事件
- * 只有 object 类型的节点才能添加子节点
- */
 function handleAddNode({ newNode, path }: { newNode: LocalSchemaNode, path: string }) {
   root.value.schemaChanged = true
   const pathArr = pathToArr(path)
   const node = getPathNode(root.value, pathArr)
 
-  // 验证目标节点存在且为 object 类型
   if (!node || node.type !== 'object') {
     console.warn('[JsonSchemaEditor] 添加节点失败：目标节点不存在或不是 object 类型', { path })
     return
   }
 
-  // 确保 children 数组存在
   if (!Array.isArray(node.children)) {
     node.children = []
   }
@@ -78,10 +72,6 @@ function handleAddNode({ newNode, path }: { newNode: LocalSchemaNode, path: stri
   setIsDirty(true)
 }
 
-/**
- * 处理更新节点事件
- * 支持更新节点的任意属性
- */
 function handleUpdateNode({ patch, path }: { patch: { key: string, value: unknown }, path: string }) {
   if (patch.key !== 'description' && patch.key !== 'example') {
     root.value.schemaChanged = true
@@ -95,20 +85,14 @@ function handleUpdateNode({ patch, path }: { patch: { key: string, value: unknow
     return
   }
 
-  // 类型安全地更新属性
   ;(node as unknown as Record<string, unknown>)[patch.key] = patch.value
   setIsDirty(true)
 }
 
-/**
- * 处理删除节点事件
- * 根节点和数组项节点不可删除
- */
 function handleDeleteNode({ path }: { path: string }) {
   root.value.schemaChanged = true
   const pathArr = pathToArr(path)
 
-  // 不能删除根节点
   if (pathArr.length === 0) {
     console.warn('[JsonSchemaEditor] 删除节点失败：不能删除根节点')
     return
@@ -119,7 +103,6 @@ function handleDeleteNode({ path }: { path: string }) {
 
   const parentNode = getPathNode(root.value, parentPath)
 
-  // 验证父节点存在且有 children
   if (!parentNode || parentNode.type !== 'object' || !Array.isArray(parentNode.children)) {
     console.warn('[JsonSchemaEditor] 删除节点失败：父节点不存在或无法删除子节点', { path })
     return

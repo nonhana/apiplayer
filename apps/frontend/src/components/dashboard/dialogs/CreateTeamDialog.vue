@@ -43,7 +43,6 @@ const { handleSubmit, resetForm, setFieldValue, values } = useForm({
   },
 })
 
-/** 根据名称自动生成 slug */
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
@@ -54,17 +53,15 @@ function generateSlug(name: string): string {
     .replace(/^-|-$/g, '')
 }
 
-/** 监听名称变化，自动生成 slug */
 watch(
   () => values.name,
-  (newName) => {
-    if (newName) {
-      setFieldValue('slug', generateSlug(newName))
+  (newV) => {
+    if (newV) {
+      setFieldValue('slug', generateSlug(newV))
     }
   },
 )
 
-/** 提交创建团队 */
 const onSubmit = handleSubmit(async (formValues) => {
   isSubmitting.value = true
   try {
@@ -102,7 +99,6 @@ const onSubmit = handleSubmit(async (formValues) => {
   }
 })
 
-/** 关闭时重置表单 */
 watch(isOpen, (open) => {
   if (!open) {
     resetForm()
@@ -112,7 +108,7 @@ watch(isOpen, (open) => {
 
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-[425px]">
+    <DialogContent class="sm:max-w-120">
       <DialogHeader>
         <DialogTitle>创建团队</DialogTitle>
         <DialogDescription>

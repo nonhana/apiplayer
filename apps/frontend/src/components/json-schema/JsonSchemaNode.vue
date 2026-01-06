@@ -43,7 +43,6 @@ const emits = defineEmits<{
   (e: 'deleteNode', value: { path: string }): void
 }>()
 
-/** 是否展开（默认展开） */
 const isExpanded = ref(true)
 
 const currentDepth = computed(() => props.depth ?? 0)
@@ -55,30 +54,24 @@ const currentPath = computed(() => {
   return `${props.path}.${props.node.id}`
 })
 
-/** 父节点路径（用于添加相邻节点） */
+/** 父节点路径 */
 const parentPath = computed(() => props.path || '')
 
-/** 是否显示空 children 提示 */
 const showEmptyChildren = computed(() =>
   props.node.type === 'object'
   && (!props.node.children || props.node.children.length === 0),
 )
 
-/** 是否可以删除（根节点和数组项节点不可删除） */
 const canDelete = computed(() => !props.node.isRoot && !props.node.isArrayItem)
 
-/** 是否可以添加相邻节点（根节点和数组项节点不可添加） */
 const canAddSibling = computed(() => !props.node.isRoot && !props.node.isArrayItem)
 
-/** 是否可以添加子节点（object 类型） */
 const canAddChild = computed(() => props.node.type === 'object')
 
-/** 是否可以折叠（object 或 array 类型） */
 const isCollapsible = computed(() =>
   props.node.type === 'object' || props.node.type === 'array',
 )
 
-/** 是否有子内容可以折叠 */
 const hasCollapsibleContent = computed(() => {
   if (props.node.type === 'object') {
     return props.node.children && props.node.children.length > 0
@@ -89,7 +82,6 @@ const hasCollapsibleContent = computed(() => {
   return false
 })
 
-/** 添加相邻节点（在父节点的 children 中添加） */
 function addSiblingNode() {
   emits('addNode', {
     newNode: genNewNode(),
@@ -97,7 +89,6 @@ function addSiblingNode() {
   })
 }
 
-/** 添加子节点（在当前节点的 children 中添加） */
 function addChildNode() {
   emits('addNode', {
     newNode: genNewNode(),
@@ -105,12 +96,10 @@ function addChildNode() {
   })
 }
 
-/** 删除当前节点 */
 function deleteNode() {
   emits('deleteNode', { path: currentPath.value })
 }
 
-/** 更新当前节点属性 */
 function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaNode[K]) {
   // 类型切换时需要进行特殊处理
   if (key === 'type') {
@@ -154,12 +143,10 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
 
 <template>
   <Collapsible v-model:open="isExpanded" :disabled="!isCollapsible">
-    <!-- 当前节点行 -->
     <div
       class="flex items-center gap-2 px-2 py-2 hover:bg-muted/30 transition-colors group"
       :style="{ paddingLeft: `${currentDepth * 16 + 8}px` }"
     >
-      <!-- 展开/折叠指示器 -->
       <div class="w-4 shrink-0">
         <CollapsibleTrigger
           v-if="isCollapsible"
@@ -181,7 +168,6 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
         </CollapsibleTrigger>
       </div>
 
-      <!-- 字段名 -->
       <span v-if="node.isRoot" class="min-w-30 flex-1"><Code>根节点</Code></span>
       <span v-else-if="node.isArrayItem" class="min-w-30 flex-1"><Code>ITEMS</Code></span>
       <div v-else class="h-8 text-sm font-mono flex-1">
@@ -193,13 +179,12 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
         />
       </div>
 
-      <!-- 类型 -->
       <Select
         :model-value="node.type"
         @update:model-value="updateNode('type', $event as SchemaFieldType)"
       >
         <SelectTrigger
-          class="h-8 w-[100px] text-xs"
+          class="h-8 w-25 text-xs"
           :class="{ 'text-violet-500 dark:text-violet-400': node.isArrayItem }"
         >
           <SelectValue>
@@ -217,8 +202,7 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
         </SelectContent>
       </Select>
 
-      <!-- 必填（Array Item 不显示必填选项） -->
-      <div class="w-[50px] flex justify-center">
+      <div class="w-12.5 flex justify-center">
         <Checkbox
           v-if="!node.isArrayItem"
           :model-value="node.required"
@@ -227,17 +211,14 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
         />
       </div>
 
-      <!-- 说明 -->
       <Input
         :model-value="node.description"
         placeholder="说明"
-        class="h-8 text-sm min-w-[120px]"
+        class="h-8 text-sm min-w-30"
         @update:model-value="updateNode('description', String($event))"
       />
 
-      <!-- 操作按钮 -->
       <div class="flex items-center gap-1 justify-end">
-        <!-- 添加相邻节点 -->
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
@@ -257,7 +238,6 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
           </Tooltip>
         </TooltipProvider>
 
-        <!-- 添加子节点（仅 object 类型） -->
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
@@ -277,7 +257,6 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
           </Tooltip>
         </TooltipProvider>
 
-        <!-- 删除节点 -->
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
@@ -299,11 +278,8 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
       </div>
     </div>
 
-    <!-- 可折叠的子内容 -->
     <CollapsibleContent>
-      <!-- Object 子节点（递归渲染） -->
       <template v-if="node.type === 'object'">
-        <!-- 空 children 提示 -->
         <div
           v-if="showEmptyChildren"
           class="px-4 py-3 text-sm text-muted-foreground bg-muted/20"
@@ -312,7 +288,6 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
           当前 object 尚未包含字段，点击 + 添加
         </div>
 
-        <!-- 子节点列表 -->
         <template v-else>
           <JsonSchemaNode
             v-for="item in node.children"
@@ -327,7 +302,6 @@ function updateNode<K extends keyof LocalSchemaNode>(key: K, value: LocalSchemaN
         </template>
       </template>
 
-      <!-- Array Item 节点（递归渲染） -->
       <template v-else-if="node.type === 'array' && node.item">
         <JsonSchemaNode
           :node="node.item"

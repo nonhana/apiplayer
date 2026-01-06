@@ -37,7 +37,6 @@ const teamStore = useTeamStore()
       <Users class="h-3 w-3" />
       <span>{{ team.memberCount }}</span>
     </div>
-    <!-- 设置按钮 -->
     <Button
       variant="ghost"
       size="icon"

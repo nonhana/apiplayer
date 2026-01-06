@@ -32,18 +32,14 @@ const teamStore = useTeamStore()
 const confirmText = ref('')
 const isDeleting = ref(false)
 
-/** 需要输入的确认文本 */
 const requiredConfirmText = computed(() => props.team?.name ?? '')
 
-/** 是否可以删除 */
 const canDelete = computed(() =>
   confirmText.value === requiredConfirmText.value && !isDeleting.value,
 )
 
-/** 团队是否包含项目 */
 const hasProjects = computed(() => (props.team?.projectCount ?? 0) > 0)
 
-/** 删除团队 */
 async function handleDelete() {
   if (!props.team || !canDelete.value)
     return
@@ -62,14 +58,17 @@ async function handleDelete() {
     emits('deleted', props.team.id)
     isOpen.value = false
   }
+  catch (error) {
+    console.error('删除团队失败', error)
+    toast.error('删除团队失败，请重试')
+  }
   finally {
     isDeleting.value = false
   }
 }
 
-/** 关闭时重置 */
-watch(isOpen, (open) => {
-  if (!open) {
+watch(isOpen, (newV) => {
+  if (!newV) {
     confirmText.value = ''
   }
 })
@@ -88,7 +87,6 @@ watch(isOpen, (open) => {
             您确定要删除团队 <span class="font-semibold text-foreground">{{ team?.name }}</span> 吗？
           </p>
 
-          <!-- 包含项目的警告 -->
           <div
             v-if="hasProjects"
             class="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm"

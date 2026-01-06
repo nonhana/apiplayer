@@ -40,16 +40,13 @@ const emits = defineEmits<{
 
 const router = useRouter()
 
-/** 相对时间 */
 const relativeUpdatedAt = computed(() => dayjs(props.project.updatedAt).fromNow())
 
-/** 是否有管理权限 */
 const canManage = computed(() => {
   const roleName = props.project.currentUserRole?.name
   return roleName === 'project:admin' || roleName === 'project:editor'
 })
 
-/** 进入项目工作台 */
 function handleEnterProject() {
   router.push({ name: 'Workbench', params: { projectId: props.project.id } })
 }

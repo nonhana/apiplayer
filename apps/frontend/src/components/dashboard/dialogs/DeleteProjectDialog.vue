@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { ProjectItem } from '@/types/project'
 import { Loader2, Trash2 } from 'lucide-vue-next'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { projectApi } from '@/api/project'
 import {
@@ -17,11 +17,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-interface Props {
+const props = defineProps<{
   project: ProjectItem | null
-}
-
-const props = defineProps<Props>()
+}>()
 
 const emits = defineEmits<{
   (e: 'deleted', projectId: string): void
@@ -32,12 +30,10 @@ const isOpen = defineModel<boolean>('open', { required: true })
 const confirmText = ref('')
 const isDeleting = ref(false)
 
-/** 是否可以删除 */
-const canDelete = () => confirmText.value === props.project?.name
+const canDelete = computed(() => confirmText.value === props.project?.name)
 
-/** 确认删除 */
 async function handleDelete() {
-  if (!props.project || !canDelete()) {
+  if (!props.project || !canDelete.value) {
     return
   }
 
@@ -49,6 +45,10 @@ async function handleDelete() {
     })
     emits('deleted', props.project.id)
     isOpen.value = false
+  }
+  catch (error) {
+    console.error('删除项目失败', error)
+    toast.error('删除项目失败，请重试')
   }
   finally {
     isDeleting.value = false
@@ -93,7 +93,7 @@ watch(isOpen, (open) => {
           取消
         </AlertDialogCancel>
         <AlertDialogAction
-          :disabled="!canDelete() || isDeleting"
+          :disabled="!canDelete || isDeleting"
           class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           @click.prevent="handleDelete"
         >

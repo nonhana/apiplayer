@@ -30,28 +30,22 @@ const userStore = useUserStore()
 
 const isOpen = ref(false)
 
-// 团队设置抽屉状态
 const isTeamSettingsOpen = ref(false)
 const selectedTeamForSettings = ref<TeamItem | null>(null)
 
-/** 当前团队显示名 */
 const currentTeamName = computed(() => teamStore.curTeam?.name ?? '选择团队')
-/** 当前团队的兜底 Icon */
 const currentTeamFallbackIcon = computed(() => getAbbreviation(teamStore.curTeam?.name ?? '', 'T'))
 
-/** 切换团队 */
 async function handleSelectTeam(teamId: string) {
   await teamStore.switchTeam(teamId)
   isOpen.value = false
 }
 
-/** 打开创建团队对话框 */
 function handleCreateTeam() {
   isOpen.value = false
   emits('createTeam')
 }
 
-/** 打开团队设置 */
 function handleOpenTeamSettings(team: TeamItem, event: Event) {
   event.stopPropagation()
   isOpen.value = false
@@ -59,11 +53,10 @@ function handleOpenTeamSettings(team: TeamItem, event: Event) {
   isTeamSettingsOpen.value = true
 }
 
-/** 页面加载时获取团队列表 */
 watch(
   () => teamStore.teams.length,
-  (length) => {
-    if (length === 0 && !teamStore.isLoading && userStore.isAuthenticated) {
+  (newV) => {
+    if (newV === 0 && !teamStore.isLoading && userStore.isAuthenticated) {
       teamStore.fetchTeams()
     }
   },
@@ -125,7 +118,6 @@ watch(
       </PopoverContent>
     </Popover>
 
-    <!-- 团队设置抽屉 -->
     <TeamSettingsSheet
       v-if="selectedTeamForSettings"
       v-model:open="isTeamSettingsOpen"

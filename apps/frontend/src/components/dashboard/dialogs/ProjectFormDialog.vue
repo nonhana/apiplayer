@@ -30,12 +30,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { projectFormSchema } from '@/validators/project'
 
-export type ProjectFormMode = 'create' | 'edit'
-
 const props = withDefaults(defineProps<{
-  /** 表单模式：create 或 edit */
-  mode?: ProjectFormMode
-  /** 编辑模式下的项目数据 */
+  mode?: 'create' | 'edit'
   project?: ProjectItem | null
 }>(), {
   mode: 'create',
@@ -51,13 +47,8 @@ const isOpen = defineModel<boolean>('open', { required: true })
 const teamStore = useTeamStore()
 const isSubmitting = ref(false)
 
-/** 是否为创建模式 */
 const isCreateMode = computed(() => props.mode === 'create')
-
-/** 对话框标题 */
 const dialogTitle = computed(() => isCreateMode.value ? '创建项目' : '编辑项目')
-
-/** 对话框描述 */
 const dialogDescription = computed(() => {
   if (isCreateMode.value) {
     return `在 ${teamStore.curTeam?.name ?? '当前团队'} 中创建一个新项目`
@@ -65,24 +56,19 @@ const dialogDescription = computed(() => {
   return `修改项目 ${props.project?.name ?? ''} 的基本信息`
 })
 
-/** 提交按钮文字 */
 const submitButtonText = computed(() => isCreateMode.value ? '创建项目' : '保存更改')
-
-/** 默认表单值 */
-const defaultValues: ProjectFormValues = {
-  name: '',
-  slug: '',
-  description: '',
-  icon: '',
-  isPublic: false,
-}
 
 const { handleSubmit, resetForm, setFieldValue, setValues, values } = useForm<ProjectFormValues>({
   validationSchema: projectFormSchema,
-  initialValues: { ...defaultValues },
+  initialValues: {
+    name: '',
+    slug: '',
+    description: '',
+    icon: '',
+    isPublic: false,
+  },
 })
 
-/** 根据名称自动生成 slug（仅创建模式） */
 function generateSlug(name: string): string {
   return name
     .toLowerCase()
@@ -96,9 +82,9 @@ function generateSlug(name: string): string {
 /** 监听名称变化，自动生成 slug（仅创建模式） */
 watch(
   () => values.name,
-  (newName) => {
-    if (isCreateMode.value && newName) {
-      setFieldValue('slug', generateSlug(newName))
+  (newV) => {
+    if (isCreateMode.value && newV) {
+      setFieldValue('slug', generateSlug(newV))
     }
   },
 )
@@ -106,14 +92,14 @@ watch(
 /** 编辑模式下，当项目变化时填充表单 */
 watch(
   () => props.project,
-  (project) => {
-    if (!isCreateMode.value && project) {
+  (newV) => {
+    if (!isCreateMode.value && newV) {
       setValues({
-        name: project.name,
-        slug: project.slug,
-        description: project.description ?? '',
-        icon: project.icon ?? '',
-        isPublic: project.isPublic,
+        name: newV.name,
+        slug: newV.slug,
+        description: newV.description ?? '',
+        icon: newV.icon ?? '',
+        isPublic: newV.isPublic,
       })
     }
   },
@@ -209,17 +195,16 @@ const onSubmit = handleSubmit(async (formValues) => {
   }
 })
 
-/** 关闭时重置表单 */
 watch(isOpen, (open) => {
   if (!open) {
-    resetForm({ values: { ...defaultValues } })
+    resetForm()
   }
 })
 </script>
 
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-[480px]">
+    <DialogContent class="sm:max-w-120">
       <DialogHeader>
         <DialogTitle>{{ dialogTitle }}</DialogTitle>
         <DialogDescription>
@@ -238,7 +223,6 @@ watch(isOpen, (open) => {
           </FormItem>
         </FormField>
 
-        <!-- 项目标识符（仅创建模式显示） -->
         <FormField v-if="isCreateMode" v-slot="{ componentField }" name="slug">
           <FormItem>
             <FormLabel>项目标识符 <span class="text-destructive">*</span></FormLabel>

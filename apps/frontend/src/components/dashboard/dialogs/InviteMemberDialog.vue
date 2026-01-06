@@ -29,12 +29,10 @@ import {
 } from '@/components/ui/select'
 import { ROLE_NAME } from '@/constants/roles'
 import { useGlobalStore } from '@/stores/useGlobalStore'
-import UserSearchSelect from './UserSearchSelect.vue'
+import UserSearchSelect from '../UserSearchSelect.vue'
 
-/** 邀请类型 */
 export type InviteType = 'team' | 'project'
 
-/** 通用的成员类型 */
 export type MemberResult = TeamMember | ProjectMember
 
 const props = defineProps<{
@@ -49,11 +47,11 @@ const emits = defineEmits<{
   (e: 'invited', members: MemberResult[]): void
 }>()
 
-const { teamRoles, projectRoles } = storeToRefs(useGlobalStore())
+const globalStore = useGlobalStore()
+const { teamRoles, projectRoles } = storeToRefs(globalStore)
 
 const isOpen = defineModel<boolean>('open', { required: true })
 
-// 是否为团队模式
 const isTeamMode = computed(() => props.type === 'team')
 
 const teamMemberOptions = ref<UserBriefInfo[]>([])
@@ -73,7 +71,6 @@ watchEffect(async () => {
   }
 })
 
-// 表单状态
 const selectedUsers = ref<UserBriefInfo[]>([])
 const selectedRoleId = ref('')
 const nickname = ref('')
@@ -97,7 +94,7 @@ const canSubmit = computed(() =>
   selectedUsers.value.length > 0 && selectedRoleId.value && !isSubmitting.value,
 )
 
-async function inviteTeamMembers(): Promise<TeamMember[]> {
+async function inviteTeamMembers() {
   return await teamApi.inviteTeamMembers(props.teamId!, {
     members: selectedUsers.value.map(user => ({
       userId: user.id,
@@ -147,7 +144,6 @@ function resetForm() {
   nickname.value = ''
 }
 
-// 关闭时重置表单
 watch(isOpen, open => !open && resetForm())
 </script>
 
@@ -177,7 +173,6 @@ watch(isOpen, open => !open && resetForm())
           />
         </div>
 
-        <!-- 角色选择 -->
         <div class="space-y-2">
           <Label class="text-sm font-medium leading-none">
             分配角色 <span class="text-destructive">*</span>
@@ -198,7 +193,6 @@ watch(isOpen, open => !open && resetForm())
           </Select>
         </div>
 
-        <!-- 团队内昵称（仅团队模式可用） -->
         <div v-if="isTeamMode" class="space-y-2">
           <Label class="text-sm font-medium leading-none">
             团队昵称

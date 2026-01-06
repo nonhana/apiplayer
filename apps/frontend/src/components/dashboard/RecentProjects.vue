@@ -29,21 +29,21 @@ const router = useRouter()
 const recentProjects = ref<RecentProjectItem[]>([])
 const isLoading = ref(true)
 
-const getRelativeLastVisitedAt = (date: string) => dayjs(date).fromNow()
+const getLastVisitedAt = (date: string) => dayjs(date).fromNow()
 
-/** 是否显示最近访问区域 */
 const hasRecentProjects = computed(() => recentProjects.value.length > 0)
 
-/** 进入项目 */
 function handleEnterProject(projectId: string) {
   router.push({ name: 'Workbench', params: { projectId } })
 }
 
-/** 获取最近访问的项目 */
 async function fetchRecentProjects() {
   isLoading.value = true
   try {
     recentProjects.value = await projectApi.getRecentProjects()
+  }
+  catch (error) {
+    console.error('获取最近访问项目错误', error)
   }
   finally {
     isLoading.value = false
@@ -75,7 +75,6 @@ defineExpose({
       </div>
     </CardHeader>
     <CardContent class="pt-0">
-      <!-- 加载状态 -->
       <ScrollArea v-if="isLoading" class="w-full">
         <div class="flex gap-3 pb-2">
           <div
@@ -96,7 +95,6 @@ defineExpose({
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
 
-      <!-- 项目列表 -->
       <ScrollArea v-else class="w-full">
         <div class="flex gap-3 pb-2">
           <TooltipProvider v-for="project in recentProjects" :key="project.id">
@@ -131,7 +129,7 @@ defineExpose({
                   </div>
                   <p class="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock class="h-3 w-3" />
-                    {{ getRelativeLastVisitedAt(project.lastVisitedAt) }}
+                    {{ getLastVisitedAt(project.lastVisitedAt) }}
                   </p>
 
                   <!-- Hover 时显示箭头 -->
