@@ -90,9 +90,9 @@ async function fetchVersions() {
     const res = await versionApi.getVersionList(props.projectId, props.apiId)
     versions.value = res.versions
   }
-  catch (err) {
-    loadError.value = `获取版本列表失败: ${err}`
-    console.error('Failed to fetch versions:', err)
+  catch (error) {
+    loadError.value = `获取版本列表失败: ${error}`
+    console.error('Failed to fetch versions:', error)
   }
   finally {
     isLoading.value = false
@@ -136,8 +136,8 @@ async function handlePublishVersion(version: ApiVersionBrief) {
     await fetchVersions()
     emits('versionChanged')
   }
-  catch (err) {
-    console.error('Failed to publish version:', err)
+  catch (error) {
+    console.error('Failed to publish version:', error)
   }
 }
 
@@ -148,8 +148,8 @@ async function handleArchiveVersion(version: ApiVersionBrief) {
     toast.success(`版本 v${version.version} 已归档`)
     await fetchVersions()
   }
-  catch (err) {
-    console.error('Failed to archive version:', err)
+  catch (error) {
+    console.error('Failed to archive version:', error)
   }
 }
 
@@ -176,8 +176,8 @@ async function handleConfirmRollback() {
     await fetchVersions()
     emits('versionChanged')
   }
-  catch (err) {
-    console.error('Failed to rollback version:', err)
+  catch (error) {
+    console.error('Failed to rollback version:', error)
   }
 }
 

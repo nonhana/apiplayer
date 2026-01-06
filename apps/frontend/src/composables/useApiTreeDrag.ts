@@ -244,6 +244,9 @@ export function useApiTreeDrag(
         await handleApiDrop()
       }
     }
+    catch (error) {
+      console.error('拖拽失败', error)
+    }
     finally {
       apiDragStore.endDrag()
     }

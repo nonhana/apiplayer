@@ -29,6 +29,9 @@ export const useTeamStore = defineStore('team', () => {
         curTeamId.value = teams.value[0].id
       }
     }
+    catch (error) {
+      console.error('获取团队成员失败', error)
+    }
     finally {
       isLoading.value = false
     }

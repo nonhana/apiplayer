@@ -29,22 +29,21 @@ const props = defineProps<{
   project: ProjectDetail
 }>()
 
+type TabType = 'info' | 'members' | 'environments'
+
 const isOpen = defineModel<boolean>('open', { required: true })
 
-/** 当前用户是否为管理员（project:admin） */
 const isAdmin = computed(() => {
   const roleName = props.project.currentUserRole?.name
   return roleName === ROLE_NAME.PROJECT_ADMIN
 })
 
-/** 当前用户是否可以编辑（project:admin 或 project:editor） */
 const canEdit = computed(() => {
   const roleName = props.project.currentUserRole?.name
   return roleName === ROLE_NAME.PROJECT_ADMIN || roleName === ROLE_NAME.PROJECT_EDITOR
 })
 
-// Tab 状态
-const activeTab = ref('info')
+const activeTab = ref<TabType>('info')
 
 watch(isOpen, (open) => {
   if (open) {
@@ -97,7 +96,6 @@ watch(isOpen, (open) => {
           </TabsTrigger>
         </TabsList>
 
-        <!-- 基本信息 Tab -->
         <ProjectBasicInfoTab
           :project="project"
           :is-admin="isAdmin"
@@ -105,13 +103,11 @@ watch(isOpen, (open) => {
           @deleted="isOpen = false"
         />
 
-        <!-- 成员管理 Tab -->
         <ProjectMemberTab
           :project="project"
           :is-admin="isAdmin"
         />
 
-        <!-- 环境管理 Tab -->
         <ProjectEnvTab
           :project="project"
           :can-edit="canEdit"

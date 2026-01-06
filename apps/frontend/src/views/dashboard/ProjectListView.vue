@@ -83,6 +83,9 @@ async function fetchProjects() {
   try {
     projects.value = await projectApi.getAllUserProjects()
   }
+  catch (error) {
+    console.error('获取用户项目列表失败', error)
+  }
   finally {
     isLoading.value = false
   }

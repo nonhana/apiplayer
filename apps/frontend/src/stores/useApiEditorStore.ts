@@ -449,9 +449,8 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
 
       return true
     }
-    catch (err) {
-      console.error('保存失败:', err)
-      toast.error('保存失败，请稍后重试')
+    catch (error) {
+      console.error('保存失败:', error)
       return false
     }
     finally {

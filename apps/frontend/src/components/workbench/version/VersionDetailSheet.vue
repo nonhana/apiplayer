@@ -117,9 +117,9 @@ async function fetchVersionDetail() {
     versionDetail.value = detail
     emits('update:versionData', detail)
   }
-  catch (err) {
-    loadError.value = `获取版本详情失败: ${err}`
-    console.error('Failed to fetch version detail:', err)
+  catch (error) {
+    loadError.value = `获取版本详情失败: ${error}`
+    console.error('Failed to fetch version detail:', error)
   }
   finally {
     isLoading.value = false

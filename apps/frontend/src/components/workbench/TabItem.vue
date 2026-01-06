@@ -22,7 +22,7 @@ import { methodColors } from '@/constants/api'
 import { cn } from '@/lib/utils'
 import { useTabStore } from '@/stores/useTabStore'
 
-/** 插入方向：left 插入到左侧，right 插入到右侧 */
+/** 插入方向 */
 type DropSide = 'left' | 'right'
 
 const props = defineProps<{
@@ -40,40 +40,28 @@ const tabStore = useTabStore()
 const apiId = useRouteParams<string>('apiId')
 const router = useRouter()
 
-/** Tab 元素引用 */
 const tabRef = useTemplateRef('tabRef')
 
-/** 是否正在拖拽 */
 const isDragging = ref(false)
-
-/** 是否被拖拽经过 */
 const isDragOver = ref(false)
-
-/** 拖拽经过时的方向（偏左还是偏右） */
 const dragOverSide = ref<DropSide | null>(null)
 
-/** 是否是当前激活的标签 */
 const isActive = computed(() => props.tab.id === tabStore.activeTabId)
 
-/** 是否有右侧标签 */
 const hasRightTabs = computed(() => {
   const index = tabStore.tabs.findIndex(t => t.id === props.tab.id)
   return index < tabStore.tabs.length - 1
 })
 
-/** 是否有左侧标签 */
 const hasLeftTabs = computed(() => {
   const index = tabStore.tabs.findIndex(t => t.id === props.tab.id)
   return index > 0
 })
 
-/** 是否有其他标签 */
 const hasOtherTabs = computed(() => tabStore.tabs.length > 1)
 
-/** 是否有已保存的标签 */
 const hasSavedTabs = computed(() => tabStore.tabs.some(t => !t.dirty))
 
-/** 复制路径到剪贴板 */
 async function copyPath() {
   if (props.tab.path) {
     await navigator.clipboard.writeText(props.tab.path)
@@ -138,7 +126,6 @@ function handleDrop(e: DragEvent) {
   dragOverSide.value = null
 }
 
-/** 阻止关闭按钮的事件冒泡 */
 function handleCloseClick(e: MouseEvent) {
   e.stopPropagation()
   tabStore.removeTab(props.tab.id)
@@ -180,7 +167,7 @@ function handleCloseClick(e: MouseEvent) {
           {{ tab.method }}
         </span>
 
-        <span class="text-xs truncate max-w-[120px]">
+        <span class="text-xs truncate max-w-30">
           {{ tab.title }}
         </span>
 

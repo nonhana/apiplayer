@@ -60,7 +60,6 @@ async function handleDelete() {
   }
   catch (error) {
     console.error('删除团队失败', error)
-    toast.error('删除团队失败，请重试')
   }
   finally {
     isDeleting.value = false

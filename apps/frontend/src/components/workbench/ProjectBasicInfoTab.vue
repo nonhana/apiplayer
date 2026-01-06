@@ -72,6 +72,9 @@ const onSubmit = handleSubmit(async (formValues) => {
 
     toast.success('项目信息已更新')
   }
+  catch (error) {
+    console.error('更新项目信息失败', error)
+  }
   finally {
     isUpdating.value = false
   }
@@ -88,7 +91,6 @@ async function handleCropped(result: File) {
   }
   catch (error) {
     console.error('图标更新失败', error)
-    toast.error('图标更新失败，请重试')
   }
   finally {
     isUploading.value = false

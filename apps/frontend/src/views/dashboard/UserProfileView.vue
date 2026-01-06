@@ -63,6 +63,9 @@ async function loadProfile() {
       verificationCode: '',
     })
   }
+  catch (error) {
+    console.error('加载用户信息失败', error)
+  }
   finally {
     isLoadingProfile.value = false
   }
@@ -79,6 +82,9 @@ async function handleSendVerificationCode() {
     toast.success('验证码已发送', {
       description: '请在 5 分钟内前往邮箱查收验证码。',
     })
+  }
+  catch (error) {
+    console.error('发送验证码失败', error)
   }
   finally {
     isSendingCode.value = false
@@ -110,6 +116,9 @@ const onSubmit = form.handleSubmit(async (values) => {
     form.setFieldValue('confirmNewPassword', '')
     form.setFieldValue('verificationCode', '')
   }
+  catch (error) {
+    console.error('更新个人信息失败', error)
+  }
   finally {
     isSavingProfile.value = false
   }
@@ -126,7 +135,6 @@ async function handleCropped(result: File) {
   }
   catch (error) {
     console.error('头像更新失败', error)
-    toast.error('头像更新失败，请重试')
   }
   finally {
     isUploading.value = false

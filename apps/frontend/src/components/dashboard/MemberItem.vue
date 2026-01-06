@@ -96,7 +96,6 @@ async function handleUpdateRole(newRoleId: string) {
   }
   catch (error) {
     console.error('更新角色失败', error)
-    toast.error('更新角色失败，请重试')
   }
   finally {
     isUpdatingRole.value = false

@@ -48,8 +48,8 @@ async function handleCopyPath() {
       justCopied.value = false
     }, 2000)
   }
-  catch (err) {
-    console.error('复制失败:', err)
+  catch (error) {
+    console.error('复制失败:', error)
   }
 }
 </script>

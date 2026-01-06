@@ -18,7 +18,6 @@ const { panelStyle, isResizing, startResize } = useResizePanel({
   minWidth: 200,
   maxWidth: 480,
   direction: 'right',
-
 })
 
 const isGroupDialogOpen = ref(false)

@@ -59,8 +59,7 @@ async function handleAutoMock() {
     runnerStore.setJsonContent(JSON.stringify(res, null, 2))
   }
   catch (error) {
-    console.error('Auto mock failed:', error)
-    toast.error('自动 Mock 失败')
+    console.error('自动 Mock 失败', error)
   }
 }
 </script>

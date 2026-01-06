@@ -190,6 +190,9 @@ const onSubmit = handleSubmit(async (formValues) => {
     emits('success', projectItem)
     isOpen.value = false
   }
+  catch (error) {
+    console.error(`${isCreateMode.value ? '创建' : '更新'}项目失败`, error)
+  }
   finally {
     isSubmitting.value = false
   }

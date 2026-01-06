@@ -33,6 +33,9 @@ const onSubmit = form.handleSubmit(async (values) => {
     })
     router.push('/dashboard')
   }
+  catch (error) {
+    console.error('登录失败', error)
+  }
   finally {
     isLoading.value = false
   }

@@ -43,7 +43,6 @@ function getEnvTypeBadgeVariant(type: ProjectEnvType): 'default' | 'secondary' |
   }
 }
 
-/** 设置当前 env 为默认环境 */
 async function setAsDefault() {
   if (props.env.isDefault)
     return

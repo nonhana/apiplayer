@@ -12,7 +12,8 @@ const formattedBody = computed(() => {
     const parsed = JSON.parse(body)
     return JSON.stringify(parsed, null, 2)
   }
-  catch {
+  catch (error) {
+    console.error('JSON 解析失败', error)
     return body
   }
 })

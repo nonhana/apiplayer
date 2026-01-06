@@ -94,7 +94,6 @@ async function handleSubmit() {
     emits('success')
   }
   catch (error) {
-    // 错误已在 service 层处理
     console.error('Group operation failed:', error)
   }
   finally {

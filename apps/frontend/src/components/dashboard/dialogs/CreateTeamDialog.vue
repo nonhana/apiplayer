@@ -94,6 +94,9 @@ const onSubmit = handleSubmit(async (formValues) => {
 
     isOpen.value = false
   }
+  catch (error) {
+    console.error('创建团队失败', error)
+  }
   finally {
     isSubmitting.value = false
   }

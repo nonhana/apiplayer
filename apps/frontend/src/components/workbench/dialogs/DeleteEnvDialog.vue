@@ -40,6 +40,9 @@ async function confirmDelete() {
     emits('success')
     open.value = false
   }
+  catch (error) {
+    console.error('删除环境失败', error)
+  }
   finally {
     isDeleting.value = false
   }

@@ -150,6 +150,9 @@ export const useApiTreeStore = defineStore('apiTree', () => {
       const data = await groupApi.getGroupTreeWithApis(targetProjectId)
       tree.value = data
     }
+    catch (error) {
+      console.error('获取 API 列表失败', error)
+    }
     finally {
       loadingStatus.value = 'end'
     }

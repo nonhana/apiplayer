@@ -107,6 +107,9 @@ const onSubmit = handleSubmit(async (formValues) => {
     emits('success')
     open.value = false
   }
+  catch (error) {
+    console.error(`${isEditing.value ? '编辑' : '创建'}环境失败`, error)
+  }
   finally {
     isSubmitting.value = false
   }

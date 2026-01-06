@@ -21,7 +21,8 @@ async function copyToClipboard() {
       copied.value = false
     }, 2000)
   }
-  catch {
+  catch (error) {
+    console.error('复制失败', error)
     toast.error('复制失败')
   }
 }

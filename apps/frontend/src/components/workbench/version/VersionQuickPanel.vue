@@ -43,8 +43,8 @@ async function fetchRecentVersions() {
     totalCount.value = res.versions.length
     recentVersions.value = res.versions.slice(0, 3)
   }
-  catch (err) {
-    console.error('Failed to fetch recent versions:', err)
+  catch (error) {
+    console.error('Failed to fetch recent versions:', error)
   }
   finally {
     isLoading.value = false

@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { getAbbreviation } from '@/lib/utils'
 import { useProjectStore } from '@/stores/useProjectStore'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
@@ -34,17 +35,14 @@ const router = useRouter()
 
 const userStore = useUserStore()
 const teamStore = useTeamStore()
-const projectStore = useProjectStore()
 
+const projectStore = useProjectStore()
 const { projectDetail, environments, curEnvId, curEnv } = storeToRefs(projectStore)
 const { setCurEnvId } = projectStore
 
 const displayName = computed(() => userStore.user?.name || userStore.user?.username || '未登录')
 
-const avatarInitials = computed(() => {
-  const name = displayName.value
-  return name.charAt(0).toUpperCase()
-})
+const isSettingsSheetOpen = ref(false)
 
 function goBack() {
   router.push({ name: 'Dashboard' })
@@ -59,8 +57,6 @@ function handleLogout() {
   userStore.logout()
   router.push('/auth/login')
 }
-
-const isSettingsSheetOpen = ref(false)
 </script>
 
 <template>
@@ -82,7 +78,7 @@ const isSettingsSheetOpen = ref(false)
         <Avatar class="h-6 w-6 rounded">
           <AvatarImage v-if="projectDetail.icon" :src="projectDetail.icon" />
           <AvatarFallback class="text-xs rounded">
-            {{ projectDetail.name.charAt(0).toUpperCase() }}
+            {{ getAbbreviation(projectDetail.name, 'P') }}
           </AvatarFallback>
         </Avatar>
         <span class="font-semibold text-sm">{{ projectDetail.name }}</span>
@@ -137,7 +133,7 @@ const isSettingsSheetOpen = ref(false)
             <Avatar class="h-7 w-7 border">
               <AvatarImage v-if="userStore.user?.avatar" :src="userStore.user.avatar" />
               <AvatarFallback class="text-xs">
-                {{ avatarInitials }}
+                {{ getAbbreviation(displayName, 'U') }}
               </AvatarFallback>
             </Avatar>
           </Button>

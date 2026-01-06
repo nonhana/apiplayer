@@ -152,9 +152,9 @@ async function fetchComparison() {
       props.toVersionId,
     )
   }
-  catch (err) {
-    loadError.value = `获取比较数据失败: ${err}`
-    console.error('Failed to fetch comparison:', err)
+  catch (error) {
+    loadError.value = `获取比较数据失败: ${error}`
+    console.error('Failed to fetch comparison:', error)
   }
   finally {
     isLoading.value = false

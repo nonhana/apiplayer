@@ -52,8 +52,8 @@ async function fetchApiDetail() {
   try {
     apiDetail.value = await apiApi.getApiDetail(projectId.value, apiId.value)
   }
-  catch (err) {
-    loadError.value = `获取 API 详情失败: ${err}`
+  catch (error) {
+    loadError.value = `获取 API 详情失败: ${error}`
   }
   finally {
     isLoading.value = false
@@ -65,8 +65,8 @@ async function refreshApiDetail() {
   try {
     apiDetail.value = await apiApi.getApiDetail(projectId.value, apiId.value)
   }
-  catch (err) {
-    loadError.value = `获取 API 详情失败: ${err}`
+  catch (error) {
+    loadError.value = `获取 API 详情失败: ${error}`
   }
 }
 

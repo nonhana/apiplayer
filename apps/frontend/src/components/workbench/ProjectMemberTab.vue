@@ -36,21 +36,16 @@ const projectStore = useProjectStore()
 
 const { projectMembers: members } = storeToRefs(projectStore)
 
-// 成员管理状态
 const memberSearchQuery = ref('')
 
-// 邀请成员对话框
 const isInviteDialogOpen = ref(false)
 
-// 删除成员确认
 const isDeleteMemberDialogOpen = ref(false)
 const memberToDelete = ref<ProjectMember | null>(null)
 const isDeletingMember = ref(false)
 
-/** 已有成员的用户 ID 列表 */
 const existingMemberIds = computed(() => members.value.map(m => m.user.id))
 
-/** 过滤后的成员列表 */
 const filteredMembers = computed(() => {
   if (!memberSearchQuery.value)
     return members.value
@@ -62,20 +57,17 @@ const filteredMembers = computed(() => {
   )
 })
 
-/** 更新成员 */
 function handleUpdateMember(member: ProjectMember) {
   members.value = members.value.map(m => m.id === member.id ? member : m)
   // 同步更新 store
   projectStore.setProjectMembers(members.value)
 }
 
-/** 打开删除成员确认 */
 function handleDeleteMember(member: ProjectMember) {
   memberToDelete.value = member
   isDeleteMemberDialogOpen.value = true
 }
 
-/** 确认删除成员 */
 async function confirmDeleteMember() {
   if (!memberToDelete.value)
     return
@@ -94,12 +86,14 @@ async function confirmDeleteMember() {
     isDeleteMemberDialogOpen.value = false
     memberToDelete.value = null
   }
+  catch (error) {
+    console.error('删除成员失败', error)
+  }
   finally {
     isDeletingMember.value = false
   }
 }
 
-/** 成员邀请成功 */
 function handleMembersInvited(newMembers: ProjectMember[]) {
   members.value.push(...newMembers)
   // 同步更新 store
@@ -112,9 +106,7 @@ watch(() => props.project, async () => {
 </script>
 
 <template>
-  <!-- 成员管理 Tab -->
   <TabsContent value="members" force-mount class="flex-1 flex flex-col overflow-hidden px-6 py-4 data-[state=inactive]:hidden">
-    <!-- 搜索和邀请 -->
     <div class="flex items-center gap-2 mb-4">
       <div class="relative flex-1">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -134,7 +126,6 @@ watch(() => props.project, async () => {
       </Button>
     </div>
 
-    <!-- 成员列表 -->
     <ScrollArea class="flex-1 -mx-6 px-6">
       <div class="space-y-2">
         <MemberItem
@@ -148,7 +139,6 @@ watch(() => props.project, async () => {
           @delete-member="handleDeleteMember"
         />
 
-        <!-- 空状态 -->
         <div
           v-if="filteredMembers.length === 0"
           class="py-8 text-center text-muted-foreground"
@@ -158,12 +148,10 @@ watch(() => props.project, async () => {
       </div>
     </ScrollArea>
 
-    <!-- 成员统计 -->
     <div class="text-xs text-muted-foreground text-center pt-4 border-t mt-4">
       共 {{ members.length }} 名成员
     </div>
 
-    <!-- 邀请成员对话框 -->
     <InviteMemberDialog
       v-model:open="isInviteDialogOpen"
       type="project"
@@ -174,7 +162,6 @@ watch(() => props.project, async () => {
       @invited="handleMembersInvited"
     />
 
-    <!-- 删除成员确认 -->
     <AlertDialog v-model:open="isDeleteMemberDialogOpen">
       <AlertDialogContent>
         <AlertDialogHeader>

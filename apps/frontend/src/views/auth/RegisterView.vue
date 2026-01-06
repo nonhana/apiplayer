@@ -27,6 +27,9 @@ const onSubmit = form.handleSubmit(async (values) => {
     })
     router.push('/auth/login')
   }
+  catch (error) {
+    console.error('注册失败', error)
+  }
   finally {
     isLoading.value = false
   }

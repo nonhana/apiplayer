@@ -117,13 +117,13 @@ async function handleSubmit() {
   if (!canSubmit.value)
     return
 
+  const typeLabel = isTeamMode.value ? '团队' : '项目'
   isSubmitting.value = true
   try {
     const newMembers = isTeamMode.value
       ? await inviteTeamMembers()
       : await inviteProjectMembers()
 
-    const typeLabel = isTeamMode.value ? '团队' : '项目'
     toast.success('邀请成功', {
       description: `已邀请 ${newMembers.length} 名用户加入${typeLabel}`,
     })
@@ -132,6 +132,9 @@ async function handleSubmit() {
 
     isOpen.value = false
     resetForm()
+  }
+  catch (error) {
+    console.error(`邀请成员加入${typeLabel}失败`, error)
   }
   finally {
     isSubmitting.value = false
