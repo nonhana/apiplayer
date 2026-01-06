@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { SupportedHighlightLang } from '@/lib/highlighter'
 import { Check, Copy } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -40,8 +40,6 @@ const langNameMap: Record<SupportedHighlightLang, string>
 const html = ref('')
 const justCopied = ref(false)
 
-const langLabel = computed(() => langNameMap[props.lang] ?? props.lang.toUpperCase())
-
 async function handleCopy() {
   if (!props.code)
     return
@@ -79,7 +77,7 @@ watch(() => props.code, async () => {
       </span>
 
       <span :class="cn('text-xs font-medium text-muted-foreground select-none', !title && 'flex-1')">
-        {{ langLabel }}
+        {{ langNameMap[lang] }}
       </span>
 
       <TooltipProvider v-if="showCopy && code">

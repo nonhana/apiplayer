@@ -3,7 +3,7 @@ import type { UserBriefInfo } from '@/types/user'
 import { X } from 'lucide-vue-next'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { getUserFallbackIcon } from '@/lib/utils'
+import { getAbbreviation } from '@/lib/utils'
 
 const props = defineProps<{
   user: UserBriefInfo
@@ -27,7 +27,7 @@ function removeUser() {
     <Avatar class="h-5 w-5">
       <AvatarImage v-if="user.avatar" :src="user.avatar" />
       <AvatarFallback class="text-[10px]">
-        {{ getUserFallbackIcon(user.name) }}
+        {{ getAbbreviation(user.name, 'U') }}
       </AvatarFallback>
     </Avatar>
     <span class="text-xs">{{ user.name }}</span>

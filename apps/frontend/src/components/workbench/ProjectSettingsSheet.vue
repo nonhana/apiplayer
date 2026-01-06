@@ -20,7 +20,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs'
 import { ROLE_NAME } from '@/constants/roles'
-import { getProjectFallbackIcon } from '@/lib/utils'
+import { getAbbreviation } from '@/lib/utils'
 import ProjectBasicInfoTab from './ProjectBasicInfoTab.vue'
 import ProjectEnvTab from './ProjectEnvTab.vue'
 import ProjectMemberTab from './ProjectMemberTab.vue'
@@ -55,13 +55,13 @@ watch(isOpen, (open) => {
 
 <template>
   <Sheet v-model:open="isOpen">
-    <SheetContent class="sm:max-w-[540px] flex flex-col p-0">
+    <SheetContent class="sm:max-w-135 flex flex-col p-0">
       <SheetHeader class="px-6 pt-6 pb-4">
         <div class="flex items-center gap-3">
           <Avatar class="h-12 w-12 border-2 rounded-lg">
             <AvatarImage v-if="project.icon" :src="project.icon" />
             <AvatarFallback class="text-lg font-semibold bg-primary/10 text-primary rounded-lg">
-              {{ getProjectFallbackIcon(project.name) }}
+              {{ getAbbreviation(project.name, 'P') }}
             </AvatarFallback>
           </Avatar>
           <div>

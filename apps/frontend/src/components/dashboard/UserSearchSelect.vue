@@ -16,7 +16,7 @@ import {
   ComboboxList,
   ComboboxViewport,
 } from '@/components/ui/combobox'
-import { getUserFallbackIcon } from '@/lib/utils'
+import { getAbbreviation } from '@/lib/utils'
 import UserBadge from '../common/UserBadge.vue'
 import Input from '../ui/input/Input.vue'
 
@@ -229,7 +229,7 @@ watch(selectedUsers, (users) => {
               <Avatar class="h-8 w-8">
                 <AvatarImage v-if="user.avatar" :src="user.avatar" />
                 <AvatarFallback class="text-xs">
-                  {{ getUserFallbackIcon(user.name) }}
+                  {{ getAbbreviation(user.name, 'U') }}
                 </AvatarFallback>
               </Avatar>
               <div class="flex-1 min-w-0">

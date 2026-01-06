@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { SupportedLanguage } from '@/types/code-editor'
 import * as monaco from 'monaco-editor'
-import { onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
+import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue'
 import '@/lib/monaco'
 
 const props = withDefaults(defineProps<{
@@ -24,8 +24,8 @@ const code = defineModel<string>({ default: '' })
 
 const containerRef = useTemplateRef('containerRef')
 
-/** 编辑器实例（避免深层响应式） */
-const editorInstance = shallowRef<monaco.editor.IStandaloneCodeEditor>()
+/** Monaco Editor 实例 */
+let editorInstance: monaco.editor.IStandaloneCodeEditor | null = null
 
 /** 是否正在内部更新（防止循环） */
 let isInternalUpdate = false
@@ -35,7 +35,7 @@ function createEditor() {
     return
 
   try {
-    editorInstance.value = monaco.editor.create(containerRef.value, {
+    editorInstance = monaco.editor.create(containerRef.value, {
       value: code.value,
       language: props.language,
       theme: 'vs',
@@ -57,16 +57,16 @@ function createEditor() {
       acceptSuggestionOnEnter: 'on',
     })
 
-    editorInstance.value.onDidChangeModelContent(() => {
+    editorInstance.onDidChangeModelContent(() => {
       if (isInternalUpdate)
         return
-      code.value = editorInstance.value?.getValue() ?? ''
+      code.value = editorInstance?.getValue() ?? ''
     })
 
-    editorInstance.value.onDidFocusEditorWidget(() => emit('focus'))
-    editorInstance.value.onDidBlurEditorWidget(() => emit('blur'))
+    editorInstance.onDidFocusEditorWidget(() => emit('focus'))
+    editorInstance.onDidBlurEditorWidget(() => emit('blur'))
 
-    emit('ready', editorInstance.value)
+    emit('ready', editorInstance)
   }
   catch (error) {
     console.error('[CodeEditor] 编辑器创建失败:', error)
@@ -74,13 +74,13 @@ function createEditor() {
 }
 
 function disposeEditor() {
-  editorInstance.value?.dispose()
-  editorInstance.value = undefined
+  editorInstance?.dispose()
+  editorInstance = null
 }
 
 async function formatDocument(): Promise<boolean> {
   try {
-    await editorInstance.value?.getAction('editor.action.formatDocument')?.run()
+    await editorInstance?.getAction('editor.action.formatDocument')?.run()
     return true
   }
   catch (error) {
@@ -90,23 +90,23 @@ async function formatDocument(): Promise<boolean> {
 }
 
 function focus() {
-  editorInstance.value?.focus()
+  editorInstance?.focus()
 }
 
 function getValue(): string {
-  return editorInstance.value?.getValue() ?? ''
+  return editorInstance?.getValue() ?? ''
 }
 
 function setValue(value: string) {
-  if (!editorInstance.value)
+  if (!editorInstance)
     return
   isInternalUpdate = true
-  editorInstance.value.setValue(value)
+  editorInstance.setValue(value)
   isInternalUpdate = false
 }
 
 watch(code, (newValue) => {
-  const editor = editorInstance.value
+  const editor = editorInstance
   if (!editor)
     return
 
@@ -121,7 +121,7 @@ watch(code, (newValue) => {
 watch(
   () => props.language,
   (newLang) => {
-    const model = editorInstance.value?.getModel()
+    const model = editorInstance?.getModel()
     if (model) {
       monaco.editor.setModelLanguage(model, newLang)
     }
@@ -131,7 +131,7 @@ watch(
 watch(
   () => props.readonly,
   (newReadonly) => {
-    editorInstance.value?.updateOptions({ readOnly: newReadonly })
+    editorInstance?.updateOptions({ readOnly: newReadonly })
   },
 )
 
@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
 defineExpose({
   formatDocument,
   focus,
-  getEditor: () => editorInstance.value,
+  getEditor: () => editorInstance,
   getValue,
   setValue,
 })

@@ -27,7 +27,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import dayjs from '@/lib/dayjs'
-import { getProjectFallbackIcon } from '@/lib/utils'
+import { getAbbreviation } from '@/lib/utils'
 
 const props = defineProps<{
   project: ProjectItem
@@ -105,7 +105,7 @@ function handleDelete() {
         <Avatar class="h-12 w-12 rounded-lg border shadow-sm">
           <AvatarImage v-if="project.icon" :src="project.icon" />
           <AvatarFallback class="rounded-lg text-base font-bold bg-linear-to-br from-primary/20 to-primary/5 text-primary">
-            {{ getProjectFallbackIcon(project.name) }}
+            {{ getAbbreviation(props.project.name, 'P') }}
           </AvatarFallback>
         </Avatar>
         <div class="flex-1 min-w-0 space-y-1">

@@ -5,7 +5,8 @@ import { useForm } from 'vee-validate'
 import { onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { teamApi } from '@/api/team'
-import Cropper from '@/components/Cropper.vue'
+import { utilApi } from '@/api/util'
+import ImageCropper from '@/components/common/ImageCropper.vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,7 +21,7 @@ import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { TabsContent } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import { getTeamFallbackIcon } from '@/lib/utils'
+import { getAbbreviation } from '@/lib/utils'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { updateTeamFormSchema } from '@/validators/team'
 import DeleteTeamDialog from './DeleteTeamDialog.vue'
@@ -37,18 +38,10 @@ const emits = defineEmits<{
 
 const teamStore = useTeamStore()
 
-// 团队信息编辑状态
 const isUpdating = ref(false)
 
-// 头像上传状态
-const avatarInputRef = ref<HTMLInputElement | null>(null)
-const cropperOpen = ref(false)
-const cropperSourceUrl = ref<string | null>(null)
-
-// 删除团队对话框
 const isDeleteTeamDialogOpen = ref(false)
 
-// 表单
 const { handleSubmit, setValues, values } = useForm({
   validationSchema: updateTeamFormSchema,
   initialValues: {
@@ -58,7 +51,6 @@ const { handleSubmit, setValues, values } = useForm({
   },
 })
 
-/** 提交团队信息更新 */
 const onSubmit = handleSubmit(async (formValues) => {
   if (!props.team)
     return
@@ -71,7 +63,6 @@ const onSubmit = handleSubmit(async (formValues) => {
       avatar: formValues.avatar || undefined,
     })
 
-    // 更新 store 中的团队信息
     const teamItem: TeamItem = {
       ...props.team,
       ...updatedTeam,
@@ -85,7 +76,24 @@ const onSubmit = handleSubmit(async (formValues) => {
   }
 })
 
-// 挂载时初始化表单
+const isUploading = ref(false)
+
+async function handleCropped(result: File) {
+  isUploading.value = true
+  try {
+    const { url } = await utilApi.uploadFile(result)
+    setValues({ ...values, avatar: url })
+    toast.success('团队图标已更新')
+  }
+  catch (error) {
+    console.error('团队图标更新失败', error)
+    toast.error('团队图标更新失败，请重试')
+  }
+  finally {
+    isUploading.value = false
+  }
+}
+
 onMounted(() => {
   setValues({
     name: props.team.name,
@@ -93,81 +101,44 @@ onMounted(() => {
     avatar: props.team.avatar ?? '',
   })
 })
-
-/** 处理头像选择 */
-function handleAvatarSelect(event: Event) {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  if (!file)
-    return
-
-  // 检查文件类型
-  if (!file.type.startsWith('image/')) {
-    toast.error('请选择图片文件')
-    return
-  }
-
-  // 读取文件并打开裁剪器
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    cropperSourceUrl.value = e.target?.result as string
-    cropperOpen.value = true
-  }
-  reader.readAsDataURL(file)
-
-  // 清空 input 以便下次选择同一文件
-  input.value = ''
-}
-
-/** 裁剪确认后更新头像 */
-function handleAvatarCropped(url: string) {
-  setValues({ ...values, avatar: url })
-}
 </script>
 
 <template>
   <TabsContent value="info" force-mount class="flex-1 overflow-auto px-6 py-4 data-[state=inactive]:hidden">
     <form class="space-y-6" @submit="onSubmit">
-      <!-- 头像上传 -->
       <FormField name="avatar">
         <FormItem>
-          <FormLabel>团队头像</FormLabel>
+          <FormLabel>团队图标</FormLabel>
           <FormControl>
             <div class="flex items-center gap-4">
               <Avatar class="h-20 w-20 border-2">
                 <AvatarImage v-if="values.avatar" :src="values.avatar" />
                 <AvatarFallback class="text-2xl font-semibold bg-primary/10 text-primary">
-                  {{ getTeamFallbackIcon(team.name) }}
+                  {{ getAbbreviation(team.name, 'T') }}
                 </AvatarFallback>
               </Avatar>
               <div class="space-y-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  :disabled="isUpdating || !isAdmin"
-                  @click="avatarInputRef?.click()"
-                >
-                  <ImagePlus class="h-4 w-4 mr-2" />
-                  更换头像
-                </Button>
+                <ImageCropper @success="handleCropped">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    :disabled="isUpdating || isUploading || !isAdmin"
+                  >
+                    <Loader2 v-if="isUploading" class="h-4 w-4 mr-2 animate-spin" />
+                    <ImagePlus v-else class="h-4 w-4 mr-2" />
+                    {{ isUploading ? '上传中...' : '更换团队图标' }}
+                  </Button>
+                </ImageCropper>
                 <p class="text-xs text-muted-foreground">
                   支持 JPG、PNG、WebP 格式
                 </p>
               </div>
-              <input
-                ref="avatarInputRef"
-                type="file"
-                accept="image/*"
-                class="hidden"
-                @change="handleAvatarSelect"
-              >
             </div>
           </FormControl>
         </FormItem>
       </FormField>
 
-      <!-- 团队名称 -->
       <FormField v-slot="{ componentField }" name="name">
         <FormItem>
           <FormLabel>团队名称</FormLabel>
@@ -182,7 +153,6 @@ function handleAvatarCropped(url: string) {
         </FormItem>
       </FormField>
 
-      <!-- 团队描述 -->
       <FormField v-slot="{ componentField }" name="description">
         <FormItem>
           <FormLabel>团队描述</FormLabel>
@@ -201,7 +171,6 @@ function handleAvatarCropped(url: string) {
         </FormItem>
       </FormField>
 
-      <!-- 保存按钮 -->
       <div v-if="isAdmin" class="flex justify-end">
         <Button type="submit" :disabled="isUpdating">
           <Loader2 v-if="isUpdating" class="h-4 w-4 mr-2 animate-spin" />
@@ -212,7 +181,6 @@ function handleAvatarCropped(url: string) {
 
     <Separator class="my-6" />
 
-    <!-- 危险操作区 -->
     <div v-if="isOwner" class="space-y-4">
       <div>
         <h3 class="text-sm font-medium text-destructive">
@@ -245,14 +213,6 @@ function handleAvatarCropped(url: string) {
       </div>
     </div>
 
-    <!-- 头像裁剪器 -->
-    <Cropper
-      v-model:open="cropperOpen"
-      v-model:source-url="cropperSourceUrl"
-      @confirm="handleAvatarCropped"
-    />
-
-    <!-- 删除团队确认 -->
     <DeleteTeamDialog
       v-model:open="isDeleteTeamDialogOpen"
       :team="team"

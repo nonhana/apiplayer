@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getTeamFallbackIcon } from '@/lib/utils'
+import { getAbbreviation } from '@/lib/utils'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
 import TeamSettingsSheet from './TeamSettingsSheet.vue'
@@ -36,11 +36,8 @@ const selectedTeamForSettings = ref<TeamItem | null>(null)
 
 /** 当前团队显示名 */
 const currentTeamName = computed(() => teamStore.curTeam?.name ?? '选择团队')
-
 /** 当前团队的兜底 Icon */
-const currentTeamFallbackIcon = computed(() =>
-  teamStore.curTeam ? getTeamFallbackIcon(teamStore.curTeam.name) : 'T',
-)
+const currentTeamFallbackIcon = computed(() => getAbbreviation(teamStore.curTeam?.name ?? '', 'T'))
 
 /** 切换团队 */
 async function handleSelectTeam(teamId: string) {
@@ -82,7 +79,7 @@ watch(
           variant="outline"
           role="combobox"
           :aria-expanded="isOpen"
-          class="w-[200px] justify-between gap-2"
+          class="w-50 justify-between gap-2"
         >
           <template v-if="teamStore.isLoading">
             <Skeleton class="h-5 w-5 rounded-full" />
@@ -100,7 +97,7 @@ watch(
           </template>
         </Button>
       </PopoverTrigger>
-      <PopoverContent class="w-[240px] p-0" align="start">
+      <PopoverContent class="w-60 p-0" align="start">
         <Command>
           <CommandInput placeholder="搜索团队..." />
           <CommandList>

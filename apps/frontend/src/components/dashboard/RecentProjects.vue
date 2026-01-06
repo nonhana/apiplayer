@@ -22,7 +22,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import dayjs from '@/lib/dayjs'
-import { getProjectFallbackIcon } from '@/lib/utils'
+import { getAbbreviation } from '@/lib/utils'
 
 const router = useRouter()
 
@@ -81,7 +81,7 @@ defineExpose({
           <div
             v-for="i in 4"
             :key="i"
-            class="shrink-0 w-[200px] p-3 rounded-lg border bg-card"
+            class="shrink-0 w-50 p-3 rounded-lg border bg-card"
           >
             <div class="flex items-center gap-2 mb-2">
               <Skeleton class="h-8 w-8 rounded-md" />
@@ -103,14 +103,14 @@ defineExpose({
             <Tooltip>
               <TooltipTrigger as-child>
                 <button
-                  class="shrink-0 w-[200px] p-3 rounded-lg border bg-card text-left transition-all hover:shadow-sm hover:border-primary/20 hover:bg-accent/50 group"
+                  class="shrink-0 w-50 p-3 rounded-lg border bg-card text-left transition-all hover:shadow-sm hover:border-primary/20 hover:bg-accent/50 group"
                   @click="handleEnterProject(project.id)"
                 >
                   <div class="flex items-center gap-2 mb-2">
                     <Avatar class="h-8 w-8 rounded-md border shadow-sm">
                       <AvatarImage v-if="project.icon" :src="project.icon" />
                       <AvatarFallback class="rounded-md text-xs font-bold bg-linear-to-br from-primary/20 to-primary/5 text-primary">
-                        {{ getProjectFallbackIcon(project.name) }}
+                        {{ getAbbreviation(project.name, 'P') }}
                       </AvatarFallback>
                     </Avatar>
                     <div class="flex-1 min-w-0">
@@ -138,7 +138,7 @@ defineExpose({
                   <ArrowRight class="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent v-if="project.description" side="bottom" class="max-w-[300px]">
+              <TooltipContent v-if="project.description" side="bottom" class="max-w-75">
                 {{ project.description }}
               </TooltipContent>
             </Tooltip>

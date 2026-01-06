@@ -5,7 +5,8 @@ import { useForm } from 'vee-validate'
 import { computed, onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { userApi } from '@/api/user'
-import Cropper from '@/components/Cropper.vue'
+import { utilApi } from '@/api/util'
+import ImageCropper from '@/components/common/ImageCropper.vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,6 +14,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import { getAbbreviation } from '@/lib/utils'
 import { useUserStore } from '@/stores/useUserStore'
 import { userProfileFormSchema } from '@/validators/user-profile'
 
@@ -22,10 +24,6 @@ const profile = ref<UserFullInfo | null>(null)
 const isLoadingProfile = ref(false)
 const isSavingProfile = ref(false)
 const isSendingCode = ref(false)
-
-// 头像裁剪相关状态
-const isAvatarCropperOpen = ref(false)
-const avatarSourceUrl = ref<string | null>(null)
 
 const form = useForm({
   validationSchema: userProfileFormSchema,
@@ -39,19 +37,7 @@ const displayLastLoginAt = computed(() => profile.value?.lastLoginAt
   ? new Date(profile.value.lastLoginAt).toLocaleString()
   : '首次登录')
 
-// 初始头像，取用户名、邮箱或显示名称的首字母
-const avatarInitials = computed(() => {
-  const name = profile.value?.name || profile.value?.username || profile.value?.email || 'U'
-  const trimmed = name.trim()
-  if (!trimmed)
-    return 'U'
-  const parts = trimmed.split(' ')
-  if (parts.length === 1)
-    return parts[0]?.charAt(0)?.toUpperCase() ?? 'U'
-  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'U'
-})
-
-// 头像预览URL
+// 头像预览URL，优先从表单中取
 const avatarPreviewUrl = computed(() => {
   const formAvatar = form.values.avatar
   if (formAvatar && formAvatar !== '')
@@ -85,23 +71,6 @@ async function loadProfile() {
 onMounted(() => {
   loadProfile()
 })
-
-async function handleAvatarChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (!file)
-    return
-
-  const reader = new FileReader()
-
-  reader.onload = () => {
-    avatarSourceUrl.value = reader.result as string
-    isAvatarCropperOpen.value = true
-  }
-
-  reader.readAsDataURL(file)
-  target.value = ''
-}
 
 async function handleSendVerificationCode() {
   try {
@@ -145,6 +114,24 @@ const onSubmit = form.handleSubmit(async (values) => {
     isSavingProfile.value = false
   }
 })
+
+const isUploading = ref(false)
+
+async function handleCropped(result: File) {
+  isUploading.value = true
+  try {
+    const { url } = await utilApi.uploadFile(result)
+    form.setFieldValue('avatar', url)
+    toast.success('头像已更新')
+  }
+  catch (error) {
+    console.error('头像更新失败', error)
+    toast.error('头像更新失败，请重试')
+  }
+  finally {
+    isUploading.value = false
+  }
+}
 </script>
 
 <template>
@@ -174,24 +161,25 @@ const onSubmit = form.handleSubmit(async (values) => {
             <Avatar class="h-16 w-16 border">
               <AvatarImage v-if="avatarPreviewUrl" :src="avatarPreviewUrl" alt="avatar" />
               <AvatarFallback class="text-lg font-semibold">
-                {{ avatarInitials }}
+                {{ getAbbreviation(profile?.name ?? '', 'U') }}
               </AvatarFallback>
             </Avatar>
             <div class="space-y-2">
-              <div class="text-sm text-muted-foreground">
-                支持 jpg、png 等常见图片格式，建议尺寸不小于 256×256。
-              </div>
-              <Button size="sm" variant="outline" as-child>
-                <label class="cursor-pointer">
-                  更换头像
-                  <input
-                    type="file"
-                    accept="image/*"
-                    class="hidden"
-                    @change="handleAvatarChange"
-                  >
-                </label>
-              </Button>
+              <ImageCropper @success="handleCropped">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  :disabled="isSavingProfile || isUploading"
+                >
+                  <Loader2 v-if="isUploading" class="h-4 w-4 mr-2 animate-spin" />
+                  <ImagePlus v-else class="h-4 w-4 mr-2" />
+                  {{ isUploading ? '上传中...' : '更换头像' }}
+                </Button>
+              </ImageCropper>
+              <p class="text-xs text-muted-foreground">
+                支持 JPG、PNG、WebP、Avif 格式，尺寸最好不小于 256×256
+              </p>
             </div>
           </div>
 
@@ -382,10 +370,4 @@ const onSubmit = form.handleSubmit(async (values) => {
       </div>
     </div>
   </div>
-
-  <Cropper
-    v-model:open="isAvatarCropperOpen"
-    v-model:source-url="avatarSourceUrl"
-    @confirm="(url) => form.setFieldValue('avatar', url)"
-  />
 </template>

@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { ROLE_DISPLAY_MAP, ROLE_NAME } from '@/constants/roles'
-import { cn, getUserFallbackIcon } from '@/lib/utils'
+import { cn, getAbbreviation } from '@/lib/utils'
 import { useUserStore } from '@/stores/useUserStore'
 
 export type MemberType = 'team' | 'project'
@@ -144,7 +144,7 @@ async function handleUpdateRole(newRoleId: string) {
     <Avatar class="h-10 w-10 border">
       <AvatarImage v-if="member.user.avatar" :src="member.user.avatar" />
       <AvatarFallback class="text-sm font-medium">
-        {{ getUserFallbackIcon(member.user.name) }}
+        {{ getAbbreviation(member.user.name, 'U') }}
       </AvatarFallback>
     </Avatar>
 

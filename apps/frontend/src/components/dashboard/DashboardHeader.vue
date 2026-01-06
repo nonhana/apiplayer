@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Search } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import {
@@ -16,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
 import CreateTeamDialog from './CreateTeamDialog.vue'
@@ -27,7 +25,6 @@ const userStore = useUserStore()
 const teamStore = useTeamStore()
 
 const isCreateTeamDialogOpen = ref(false)
-const searchQuery = ref('')
 
 /** 显示名称 */
 const displayName = computed(() => userStore.user?.name || userStore.user?.username || '未登录用户')
@@ -57,10 +54,6 @@ function handleLogout() {
   teamStore.reset()
   userStore.logout()
   router.push('/auth/login')
-}
-
-function handleSearch() {
-  // TODO: 实现全局搜索功能
 }
 
 onMounted(() => {

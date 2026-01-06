@@ -7,30 +7,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/** 获取兜底 Project Icon */
-export function getProjectFallbackIcon(name: string) {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1) {
-    return (name.charAt(0) ?? 'P').toUpperCase()
-  }
-  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'P'
-}
+/** 获取名称缩写 */
+export function getAbbreviation(str: string, init: string = 'A') {
+  if (!str)
+    return init
 
-/** 获取兜底 Team Icon */
-export function getTeamFallbackIcon(name: string): string {
-  const parts = name.trim().split(/\s+/)
+  const parts = str.trim().split(/\s+/)
   if (parts.length === 1) {
-    return (parts[0]?.charAt(0) ?? 'T').toUpperCase()
+    return (str.charAt(0) ?? init).toUpperCase()
   }
-  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'T'
-}
-
-/** 获取兜底 User Icon */
-export function getUserFallbackIcon(name: string) {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length === 1)
-    return (parts[0]?.charAt(0) ?? 'U').toUpperCase()
-  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || 'U'
+  return ((parts[0]?.charAt(0) ?? '') + (parts[1]?.charAt(0) ?? '')).toUpperCase() || init
 }
 
 /**

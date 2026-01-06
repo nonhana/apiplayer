@@ -19,7 +19,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs'
 import { ROLE_NAME } from '@/constants/roles'
-import { getTeamFallbackIcon } from '@/lib/utils'
+import { getAbbreviation } from '@/lib/utils'
 import TeamBasicInfoTab from './TeamBasicInfoTab.vue'
 import TeamMemberTab from './TeamMemberTab.vue'
 
@@ -52,13 +52,13 @@ watch(isOpen, (open) => {
 
 <template>
   <Sheet v-model:open="isOpen">
-    <SheetContent class="sm:max-w-[540px] flex flex-col p-0">
+    <SheetContent class="sm:max-w-135 flex flex-col p-0">
       <SheetHeader class="px-6 pt-6 pb-4">
         <div class="flex items-center gap-3">
           <Avatar class="h-12 w-12 border-2">
             <AvatarImage v-if="team.avatar" :src="team.avatar" />
             <AvatarFallback class="text-lg font-semibold bg-primary/10 text-primary">
-              {{ getTeamFallbackIcon(team.name) }}
+              {{ getAbbreviation(team.name, 'T') }}
             </AvatarFallback>
           </Avatar>
           <div>

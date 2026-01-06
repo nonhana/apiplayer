@@ -4,7 +4,7 @@ import { Check, Settings, Users } from 'lucide-vue-next'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { CommandItem } from '@/components/ui/command'
-import { cn, getTeamFallbackIcon } from '@/lib/utils'
+import { cn, getAbbreviation } from '@/lib/utils'
 import { useTeamStore } from '@/stores/useTeamStore'
 
 defineProps<{
@@ -29,7 +29,7 @@ const teamStore = useTeamStore()
     <Avatar class="h-5 w-5 border">
       <AvatarImage v-if="team.avatar" :src="team.avatar" />
       <AvatarFallback class="text-[10px] font-semibold bg-primary/10 text-primary">
-        {{ getTeamFallbackIcon(team.name) }}
+        {{ getAbbreviation(team.name, 'T') }}
       </AvatarFallback>
     </Avatar>
     <span class="flex-1 truncate">{{ team.name }}</span>
