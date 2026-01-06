@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { GroupNodeWithApis, HttpMethod } from '@/types/api'
 import { Loader2 } from 'lucide-vue-next'
+import { useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
@@ -13,8 +14,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -25,9 +32,9 @@ import {
 import { HTTP_METHODS, methodColors } from '@/constants/api'
 import { cn } from '@/lib/utils'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
+import { createApiFormSchema } from '@/validators/api'
 
 const props = defineProps<{
-  /** 预选的分组 ID */
   groupId?: string
 }>()
 
@@ -39,17 +46,18 @@ const isOpen = defineModel<boolean>('open', { required: true })
 
 const apiTreeStore = useApiTreeStore()
 
-/** 表单数据 */
-const formData = ref({
-  name: '',
-  path: '',
-  method: 'GET' as HttpMethod,
-  groupId: '',
+const { handleSubmit, resetForm, setFieldValue } = useForm({
+  validationSchema: createApiFormSchema,
+  initialValues: {
+    name: '',
+    path: '',
+    method: 'GET',
+    groupId: '',
+  },
 })
 
 const isSubmitting = ref(false)
 
-/** 可用分组列表（扁平化） */
 const flatGroups = computed(() => {
   const result: { id: string, name: string, level: number }[] = []
 
@@ -64,45 +72,26 @@ const flatGroups = computed(() => {
   return result
 })
 
-/** 是否可以提交 */
-const canSubmit = computed(() =>
-  formData.value.name.trim().length > 0
-  && formData.value.path.trim().length > 0
-  && formData.value.groupId.length > 0,
-)
-
-/** 监听对话框打开，重置表单 */
 watch(isOpen, (open) => {
-  if (open) {
-    formData.value = {
-      name: '',
-      path: '/',
-      method: 'GET',
-      groupId: props.groupId ?? flatGroups.value[0]?.id ?? '',
-    }
+  if (!open) {
+    resetForm()
   }
 })
 
-/** 监听 groupId prop 变化 */
 watch(() => props.groupId, (id) => {
   if (id) {
-    formData.value.groupId = id
+    setFieldValue('groupId', id)
   }
 })
 
-/** 提交表单 */
-async function handleSubmit() {
-  if (!canSubmit.value)
-    return
-
+const onSubmit = handleSubmit(async (formValues) => {
   isSubmitting.value = true
-
   try {
     await apiTreeStore.createApi(
-      formData.value.groupId,
-      formData.value.name.trim(),
-      formData.value.path.trim(),
-      formData.value.method,
+      formValues.groupId,
+      formValues.name.trim(),
+      formValues.path.trim(),
+      formValues.method,
     )
 
     toast.success('接口创建成功')
@@ -110,14 +99,13 @@ async function handleSubmit() {
     emits('success')
   }
   catch (error) {
-    console.error('Create API failed:', error)
+    console.error('接口创建失败', error)
   }
   finally {
     isSubmitting.value = false
   }
-}
+})
 
-/** 获取分组显示名（带缩进） */
 function getGroupDisplayName(group: { name: string, level: number }) {
   return '  '.repeat(group.level) + group.name
 }
@@ -133,90 +121,113 @@ function getGroupDisplayName(group: { name: string, level: number }) {
         </DialogDescription>
       </DialogHeader>
 
-      <div class="space-y-4 py-4">
-        <!-- 所属分组 -->
-        <div class="space-y-2">
-          <Label for="api-group">所属分组</Label>
-          <Select v-model="formData.groupId" :disabled="isSubmitting">
-            <SelectTrigger id="api-group">
-              <SelectValue placeholder="选择分组" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem
-                v-for="group in flatGroups"
-                :key="group.id"
-                :value="group.id"
-              >
-                {{ getGroupDisplayName(group) }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <form class="space-y-4 py-4" @submit="onSubmit">
+        <FormField v-slot="{ componentField }" name="groupId">
+          <FormItem>
+            <FormLabel for="api-group">
+              所属分组
+            </FormLabel>
+            <FormControl>
+              <Select :disabled="isSubmitting" v-bind="componentField">
+                <SelectTrigger id="api-group">
+                  <SelectValue placeholder="选择分组" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="group in flatGroups"
+                    :key="group.id"
+                    :value="group.id"
+                  >
+                    {{ getGroupDisplayName(group) }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
-        <!-- 接口名称 -->
-        <div class="space-y-2">
-          <Label for="api-name">接口名称</Label>
-          <Input
-            id="api-name"
-            v-model="formData.name"
-            placeholder="请输入接口名称"
-            :disabled="isSubmitting"
-          />
-        </div>
+        <FormField v-slot="{ componentField }" name="name">
+          <FormItem>
+            <FormLabel for="api-name">
+              接口名称
+            </FormLabel>
+            <FormControl>
+              <Input
+                id="api-name"
+                placeholder="请输入接口名称"
+                :disabled="isSubmitting"
+                v-bind="componentField"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
 
-        <!-- HTTP 方法 + 路径 -->
-        <div class="space-y-2">
-          <Label>请求方法 & 路径</Label>
-          <div class="flex gap-2">
-            <Select v-model="formData.method" :disabled="isSubmitting">
-              <SelectTrigger class="w-28">
-                <SelectValue>
-                  <span :class="cn('font-bold', methodColors[formData.method])">
-                    {{ formData.method }}
-                  </span>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem
-                  v-for="method in HTTP_METHODS"
-                  :key="method"
-                  :value="method"
-                >
-                  <span :class="cn('font-bold', methodColors[method])">
-                    {{ method }}
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              v-model="formData.path"
-              placeholder="/api/example"
-              class="flex-1 font-mono"
+        <FormField v-slot="{ componentField, value }" name="method">
+          <FormItem>
+            <FormLabel>请求方法</FormLabel>
+            <FormControl>
+              <Select v-bind="componentField" :disabled="isSubmitting">
+                <SelectTrigger class="w-28">
+                  <SelectValue>
+                    <span :class="cn('font-bold', methodColors[value as HttpMethod])">
+                      {{ value }}
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="method in HTTP_METHODS"
+                    :key="method"
+                    :value="method"
+                  >
+                    <span :class="cn('font-bold', methodColors[method])">
+                      {{ method }}
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ componentField }" name="path">
+          <FormItem>
+            <FormLabel>请求路径</FormLabel>
+            <FormControl>
+              <Input
+                v-bind="componentField"
+                placeholder="/api/example"
+                class="flex-1 font-mono"
+                :disabled="isSubmitting"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <DialogFooter>
+          <DialogClose as-child>
+            <Button
+              type="button"
+              variant="outline"
               :disabled="isSubmitting"
-            />
-          </div>
-        </div>
-      </div>
-
-      <DialogFooter>
-        <DialogClose as-child>
+            >
+              取消
+            </Button>
+          </DialogClose>
           <Button
-            type="button"
-            variant="outline"
+            type="submit"
             :disabled="isSubmitting"
+            @click="handleSubmit"
           >
-            取消
+            <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
+            创建
           </Button>
-        </DialogClose>
-        <Button
-          type="button"
-          :disabled="!canSubmit || isSubmitting"
-          @click="handleSubmit"
-        >
-          <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-          创建
-        </Button>
-      </DialogFooter>
+        </DialogFooter>
+      </form>
     </DialogContent>
   </Dialog>
 </template>

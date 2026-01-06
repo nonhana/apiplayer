@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { TabsContent } from '@/components/ui/tabs'
 import { useProjectStore } from '@/stores/useProjectStore'
-import CreateEnvDialog from './dialogs/CreateEnvDialog.vue'
 import DeleteEnvDialog from './dialogs/DeleteEnvDialog.vue'
+import EnvFormDialog from './dialogs/EnvFormDialog.vue'
 import ProjectEnvItem from './ProjectEnvItem.vue'
 
 defineProps<{
@@ -89,7 +89,7 @@ async function handleSuccess() {
       共 {{ environments.length }} 个环境
     </div>
 
-    <CreateEnvDialog
+    <EnvFormDialog
       v-model:open="isFormDialogOpen"
       :project-id="projectId"
       :env="editingEnv"

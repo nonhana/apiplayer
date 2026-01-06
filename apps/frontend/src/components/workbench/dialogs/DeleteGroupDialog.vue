@@ -18,7 +18,6 @@ import { Label } from '@/components/ui/label'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 
 const props = defineProps<{
-  /** 要删除的分组 */
   group: GroupNodeWithApis | null
 }>()
 
@@ -30,18 +29,13 @@ const isOpen = defineModel<boolean>('open', { required: true })
 
 const apiTreeStore = useApiTreeStore()
 
-/** 是否级联删除 */
 const cascade = ref(false)
-
-/** 是否删除中 */
 const isDeleting = ref(false)
 
-/** 是否有子内容 */
 const hasChildren = computed(() =>
   (props.group?.children.length ?? 0) > 0 || (props.group?.apiCount ?? 0) > 0,
 )
 
-/** 执行删除 */
 async function handleDelete() {
   if (!props.group)
     return
@@ -77,7 +71,6 @@ async function handleDelete() {
         </AlertDialogDescription>
       </AlertDialogHeader>
 
-      <!-- 级联删除选项 -->
       <div v-if="hasChildren" class="flex items-start space-x-3 py-4">
         <Checkbox
           id="cascade"
@@ -97,7 +90,6 @@ async function handleDelete() {
         </div>
       </div>
 
-      <!-- 非级联删除提示 -->
       <div
         v-if="hasChildren && !cascade"
         class="rounded-md bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive"

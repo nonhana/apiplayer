@@ -17,7 +17,6 @@ import { Button } from '@/components/ui/button'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 
 const props = defineProps<{
-  /** 要删除的 API */
   api: ApiBrief | null
 }>()
 
@@ -29,10 +28,8 @@ const isOpen = defineModel<boolean>('open', { required: true })
 
 const apiTreeStore = useApiTreeStore()
 
-/** 是否删除中 */
 const isDeleting = ref(false)
 
-/** 执行删除 */
 async function handleDelete() {
   if (!props.api)
     return

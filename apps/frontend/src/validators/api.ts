@@ -1,7 +1,28 @@
 import type { LocalSchemaNode } from '@/types/json-schema'
+import { toTypedSchema } from '@vee-validate/zod'
 import z from 'zod'
 import { API_STATUSES, HTTP_METHODS, PARAM_TYPES, REQUEST_BODY_TYPES } from '@/constants/api'
 import { SCHEMA_FIELD_TYPES } from '@/lib/json-schema'
+
+/** 快速创建 API */
+export const createApiSchema = z.object({
+  name: z.string().min(1, '接口名称不能为空'),
+  method: z.enum(HTTP_METHODS, { message: '请选择正确的请求方法' }),
+  path: z.string().min(1, '接口路径不能为空'),
+  groupId: z.string().min(1, '接口必须归属于某个分组'),
+})
+
+export const createApiFormSchema = toTypedSchema(createApiSchema)
+
+/** 克隆 API */
+export const cloneApiSchema = z.object({
+  targetGroupId: z.string().min(1, '请选择目标分组'),
+  name: z.string().min(1, '接口名称不能为空'),
+  method: z.enum(HTTP_METHODS, { message: '请选择正确的请求方法' }),
+  path: z.string().min(1, '接口路径不能为空'),
+})
+
+export const cloneApiFormSchema = toTypedSchema(cloneApiSchema)
 
 export const basicInfoSchema = z.object({
   name: z.string().min(1, '接口名称不能为空'),

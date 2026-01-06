@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ProjectEnv, ProjectEnvType } from '@/types/project'
+import type { ProjectEnv } from '@/types/project'
 import { Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
@@ -53,7 +53,7 @@ const { handleSubmit, resetForm, setValues } = useForm({
   validationSchema: createProjectEnvFormSchema,
   initialValues: {
     name: '',
-    type: 'DEV' as ProjectEnvType,
+    type: 'DEV',
     baseUrl: '',
     isDefault: false,
   },
@@ -90,7 +90,7 @@ const onSubmit = handleSubmit(async (formValues) => {
   try {
     const payload = {
       name: formValues.name,
-      type: formValues.type as ProjectEnvType,
+      type: formValues.type,
       baseUrl: formValues.baseUrl,
       isDefault: formValues.isDefault,
     }
