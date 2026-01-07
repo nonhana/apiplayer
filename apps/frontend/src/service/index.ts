@@ -56,7 +56,7 @@ const hooks: Hooks = {
         throw new HanaError(message, resJson.code)
       }
 
-      return response
+      return new Response(JSON.stringify(resJson.data), response)
     },
   ],
 
