@@ -1,5 +1,13 @@
 import type { ApiDetail, HttpMethod, RequestBodyType } from '@/types/api'
-import type { AuthType, CurlOptions, ProxyResponse, RunnerStatus, RuntimeAuth, RuntimeBody, RuntimeParam } from '@/types/proxy'
+import type {
+  AuthType,
+  CurlOptions,
+  ProxyResponse,
+  RunnerStatus,
+  RuntimeAuth,
+  RuntimeBody,
+  RuntimeParam,
+} from '@/types/proxy'
 import { defineStore, storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { proxyApi } from '@/api/proxy'

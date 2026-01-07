@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { HTMLAttributes } from 'vue'
 import type { ParamType } from '@/types/api'
+import { computed } from 'vue'
 import { Input } from '@/components/ui/input'
 import {
   NumberField,
@@ -43,6 +44,17 @@ const props = withDefaults(defineProps<{
 
 const modelValue = defineModel<string | number>('modelValue')
 
+/** 将字符串值转换为数字（用于 NumberField） */
+const numericValue = computed({
+  get: () => {
+    const num = Number(modelValue.value)
+    return Number.isNaN(num) ? undefined : num
+  },
+  set: (val: number | undefined) => {
+    modelValue.value = val === undefined ? '' : String(val)
+  },
+})
+
 /** object 类型的占位符 */
 const objectPlaceholder = '{"k": "v"}'
 </script>
@@ -70,7 +82,7 @@ const objectPlaceholder = '{"k": "v"}'
 
   <NumberField
     v-else-if="type === 'number'"
-    v-model="modelValue as number"
+    v-model="numericValue"
     :disabled="disabled"
     :step="Math.pow(10, -5)"
     :format-options="{
@@ -84,7 +96,7 @@ const objectPlaceholder = '{"k": "v"}'
 
   <NumberField
     v-else-if="type === 'integer'"
-    v-model="modelValue as number"
+    v-model="numericValue"
     :disabled="disabled"
     :format-options="{
       minimumFractionDigits: 0,
