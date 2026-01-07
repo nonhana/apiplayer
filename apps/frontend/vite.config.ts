@@ -1,13 +1,27 @@
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig, loadEnv } from 'vite'
+import monacoEditorEsmPlugin from 'vite-plugin-monaco-editor-esm'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, import.meta.dirname)
   return {
-    plugins: [vue(), tailwindcss()],
+    plugins: [
+      vue(),
+      tailwindcss(),
+      monacoEditorEsmPlugin({
+        languageWorkers: ['editorWorkerService', 'json'],
+      }),
+      visualizer({
+        open: false,
+        gzipSize: true,
+        brotliSize: true,
+        filename: 'stats.html',
+      }),
+    ],
     resolve: {
       alias: {
         '@': path.resolve(import.meta.dirname, './src'),
@@ -22,6 +36,20 @@ export default defineConfig(({ mode }) => {
           rewrite: path => path.replace(/^\/api/, ''),
         },
       },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vue-vendor': ['vue', 'vue-router', 'pinia'],
+            'ui-vendor': ['reka-ui', 'lucide-vue-next'],
+            'utils-vendor': ['@vueuse/core', 'dayjs', 'lodash-es', 'zod'],
+            'monaco-editor': ['monaco-editor'],
+            'shiki': ['shiki'],
+          },
+        },
+      },
+      chunkSizeWarningLimit: 1000,
     },
   }
 })

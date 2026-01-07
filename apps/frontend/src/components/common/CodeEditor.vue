@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { SupportedLanguage } from '@/types/code-editor'
-import * as monaco from 'monaco-editor'
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue'
-import '@/lib/monaco'
+import { monaco } from '@/lib/monaco'
 
 const props = withDefaults(defineProps<{
   language?: SupportedLanguage

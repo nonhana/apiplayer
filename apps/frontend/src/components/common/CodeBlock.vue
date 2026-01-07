@@ -33,7 +33,7 @@ const langNameMap: Record<SupportedHighlightLang, string>
     typescript: 'TypeScript',
     html: 'HTML',
     css: 'CSS',
-    shell: 'Shell',
+    shellscript: 'Shell',
     plaintext: 'Plaintext',
   }
 

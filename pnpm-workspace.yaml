@@ -74,11 +74,12 @@ catalogs:
     ky: ^1.14.2
     lodash-es: ^4.17.22
     lucide-vue-next: ^0.562.0
-    monaco-editor: ^0.55.1
+    monaco-editor: 0.50.0
     nanoid: ^5.1.6
     pinia: ^3.0.4
     pinia-plugin-persistedstate: ^4.7.1
     reka-ui: ^2.7.0
+    rollup-plugin-visualizer: ^6.0.5
     shiki: ^3.20.0
     swrv: ^1.1.0
     tailwind-merge: ^3.4.0
@@ -87,6 +88,7 @@ catalogs:
     uuid: ^13.0.0
     vee-validate: ^4.15.1
     vite: ^7.3.0
+    vite-plugin-monaco-editor-esm: ^2.0.2
     vue: ^3.5.26
     vue-picture-cropper: ^0.7.0
     vue-router: ^4.6.4

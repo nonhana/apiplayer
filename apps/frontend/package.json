@@ -43,9 +43,11 @@
     "@types/lodash-es": "catalog:frontend",
     "@vitejs/plugin-vue": "catalog:frontend",
     "@vue/tsconfig": "catalog:frontend",
+    "rollup-plugin-visualizer": "catalog:frontend",
     "shiki": "catalog:frontend",
     "tw-animate-css": "catalog:frontend",
     "vite": "catalog:frontend",
+    "vite-plugin-monaco-editor-esm": "catalog:frontend",
     "vue-tsc": "catalog:frontend"
   }
 }

@@ -78,6 +78,9 @@ Thumbs.db
 # Miscellaneous
 .node_repl_history
 
+# Bundle analyzer
+stats.html
+
 # Other
 docs/
 
