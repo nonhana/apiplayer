@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ApiDetail, ApiStatus, HttpMethod } from '@/types/api'
+import type { ApiDetail } from '@/types/api'
 import { Check, Copy, Tag } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
@@ -14,32 +14,15 @@ import { methodBadgeColors, statusColors, statusLabels } from '@/constants/api'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
-  /** API 详情数据 */
   api: ApiDetail
 }>()
 
-/** 方法样式 */
-const methodClass = computed(() => {
-  const method = props.api.method as HttpMethod
-  return methodBadgeColors[method] ?? 'bg-slate-500/15 text-slate-600'
-})
+const methodClass = computed(() => methodBadgeColors[props.api.method])
+const statusClass = computed(() => statusColors[props.api.status])
+const statusLabel = computed(() => statusLabels[props.api.status])
 
-/** 状态样式 */
-const statusClass = computed(() => {
-  const status = props.api.status as ApiStatus
-  return statusColors[status] ?? 'bg-slate-500/15 text-slate-600'
-})
-
-/** 状态文案 */
-const statusLabel = computed(() => {
-  const status = props.api.status as ApiStatus
-  return statusLabels[status] ?? props.api.status
-})
-
-/** 是否刚刚复制 */
 const justCopied = ref(false)
 
-/** 复制路径到剪贴板 */
 async function handleCopyPath() {
   try {
     await navigator.clipboard.writeText(props.api.path)
@@ -56,7 +39,6 @@ async function handleCopyPath() {
 
 <template>
   <div class="space-y-4">
-    <!-- 接口名称和状态 -->
     <div class="flex items-center justify-between gap-4">
       <h1 class="text-xl font-bold tracking-tight truncate">
         {{ api.name }}
@@ -66,7 +48,6 @@ async function handleCopyPath() {
       </Badge>
     </div>
 
-    <!-- 请求方法和路径 -->
     <div class="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border">
       <Badge :class="cn('font-bold text-xs px-2 py-1', methodClass)">
         {{ api.method }}
@@ -94,12 +75,10 @@ async function handleCopyPath() {
       </TooltipProvider>
     </div>
 
-    <!-- 描述 -->
     <div v-if="api.description" class="text-sm text-muted-foreground leading-relaxed">
       {{ api.description }}
     </div>
 
-    <!-- 标签 -->
     <div v-if="api.tags && api.tags.length > 0" class="flex items-center gap-2 flex-wrap">
       <Tag class="h-4 w-4 text-muted-foreground shrink-0" />
       <Badge

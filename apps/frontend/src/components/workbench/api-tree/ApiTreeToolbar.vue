@@ -7,6 +7,7 @@ import {
   RefreshCw,
   Search,
 } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,13 +25,12 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
+const { loadingStatus } = storeToRefs(apiTreeStore)
 
-const isLoading = computed(() => apiTreeStore.loadingStatus === 'loading')
+const isLoading = computed(() => loadingStatus.value === 'loading')
 
-/** 本地搜索输入 */
 const searchInput = ref('')
 
-/** 监听搜索输入变化 */
 watch(searchInput, (val) => {
   apiTreeStore.setSearchQuery(val)
 })

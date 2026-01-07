@@ -26,16 +26,16 @@ import { useProjectStore } from '@/stores/useProjectStore'
 import TagsInput from './TagsInput.vue'
 
 withDefaults(defineProps<{
-  /** 是否禁用 */
   disabled?: boolean
 }>(), {
   disabled: false,
 })
 
 const apiEditorStore = useApiEditorStore()
-const projectStore = useProjectStore()
-
 const { basicInfo } = storeToRefs(apiEditorStore)
+const { updateBasicInfo } = apiEditorStore
+
+const projectStore = useProjectStore()
 const { projectMembers } = storeToRefs(projectStore)
 
 const memberOptions = computed(() =>
@@ -45,15 +45,8 @@ const memberOptions = computed(() =>
   })),
 )
 
-/** 当前方法的样式类 */
-const curMethodClass = computed(() => {
-  return methodBadgeColors[basicInfo.value.method] ?? 'bg-slate-500/15 text-slate-600'
-})
-
-/** 当前状态的样式类 */
-const curStatusClass = computed(() => {
-  return statusColors[basicInfo.value.status] ?? 'bg-slate-500/15 text-slate-600'
-})
+const curMethodClass = computed(() => methodBadgeColors[basicInfo.value.method])
+const curStatusClass = computed(() => statusColors[basicInfo.value.status])
 </script>
 
 <template>
@@ -68,7 +61,7 @@ const curStatusClass = computed(() => {
         placeholder="请输入接口名称"
         :disabled="disabled"
         class="font-medium"
-        @update:model-value="apiEditorStore.updateBasicInfo('name', String($event))"
+        @update:model-value="updateBasicInfo('name', $event as string)"
       />
     </div>
 
@@ -80,7 +73,7 @@ const curStatusClass = computed(() => {
         <Select
           :model-value="basicInfo.method"
           :disabled="disabled"
-          @update:model-value="apiEditorStore.updateBasicInfo('method', $event as HttpMethod)"
+          @update:model-value="updateBasicInfo('method', $event as HttpMethod)"
         >
           <SelectTrigger id="api-method" :class="cn('font-bold', curMethodClass)">
             <SelectValue>{{ basicInfo.method }}</SelectValue>
@@ -109,7 +102,7 @@ const curStatusClass = computed(() => {
           placeholder="/api/example"
           :disabled="disabled"
           class="font-mono"
-          @update:model-value="apiEditorStore.updateBasicInfo('path', String($event))"
+          @update:model-value="updateBasicInfo('path', $event as string)"
         />
       </div>
     </div>
@@ -120,7 +113,7 @@ const curStatusClass = computed(() => {
         <Select
           :model-value="basicInfo.status"
           :disabled="disabled"
-          @update:model-value="apiEditorStore.updateBasicInfo('status', $event as ApiStatus)"
+          @update:model-value="updateBasicInfo('status', $event as ApiStatus)"
         >
           <SelectTrigger id="api-status" :class="curStatusClass">
             <SelectValue>{{ statusLabels[basicInfo.status] }}</SelectValue>
@@ -145,7 +138,7 @@ const curStatusClass = computed(() => {
           :model-value="basicInfo.ownerId ?? ''"
           :options="memberOptions"
           :disabled="disabled"
-          @update:model-value="apiEditorStore.updateBasicInfo('ownerId', $event as string)"
+          @update:model-value="updateBasicInfo('ownerId', $event as string)"
         />
       </div>
     </div>
@@ -159,7 +152,7 @@ const curStatusClass = computed(() => {
         :disabled="disabled"
         rows="3"
         class="resize-none"
-        @update:model-value="apiEditorStore.updateBasicInfo('description', String($event))"
+        @update:model-value="updateBasicInfo('description', $event as string)"
       />
     </div>
 
@@ -169,7 +162,7 @@ const curStatusClass = computed(() => {
         :tags="basicInfo.tags"
         :disabled="disabled"
         placeholder="输入标签后按回车添加"
-        @update:tags="apiEditorStore.updateBasicInfo('tags', $event)"
+        @update:tags="updateBasicInfo('tags', $event)"
       />
     </div>
   </div>

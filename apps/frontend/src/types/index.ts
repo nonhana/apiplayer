@@ -17,4 +17,5 @@ export interface TabPageItem<T> {
   label: string
   icon: Component
   disabled?: boolean
+  [key: string]: any
 }

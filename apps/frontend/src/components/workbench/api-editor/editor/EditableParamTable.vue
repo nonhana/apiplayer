@@ -66,15 +66,11 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  /** 添加参数 */
   (e: 'add'): void
-  /** 删除参数 */
   (e: 'remove', index: number): void
-  /** 更新参数字段 */
   (e: 'update', index: number, key: keyof ApiParam, value: ApiParam[keyof ApiParam]): void
 }>()
 
-/** 表格列数 */
 const columnCount = computed(() => {
   let count = 2 // 拖拽手柄 + 参数名
   if (props.showType)
@@ -94,7 +90,6 @@ const columnCount = computed(() => {
 
 <template>
   <div class="space-y-3">
-    <!-- 参数表格 -->
     <div class="rounded-md border">
       <Table>
         <TableHeader>
@@ -130,14 +125,12 @@ const columnCount = computed(() => {
               :key="param.id"
               class="group"
             >
-              <!-- 拖拽手柄 -->
               <TableCell v-if="draggable" class="w-[40px] px-2">
                 <GripVertical
                   class="h-4 w-4 text-muted-foreground cursor-grab opacity-0 group-hover:opacity-100 transition-opacity"
                 />
               </TableCell>
 
-              <!-- 参数名 -->
               <TableCell>
                 <SearchInput
                   v-if="paramNameOptions.length > 0"
@@ -146,20 +139,18 @@ const columnCount = computed(() => {
                   placeholder="参数名"
                   :disabled="disabled"
                   class="h-8 font-mono text-sm"
-                  @update:model-value="emit('update', index, 'name', String($event))"
+                  @update:model-value="emit('update', index, 'name', $event as string)"
                 />
-                <!-- 普通输入框 -->
                 <Input
                   v-else
                   :model-value="param.name"
                   placeholder="参数名"
                   :disabled="disabled"
                   class="h-8 font-mono text-sm"
-                  @update:model-value="emit('update', index, 'name', String($event))"
+                  @update:model-value="emit('update', index, 'name', $event as string)"
                 />
               </TableCell>
 
-              <!-- 类型 -->
               <TableCell v-if="showType">
                 <Select
                   :model-value="param.type"
@@ -187,7 +178,6 @@ const columnCount = computed(() => {
                 </Select>
               </TableCell>
 
-              <!-- 必填 -->
               <TableCell v-if="showRequired" class="text-center">
                 <div class="flex justify-center">
                   <Checkbox
@@ -198,7 +188,6 @@ const columnCount = computed(() => {
                 </div>
               </TableCell>
 
-              <!-- 默认值 -->
               <TableCell v-if="showDefault">
                 <ParamTableValueForm
                   :type="param.type"
@@ -208,7 +197,6 @@ const columnCount = computed(() => {
                 />
               </TableCell>
 
-              <!-- 示例值 -->
               <TableCell v-if="showExample">
                 <ParamTableValueForm
                   :type="param.type"
@@ -218,18 +206,16 @@ const columnCount = computed(() => {
                 />
               </TableCell>
 
-              <!-- 说明 -->
               <TableCell v-if="showDescription">
                 <Input
                   :model-value="param.description ?? ''"
                   placeholder="参数说明"
                   :disabled="disabled"
                   class="h-8 text-sm"
-                  @update:model-value="emit('update', index, 'description', String($event))"
+                  @update:model-value="emit('update', index, 'description', $event as string)"
                 />
               </TableCell>
 
-              <!-- 操作 -->
               <TableCell class="text-center">
                 <Button
                   variant="ghost"
@@ -244,7 +230,6 @@ const columnCount = computed(() => {
             </TableRow>
           </template>
 
-          <!-- 空状态 -->
           <TableRow v-else>
             <TableCell
               :colspan="columnCount"
@@ -257,7 +242,6 @@ const columnCount = computed(() => {
       </Table>
     </div>
 
-    <!-- 添加按钮 -->
     <Button
       variant="outline"
       size="sm"

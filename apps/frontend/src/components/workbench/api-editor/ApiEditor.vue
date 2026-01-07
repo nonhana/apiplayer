@@ -12,9 +12,6 @@ import ApiDocView from './ApiDocView.vue'
 import ApiEditView from './ApiEditView.vue'
 import ApiSettingsView from './ApiSettingsView.vue'
 
-const projectId = useRouteParams<string>('projectId')
-const apiId = useRouteParams<string>('apiId')
-
 type TabType = 'doc' | 'edit' | 'run' | 'versions' | 'settings'
 const tabItems: TabPageItem<TabType>[] = [
   { value: 'doc', label: '文档', icon: FileText },
@@ -23,6 +20,9 @@ const tabItems: TabPageItem<TabType>[] = [
   { value: 'versions', label: '版本', icon: GitBranch },
   { value: 'settings', label: '设置', icon: Settings2 },
 ]
+
+const projectId = useRouteParams<string>('projectId')
+const apiId = useRouteParams<string>('apiId')
 
 const activeTab = useRouteQuery<TabType>('mode', 'doc')
 const editing = useRouteQuery('editing')
@@ -33,19 +33,12 @@ watch(activeTab, (newV, oldV) => {
   }
 })
 
-/** API 详情数据 */
 const apiDetail = ref<ApiDetail | null>(null)
-
-/** 加载状态 */
 const isLoading = ref(false)
-
-/** 加载错误 */
 const loadError = ref<string | null>(null)
 
-/** 是否已加载 */
 const isLoaded = computed(() => apiDetail.value !== null)
 
-/** 获取 API 详情 */
 async function fetchApiDetail() {
   isLoading.value = true
   loadError.value = null
@@ -53,6 +46,7 @@ async function fetchApiDetail() {
     apiDetail.value = await apiApi.getApiDetail(projectId.value, apiId.value)
   }
   catch (error) {
+    console.error('获取 API 详情失败:', error)
     loadError.value = `获取 API 详情失败: ${error}`
   }
   finally {
@@ -66,11 +60,12 @@ async function refreshApiDetail() {
     apiDetail.value = await apiApi.getApiDetail(projectId.value, apiId.value)
   }
   catch (error) {
+    console.error('获取 API 详情失败:', error)
     loadError.value = `获取 API 详情失败: ${error}`
   }
 }
 
-/** 监听 API ID 和项目 ID 变化，重新获取 API 详情 */
+// apiId 和 projectId 变化，刷新 API 详情
 watch([apiId, projectId], ([curApiId, curProjectId]) => {
   if (curApiId && curProjectId) {
     fetchApiDetail()
@@ -80,7 +75,6 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
 
 <template>
   <div class="h-full flex flex-col bg-background">
-    <!-- 加载状态 -->
     <div
       v-if="isLoading"
       class="flex-1 flex items-center justify-center"
@@ -91,7 +85,6 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
       </div>
     </div>
 
-    <!-- 错误状态 -->
     <div
       v-else-if="loadError"
       class="flex-1 flex items-center justify-center"
@@ -102,13 +95,11 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
       </div>
     </div>
 
-    <!-- 内容区域 -->
     <Tabs
       v-else-if="isLoaded && apiDetail"
       v-model="activeTab"
       class="flex-1 flex flex-col overflow-hidden"
     >
-      <!-- Tab 切换 -->
       <div class="border-b px-4 py-2 bg-muted/20">
         <TabsList class="h-10 bg-transparent p-0 gap-1">
           <TabsTrigger
@@ -124,7 +115,6 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
         </TabsList>
       </div>
 
-      <!-- Tab 内容 -->
       <TabsContent value="doc" class="flex-1 mt-0 overflow-hidden">
         <ApiDocView :api="apiDetail" />
       </TabsContent>
@@ -151,7 +141,6 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
       </TabsContent>
     </Tabs>
 
-    <!-- 空状态 -->
     <div
       v-else
       class="flex-1 flex items-center justify-center text-muted-foreground"

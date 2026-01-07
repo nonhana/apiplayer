@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TabPageItem } from '@/types'
 import type { ApiParam } from '@/types/api'
 import { FileText, Hash, LinkIcon } from 'lucide-vue-next'
 import { computed } from 'vue'
@@ -6,29 +7,40 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ParamTable from './ParamTable.vue'
 
 const props = defineProps<{
-  /** 请求头参数 */
   headers: ApiParam[]
-  /** 路径参数 */
   pathParams: ApiParam[]
-  /** 查询参数 */
   queryParams: ApiParam[]
 }>()
 
-/** 是否有请求头 */
+type TabType = 'path' | 'query' | 'headers'
+const tabItems: TabPageItem<TabType>[] = [
+  {
+    value: 'path',
+    label: 'Path 参数',
+    icon: LinkIcon,
+    count: props.pathParams.length,
+  },
+  {
+    value: 'query',
+    label: 'Query 参数',
+    icon: Hash,
+    count: props.queryParams.length,
+  },
+  {
+    value: 'headers',
+    label: '请求头',
+    icon: FileText,
+    count: props.headers.length,
+  },
+]
+
 const hasHeaders = computed(() => props.headers.length > 0)
-
-/** 是否有路径参数 */
 const hasPathParams = computed(() => props.pathParams.length > 0)
-
-/** 是否有查询参数 */
 const hasQueryParams = computed(() => props.queryParams.length > 0)
-
-/** 是否有参数 */
 const hasParams = computed(() =>
   hasHeaders.value || hasPathParams.value || hasQueryParams.value,
 )
 
-/** 默认激活的 Tab */
 const defaultTab = computed(() => {
   if (hasPathParams.value)
     return 'path'
@@ -38,31 +50,6 @@ const defaultTab = computed(() => {
     return 'headers'
   return 'path'
 })
-
-/** Tab 项配置 */
-const tabItems = computed(() => [
-  {
-    value: 'path',
-    label: 'Path 参数',
-    icon: LinkIcon,
-    count: props.pathParams.length,
-    show: true,
-  },
-  {
-    value: 'query',
-    label: 'Query 参数',
-    icon: Hash,
-    count: props.queryParams.length,
-    show: true,
-  },
-  {
-    value: 'headers',
-    label: '请求头',
-    icon: FileText,
-    count: props.headers.length,
-    show: true,
-  },
-])
 </script>
 
 <template>
@@ -78,7 +65,6 @@ const tabItems = computed(() => [
         <TabsList class="w-full justify-start h-9 bg-muted/50 p-1">
           <TabsTrigger
             v-for="tab in tabItems"
-            v-show="tab.show"
             :key="tab.value"
             :value="tab.value"
             class="gap-1.5 text-xs data-[state=active]:bg-background"

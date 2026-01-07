@@ -1,43 +1,16 @@
 <script lang="ts" setup>
-import type { ApiDetail, ApiParam, ApiRequestBody as ApiRequestBodyType, ApiResItem } from '@/types/api'
-import { computed } from 'vue'
+import type { ApiDetail } from '@/types/api'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import ApiBasicInfo from './ApiBasicInfo.vue'
-import ApiMetadata from './ApiMetadata.vue'
-import ApiRequestBodySection from './ApiRequestBody.vue'
-import ApiRequestParams from './ApiRequestParams.vue'
-import ApiResponses from './ApiResponses.vue'
+import ApiBasicInfo from './doc/ApiBasicInfo.vue'
+import ApiMetadata from './doc/ApiMetadata.vue'
+import ApiRequestBody from './doc/ApiRequestBody.vue'
+import ApiRequestParams from './doc/ApiRequestParams.vue'
+import ApiResponses from './doc/ApiResponses.vue'
 
-const props = defineProps<{
-  /** API 详情数据 */
+defineProps<{
   api: ApiDetail
 }>()
-
-/** 请求头参数 */
-const requestHeaders = computed<ApiParam[]>(() => {
-  return (props.api.requestHeaders ?? []) as ApiParam[]
-})
-
-/** 路径参数 */
-const pathParams = computed<ApiParam[]>(() => {
-  return (props.api.pathParams ?? []) as ApiParam[]
-})
-
-/** 查询参数 */
-const queryParams = computed<ApiParam[]>(() => {
-  return (props.api.queryParams ?? []) as ApiParam[]
-})
-
-/** 请求体 */
-const requestBody = computed<ApiRequestBodyType | undefined>(() => {
-  return props.api.requestBody as ApiRequestBodyType | undefined
-})
-
-/** 响应列表 */
-const responses = computed<ApiResItem[]>(() => {
-  return (props.api.responses ?? []) as ApiResItem[]
-})
 </script>
 
 <template>
@@ -46,24 +19,17 @@ const responses = computed<ApiResItem[]>(() => {
       <div class="flex gap-6">
         <div class="flex-1 min-w-0 space-y-8">
           <ApiBasicInfo :api="api" />
-
           <Separator />
-
           <ApiRequestParams
-            :headers="requestHeaders"
-            :path-params="pathParams"
-            :query-params="queryParams"
+            :headers="api.requestHeaders"
+            :path-params="api.pathParams"
+            :query-params="api.queryParams"
           />
-
           <Separator />
-
-          <ApiRequestBodySection :body="requestBody" />
-
+          <ApiRequestBody :body="api.requestBody" />
           <Separator />
-
-          <ApiResponses :responses="responses" />
+          <ApiResponses :responses="api.responses" />
         </div>
-
         <div class="w-64 shrink-0">
           <div class="sticky top-6">
             <ApiMetadata :api="api" />

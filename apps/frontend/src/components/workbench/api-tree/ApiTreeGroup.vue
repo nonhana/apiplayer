@@ -61,24 +61,16 @@ const dragger = useApiTreeDrag(apiDragStore, apiTreeStore)
 
 const groupItemRef = useTemplateRef('groupItemRef')
 
-/** 是否正在拖拽当前项 */
 const isDragging = ref(false)
 
-/** 是否是拖拽目标 */
 const isDragOver = ref(false)
-
-/** 拖拽目标位置 */
 const dropPosition = ref<DropPosition | null>(null)
 
-/** 当前层级 */
 const currentLevel = computed(() => props.level ?? 0)
-
-/** 层级缩进 */
 const indentStyle = computed<StyleValue>(() => ({
   paddingLeft: `${currentLevel.value * 12 + 8}px`,
 }))
 
-/** 是否展开 */
 const isOpen = computed({
   get: () => apiTreeStore.isExpanded(props.group.id),
   set: (val) => {
@@ -91,45 +83,36 @@ const isOpen = computed({
   },
 })
 
-/** 是否有子内容 */
 const hasChildren = computed(() =>
   props.group.children.length > 0 || props.group.apiCount > 0,
 )
 
-/** 是否选中 */
 const isSelected = computed(() =>
   apiTreeStore.selectedNodeId === props.group.id
   && apiTreeStore.selectedNodeType === 'group',
 )
 
-/** 新建子分组 */
 function handleCreateGroup() {
   emits('createGroup', props.group.id)
 }
 
-/** 新建 API */
 function handleCreateApi() {
   emits('createApi', props.group.id)
 }
 
-/** 重命名分组 */
 function handleRename() {
   emits('renameGroup', props.group)
 }
 
-/** 删除分组 */
 function handleDelete() {
   emits('deleteGroup', props.group)
 }
 
-/** 点击选中 */
 function handleClick() {
   apiTreeStore.selectNode(props.group.id, 'group')
 }
 
 // ========== 拖拽事件处理 ==========
-
-/** 开始拖拽 */
 function handleDragStart(e: DragEvent) {
   isDragging.value = true
   e.dataTransfer!.effectAllowed = 'move'
@@ -143,7 +126,6 @@ function handleDragStart(e: DragEvent) {
   })
 }
 
-/** 拖拽结束 */
 function handleDragEnd() {
   isDragging.value = false
   isDragOver.value = false
@@ -151,7 +133,6 @@ function handleDragEnd() {
   apiDragStore.endDrag()
 }
 
-/** 拖拽经过 */
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
 
@@ -181,13 +162,11 @@ function handleDragOver(e: DragEvent) {
   }
 }
 
-/** 拖拽离开 */
 function handleDragLeave() {
   isDragOver.value = false
   dropPosition.value = null
 }
 
-/** 放置 */
 async function handleDrop(e: DragEvent) {
   e.preventDefault()
   e.stopPropagation()
@@ -319,7 +298,7 @@ async function handleDrop(e: DragEvent) {
     </ContextMenu>
 
     <CollapsibleContent>
-      <!-- 递归渲染子分组 -->
+      <!-- 子分组递归 -->
       <ApiTreeGroup
         v-for="child in group.children"
         :key="child.id"
@@ -335,7 +314,6 @@ async function handleDrop(e: DragEvent) {
         @delete-api="(api) => emits('deleteApi', api)"
       />
 
-      <!-- 渲染 API 列表 -->
       <ApiTreeItem
         v-for="api in group.apis"
         :key="api.id"

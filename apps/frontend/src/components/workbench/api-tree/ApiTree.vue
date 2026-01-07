@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import type { ApiBrief, GroupNodeWithApis } from '@/types/api'
+import type { DropItem } from '@/types/api-drag'
 import {
   FolderPlus,
   FolderRoot,
   Inbox,
   Loader2,
 } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -27,94 +29,40 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
+const { projectId, loadingStatus, filteredTree } = storeToRefs(apiTreeStore)
+
+const isLoading = computed(() => loadingStatus.value === 'loading')
+const hasData = computed(() => filteredTree.value.length > 0)
+
 const apiDragStore = useApiDragStore()
+const { isDragging } = storeToRefs(apiDragStore)
+
 const dragger = useApiTreeDrag(apiDragStore, apiTreeStore)
 
-/** 本地搜索输入 */
 const searchInput = ref('')
 
-/** 是否正在拖拽 */
-const isDragging = computed(() => apiDragStore.isDragging)
-
-/** 是否可以移动到根级别 */
-const showRootDropZone = computed(() => dragger.canMoveToRoot())
-
-/** 是否正在拖拽到根级别区域 */
+/** 是否正在拖拽到 Root 区域 */
 const isRootDragOver = ref(false)
 
-/** 项目 ID */
-const projectId = computed(() => apiTreeStore.projectId)
-
-/** 是否加载中 */
-const isLoading = computed(() => apiTreeStore.loadingStatus === 'loading')
-
-/** 过滤后的树数据 */
-const treeData = computed(() => apiTreeStore.filteredTree)
-
-/** 是否有数据 */
-const hasData = computed(() => treeData.value.length > 0)
-
-/** 监听搜索输入变化 */
-watch(searchInput, (val) => {
-  apiTreeStore.setSearchQuery(val)
+watch(searchInput, (newV) => {
+  apiTreeStore.setSearchQuery(newV)
 })
 
-/** 监听路由变化，加载树数据 */
-watch(projectId, (id) => {
-  if (id) {
-    apiTreeStore.fetchTree(id)
+watch(projectId, (newV) => {
+  if (newV) {
+    apiTreeStore.fetchTree(newV)
   }
 }, { immediate: true })
-
-/** 新建根分组 */
-function handleCreateRootGroup() {
-  emits('createGroup')
-}
-
-/** 新建分组（在指定父分组下） */
-function handleCreateGroup(parentId: string) {
-  emits('createGroup', parentId)
-}
-
-/** 新建 API */
-function handleCreateApi(groupId?: string) {
-  emits('createApi', groupId)
-}
-
-/** 重命名分组 */
-function handleRenameGroup(group: GroupNodeWithApis) {
-  emits('renameGroup', group)
-}
-
-/** 删除分组 */
-function handleDeleteGroup(group: GroupNodeWithApis) {
-  emits('deleteGroup', group)
-}
-
-/** 选择 API */
-function handleSelectApi(api: ApiBrief) {
-  emits('selectApi', api)
-}
-
-/** 克隆 API */
-function handleCloneApi(api: ApiBrief) {
-  emits('cloneApi', api)
-}
-
-/** 删除 API */
-function handleDeleteApi(api: ApiBrief) {
-  emits('deleteApi', api)
-}
 
 /** 根级别区域拖拽经过 */
 function handleRootDragOver(e: DragEvent) {
   e.preventDefault()
 
-  if (!showRootDropZone.value)
+  if (!dragger.canMoveToRoot.value)
     return
 
   e.dataTransfer!.dropEffect = 'move'
-  const target = { type: 'root' as const }
+  const target: DropItem = { type: 'root' }
 
   if (dragger.isValidDrop(target)) {
     isRootDragOver.value = true
@@ -122,12 +70,10 @@ function handleRootDragOver(e: DragEvent) {
   }
 }
 
-/** 根级别区域拖拽离开 */
 function handleRootDragLeave() {
   isRootDragOver.value = false
 }
 
-/** 根级别区域放置 */
 async function handleRootDrop(e: DragEvent) {
   e.preventDefault()
   e.stopPropagation()
@@ -178,7 +124,7 @@ onMounted(() => {
           <Button
             variant="outline"
             size="sm"
-            @click="handleCreateRootGroup"
+            @click="emits('createGroup')"
           >
             <FolderPlus class="h-4 w-4 mr-1" />
             新建分组
@@ -188,17 +134,17 @@ onMounted(() => {
 
       <div v-else class="py-1">
         <ApiTreeGroup
-          v-for="group in treeData"
+          v-for="group in filteredTree"
           :key="group.id"
           :group="group"
           :level="0"
-          @create-group="handleCreateGroup"
-          @create-api="handleCreateApi"
-          @rename-group="handleRenameGroup"
-          @delete-group="handleDeleteGroup"
-          @select-api="handleSelectApi"
-          @clone-api="handleCloneApi"
-          @delete-api="handleDeleteApi"
+          @create-group="emits('createGroup', $event)"
+          @create-api="emits('createApi', $event)"
+          @rename-group="emits('renameGroup', $event)"
+          @delete-group="emits('deleteGroup', $event)"
+          @select-api="emits('selectApi', $event)"
+          @clone-api="emits('cloneApi', $event)"
+          @delete-api="emits('deleteApi', $event)"
         />
 
         <Transition
@@ -210,7 +156,7 @@ onMounted(() => {
           leave-to-class="opacity-0 max-h-0"
         >
           <div
-            v-if="isDragging && showRootDropZone"
+            v-if="isDragging && dragger.canMoveToRoot"
             :class="cn(
               'mx-2 mt-2 px-3 py-3 rounded-lg border-2 border-dashed transition-all duration-150',
               'flex items-center justify-center gap-2 text-sm',

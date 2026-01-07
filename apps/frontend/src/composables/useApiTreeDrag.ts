@@ -227,9 +227,7 @@ export function useApiTreeDrag(
   }
 
   /** 判断是否可以移动到 root */
-  function canMoveToRoot() {
-    return drag.value?.type === 'group' && !!drag.value.parentId
-  }
+  const canMoveToRoot = computed(() => drag.value?.type === 'group' && !!drag.value.parentId)
 
   /** 执行拖拽放置操作 */
   async function executeDrop() {

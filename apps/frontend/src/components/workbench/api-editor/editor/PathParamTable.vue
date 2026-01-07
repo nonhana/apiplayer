@@ -23,25 +23,17 @@ import { cn } from '@/lib/utils'
 import ParamTableValueForm from './ParamTableValueForm.vue'
 
 const props = withDefaults(defineProps<{
-  /** 参数列表 */
-  params: ApiParam[]
-  /** 是否禁用编辑 */
   disabled?: boolean
-  /** 空状态提示文案 */
   emptyText?: string
 }>(), {
   disabled: false,
   emptyText: '暂无路径参数',
 })
 
-const emit = defineEmits<{
-  (e: 'update:params', params: ApiParam[]): void
-}>()
+const params = defineModel<ApiParam[]>('params', { required: true })
 
-/** 内部参数列表 */
-const internalParams = computed(() => props.params)
+const internalParams = computed(() => params.value)
 
-/** 更新参数字段（不含 name） */
 function handleUpdate<K extends Exclude<keyof ApiParam, 'name'>>(
   index: number,
   key: K,
@@ -50,11 +42,11 @@ function handleUpdate<K extends Exclude<keyof ApiParam, 'name'>>(
   if (props.disabled)
     return
 
-  const newParams = [...props.params]
+  const newParams = [...params.value]
   const param = newParams[index]
   if (param) {
     newParams[index] = { ...param, [key]: value }
-    emit('update:params', newParams)
+    params.value = newParams
   }
 }
 </script>
@@ -134,7 +126,7 @@ function handleUpdate<K extends Exclude<keyof ApiParam, 'name'>>(
                 :type="param.type"
                 :model-value="param.example ?? ''"
                 :disabled="disabled"
-                @update:model-value="handleUpdate(index, 'example', $event)"
+                @update:model-value="handleUpdate(index, 'example', $event as string)"
               />
             </TableCell>
 
@@ -144,7 +136,7 @@ function handleUpdate<K extends Exclude<keyof ApiParam, 'name'>>(
                 placeholder="参数说明"
                 :disabled="disabled"
                 class="h-8 text-sm"
-                @update:model-value="handleUpdate(index, 'description', String($event))"
+                @update:model-value="handleUpdate(index, 'description', $event as string)"
               />
             </TableCell>
           </TableRow>

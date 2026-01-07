@@ -35,13 +35,13 @@ const tabItems: TabPageItem<TabType>[] = [
 ]
 
 const apiTreeStore = useApiTreeStore()
-const apiEditorStore = useApiEditorStore()
 const tabStore = useTabStore()
-const activeTab = useRouteQuery<TabType>('editing', 'basicInfo')
 
+const apiEditorStore = useApiEditorStore()
 const { isDirty, isSaving, basicInfo } = storeToRefs(apiEditorStore)
 
-/** 监听 API ID 变化，初始化编辑器 */
+const activeTab = useRouteQuery<TabType>('editing', 'basicInfo')
+
 watch(
   () => props.api.id,
   () => {
@@ -52,12 +52,10 @@ watch(
   { immediate: true },
 )
 
-/** 监听脏状态变化，更新 Tab 标记 */
 watch(isDirty, (dirty) => {
   tabStore.setTabDirty(props.api.id, dirty)
 })
 
-/** 保存 API */
 async function handleSave() {
   if (!apiTreeStore.projectId)
     return

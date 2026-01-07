@@ -6,32 +6,27 @@ import { Separator } from '@/components/ui/separator'
 import dayjs from '@/lib/dayjs'
 
 const props = defineProps<{
-  /** API 详情数据 */
   api: ApiDetail
 }>()
 
-/** 创建时间（格式化） */
-const createdAt = computed(() =>
-  dayjs(props.api.createdAt).format('YYYY年MM月DD日 HH:mm'),
-)
-
-/** 更新时间（格式化） */
-const updatedAt = computed(() =>
-  dayjs(props.api.updatedAt).format('YYYY年MM月DD日 HH:mm'),
-)
-
-/** 更新时间（相对） */
-const updatedAtRelative = computed(() =>
-  dayjs(props.api.updatedAt).fromNow(),
-)
-
-/** 信息项 */
 interface MetaItem {
   icon: typeof Calendar
   label: string
   value: string
   extra?: string
 }
+
+const createdAt = computed(() =>
+  dayjs(props.api.createdAt).format('YYYY年MM月DD日 HH:mm'),
+)
+
+const updatedAt = computed(() =>
+  dayjs(props.api.updatedAt).format('YYYY年MM月DD日 HH:mm'),
+)
+
+const updatedAtRelative = computed(() =>
+  dayjs(props.api.updatedAt).fromNow(),
+)
 
 const metaItems = computed<MetaItem[]>(() => [
   {

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { ApiParam } from '@/types/api'
+import type { TabPageItem } from '@/types'
 import { FileText, Hash, LinkIcon } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { HEADER_PARAMS, PARAM_TYPES } from '@/constants/api'
@@ -12,7 +12,6 @@ import EditableParamTable from './EditableParamTable.vue'
 import PathParamTable from './PathParamTable.vue'
 
 withDefaults(defineProps<{
-  /** 是否禁用 */
   disabled?: boolean
 }>(), {
   disabled: false,
@@ -20,12 +19,10 @@ withDefaults(defineProps<{
 
 const apiEditorStore = useApiEditorStore()
 const { paramsData } = storeToRefs(apiEditorStore)
+const { addParam, removeParam, updateParam, updatePathParams } = apiEditorStore
 
-/** 当前激活的 Tab */
-const activeTab = ref('query')
-
-/** Tab 项配置 */
-const tabItems = computed(() => [
+type TabType = 'query' | 'path' | 'headers'
+const tabItems: TabPageItem<TabType>[] = [
   {
     value: 'query',
     label: 'Query 参数',
@@ -44,35 +41,9 @@ const tabItems = computed(() => [
     icon: FileText,
     count: paramsData.value.requestHeaders.length,
   },
-])
+]
 
-function handleAddQueryParam() {
-  apiEditorStore.addParam('request-query')
-}
-
-function handleRemoveQueryParam(index: number) {
-  apiEditorStore.removeParam('request-query', index)
-}
-
-function handleUpdateQueryParam(index: number, key: keyof ApiParam, value: ApiParam[keyof ApiParam]) {
-  apiEditorStore.updateParam('request-query', index, key, value)
-}
-
-function handleAddHeaderParam() {
-  apiEditorStore.addParam('request-header')
-}
-
-function handleRemoveHeaderParam(index: number) {
-  apiEditorStore.removeParam('request-header', index)
-}
-
-function handleUpdateHeaderParam(index: number, key: keyof ApiParam, value: ApiParam[keyof ApiParam]) {
-  apiEditorStore.updateParam('request-header', index, key, value)
-}
-
-function handleUpdatePathParams(params: ApiParam[]) {
-  apiEditorStore.updatePathParams(params)
-}
+const activeTab = ref<TabType>('query')
 </script>
 
 <template>
@@ -97,7 +68,7 @@ function handleUpdatePathParams(params: ApiParam[]) {
         </TabsTrigger>
       </TabsList>
 
-      <!-- Query 参数 -->
+      <!-- 查询参数 -->
       <TabsContent value="query" class="mt-4">
         <EditableParamTable
           :params="paramsData.queryParams"
@@ -105,13 +76,13 @@ function handleUpdatePathParams(params: ApiParam[]) {
           :param-type-options="PARAM_TYPES"
           empty-text="暂无查询参数，点击添加"
           add-button-text="添加 Query 参数"
-          @add="handleAddQueryParam"
-          @remove="handleRemoveQueryParam"
-          @update="handleUpdateQueryParam"
+          @add="addParam('request-query')"
+          @remove="removeParam('request-query', $event)"
+          @update="(index, key, value) => updateParam('request-query', index, key, value)"
         />
       </TabsContent>
 
-      <!-- Path 参数 -->
+      <!-- 路径参数 -->
       <TabsContent value="path" class="mt-4">
         <div class="space-y-3">
           <p class="text-sm text-muted-foreground">
@@ -125,12 +96,12 @@ function handleUpdatePathParams(params: ApiParam[]) {
             :params="paramsData.pathParams"
             :disabled="disabled"
             empty-text="暂无路径参数，请在接口路径中使用 {paramName} 格式定义"
-            @update:params="handleUpdatePathParams"
+            @update:params="updatePathParams"
           />
         </div>
       </TabsContent>
 
-      <!-- 请求头 -->
+      <!-- headers -->
       <TabsContent value="headers" class="mt-4">
         <EditableParamTable
           :params="paramsData.requestHeaders"
@@ -141,9 +112,9 @@ function handleUpdatePathParams(params: ApiParam[]) {
           :param-name-options="buildOptionList(HEADER_PARAMS)"
           empty-text="暂无请求头，点击添加"
           add-button-text="添加请求头"
-          @add="handleAddHeaderParam"
-          @remove="handleRemoveHeaderParam"
-          @update="handleUpdateHeaderParam"
+          @add="addParam('request-header')"
+          @remove="removeParam('request-header', $event)"
+          @update="(index, key, value) => updateParam('request-header', index, key, value)"
         />
       </TabsContent>
     </Tabs>

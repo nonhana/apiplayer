@@ -22,12 +22,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { HTTP_STATUS_CATEGORIES, httpStatusLabels } from '@/constants/api'
+import { HTTP_STATUS_CODES, httpStatusLabels, resStatusStyles } from '@/constants/api'
 import { cn } from '@/lib/utils'
 import { useApiEditorStore } from '@/stores/useApiEditorStore'
 
 withDefaults(defineProps<{
-  /** 是否禁用 */
   disabled?: boolean
 }>(), {
   disabled: false,
@@ -35,8 +34,13 @@ withDefaults(defineProps<{
 
 const apiEditorStore = useApiEditorStore()
 const { responses } = storeToRefs(apiEditorStore)
+const {
+  addResponse,
+  removeResponse,
+  updateResponseField,
+  updateResponseBody,
+} = apiEditorStore
 
-/** 展开状态 */
 const expandedKeys = ref<Set<string>>(new Set())
 
 watch(responses, (newV) => {
@@ -45,14 +49,6 @@ watch(responses, (newV) => {
   }
 }, { immediate: true, deep: true })
 
-/** 常用 HTTP 状态码选项 */
-const statusOptions = [
-  ...HTTP_STATUS_CATEGORIES.success,
-  ...HTTP_STATUS_CATEGORIES.clientError,
-  ...HTTP_STATUS_CATEGORIES.serverError,
-].sort((a, b) => a - b)
-
-/** 获取状态码类型 */
 function getStatusType(status: number) {
   if (status >= 200 && status < 300)
     return 'success'
@@ -63,31 +59,19 @@ function getStatusType(status: number) {
   return 'server-error'
 }
 
-/** 状态码样式 */
-const statusStyles = {
-  'success': 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
-  'redirect': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
-  'client-error': 'bg-rose-500/15 text-rose-600 border-rose-500/30',
-  'server-error': 'bg-red-500/15 text-red-600 border-red-500/30',
-}
-
-/** 获取状态码样式 */
 function getStatusClass(status: number) {
-  return statusStyles[getStatusType(status)]
+  return resStatusStyles[getStatusType(status)]
 }
 
-/** 获取状态码描述 */
 function getStatusLabel(status: number) {
   return httpStatusLabels[status as keyof typeof httpStatusLabels] ?? ''
 }
 
-/** 状态码图标 */
 function getStatusIcon(status: number) {
   const type = getStatusType(status)
   return type === 'success' ? Check : X
 }
 
-/** 切换展开 */
 function toggleExpand(key: string) {
   if (expandedKeys.value.has(key)) {
     expandedKeys.value.delete(key)
@@ -97,40 +81,34 @@ function toggleExpand(key: string) {
   }
 }
 
-/** 是否展开 */
 function isExpanded(key: string): boolean {
   return expandedKeys.value.has(key)
 }
 
-/** 添加响应 */
 function handleAdd() {
-  const newId = apiEditorStore.addResponse()
+  const newId = addResponse()
   expandedKeys.value.add(newId)
 }
 
-/** 删除响应 */
 function handleRemove(index: number) {
   const response = responses.value[index]
   if (response) {
     expandedKeys.value.delete(response.id)
   }
-  apiEditorStore.removeResponse(index)
+  removeResponse(index)
 }
 
-/** 更新响应字段 */
 function updateField<K extends keyof LocalApiResItem>(index: number, key: K, value: LocalApiResItem[K]) {
-  apiEditorStore.updateResponseField(index, key, value)
+  updateResponseField(index, key, value)
 }
 
-/** 更新响应体 Schema */
 function updateLocalSchema(index: number, schema: LocalSchemaNode) {
-  apiEditorStore.updateResponseBody(index, schema)
+  updateResponseBody(index, schema)
 }
 </script>
 
 <template>
   <div class="space-y-4">
-    <!-- 响应列表 -->
     <div v-if="responses.length > 0" class="space-y-3">
       <Collapsible
         v-for="(response, index) in responses"
@@ -138,7 +116,6 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
         :open="isExpanded(response.id)"
         class="border rounded-lg overflow-hidden"
       >
-        <!-- 响应头部 -->
         <CollapsibleTrigger
           class="flex items-center justify-between w-full p-3 hover:bg-muted/50 transition-colors"
           @click="toggleExpand(response.id)"
@@ -177,12 +154,9 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
           </div>
         </CollapsibleTrigger>
 
-        <!-- 响应内容 -->
         <CollapsibleContent>
           <div class="border-t p-4 space-y-4 bg-muted/20">
-            <!-- 基本信息 -->
             <div class="grid grid-cols-2 gap-4">
-              <!-- 响应名称 -->
               <div class="space-y-2">
                 <Label>响应名称</Label>
                 <Input
@@ -193,11 +167,10 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
                 />
               </div>
 
-              <!-- HTTP 状态码 -->
               <div class="space-y-2">
                 <Label>HTTP 状态码</Label>
                 <Select
-                  :model-value="String(response.httpStatus)"
+                  :model-value="response.httpStatus"
                   :disabled="disabled"
                   @update:model-value="updateField(index, 'httpStatus', Number($event))"
                 >
@@ -208,7 +181,7 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem
-                      v-for="status in statusOptions"
+                      v-for="status in HTTP_STATUS_CODES"
                       :key="status"
                       :value="String(status)"
                     >
@@ -221,7 +194,6 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
               </div>
             </div>
 
-            <!-- 响应描述 -->
             <div class="space-y-2">
               <Label>响应描述</Label>
               <Textarea
@@ -234,7 +206,6 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
               />
             </div>
 
-            <!-- 响应体 Schema -->
             <div class="space-y-2">
               <Label>响应体结构</Label>
               <JsonSchemaEditor
@@ -248,7 +219,6 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
       </Collapsible>
     </div>
 
-    <!-- 空状态 -->
     <div
       v-else
       class="text-center py-8 text-muted-foreground text-sm border rounded-md bg-muted/30"
@@ -256,7 +226,6 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
       暂无响应定义，点击下方按钮添加
     </div>
 
-    <!-- 添加按钮 -->
     <Button
       variant="outline"
       size="sm"

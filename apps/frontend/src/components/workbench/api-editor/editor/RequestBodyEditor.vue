@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { ApiParam, RequestBodyType } from '@/types/api'
-import type { LocalSchemaNode } from '@/types/json-schema'
+import type { RequestBodyType } from '@/types/api'
 import { FileCode, FileJson, FormInput, Upload } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
@@ -9,106 +8,63 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
-import { FORM_DATA_TYPES, PARAM_TYPES, REQUEST_BODY_TYPES, requestBodyTypeLabels } from '@/constants/api'
+import {
+  BODY_NAME_MAP,
+  FORM_DATA_TYPES,
+  PARAM_TYPES,
+  REQUEST_BODY_TYPES,
+  requestBodyTypeLabels,
+} from '@/constants/api'
 import { useApiEditorStore } from '@/stores/useApiEditorStore'
 import EditableParamTable from './EditableParamTable.vue'
 
 withDefaults(defineProps<{
-  /** 是否禁用 */
   disabled?: boolean
 }>(), {
   disabled: false,
 })
 
-const apiEditorStore = useApiEditorStore()
-const { requestBody } = storeToRefs(apiEditorStore)
-
-/** 当前请求体类型 */
-const currentType = computed(() => requestBody.value?.type ?? 'none')
-
-/** 是否是 JSON 类型 */
-const isJsonType = computed(() => currentType.value === 'json')
-
-/** 是否是表单类型 */
-const isFormType = computed(() =>
-  currentType.value === 'form-data' || currentType.value === 'x-www-form-urlencoded',
-)
-
-const isFormData = computed(() => currentType.value === 'form-data')
-
-/** 是否是二进制类型 */
-const isBinaryType = computed(() => currentType.value === 'binary')
-
-/** 是否是原始类型 */
-const isRawType = computed(() => currentType.value === 'raw')
-
-/** 是否是 none */
-const isNoneType = computed(() => currentType.value === 'none')
-
-/** Content-Type */
-const contentType = computed(() => {
-  switch (currentType.value) {
-    case 'json':
-      return 'application/json'
-    case 'form-data':
-      return 'multipart/form-data'
-    case 'x-www-form-urlencoded':
-      return 'application/x-www-form-urlencoded'
-    case 'binary':
-      return 'application/octet-stream'
-    case 'raw':
-      return requestBody.value?.rawContentType ?? 'text/plain'
-    default:
-      return ''
-  }
-})
-
-/** 类型图标映射 */
-const typeIcons: Record<RequestBodyType, typeof FileJson> = {
+const typeIcons = {
   'none': FileCode,
   'json': FileJson,
   'form-data': FormInput,
   'x-www-form-urlencoded': FormInput,
   'binary': Upload,
   'raw': FileCode,
-}
+} as const
 
-/** 更新请求体类型 */
-function handleTypeChange(type: RequestBodyType) {
-  apiEditorStore.updateRequestBodyType(type)
-}
+const apiEditorStore = useApiEditorStore()
+const { requestBody } = storeToRefs(apiEditorStore)
+const {
+  updateRequestBodyType,
+  updateRequestBodySchema,
+  updateRequestBodyDescription,
+  addParam,
+  removeParam,
+  updateParam,
+} = apiEditorStore
 
-/** 更新 JSON Schema */
-function handleSchemaChange(schema: LocalSchemaNode) {
-  apiEditorStore.updateRequestBodySchema(schema)
-}
+const currentType = computed(() => requestBody.value?.type ?? 'none')
 
-/** 更新描述 */
-function handleDescriptionChange(description: string) {
-  apiEditorStore.updateRequestBodyDescription(description)
-}
+const isJsonType = computed(() => currentType.value === 'json')
 
-function handleAddFormField() {
-  apiEditorStore.addParam('request-body')
-}
+const isFormType = computed(() =>
+  currentType.value === 'form-data' || currentType.value === 'x-www-form-urlencoded',
+)
 
-function handleRemoveFormField(index: number) {
-  apiEditorStore.removeParam('request-body', index)
-}
-
-function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiParam[keyof ApiParam]) {
-  apiEditorStore.updateParam('request-body', index, key, value)
-}
+const isFormData = computed(() => currentType.value === 'form-data')
+const isBinaryType = computed(() => currentType.value === 'binary')
+const isRawType = computed(() => currentType.value === 'raw')
+const isNoneType = computed(() => currentType.value === 'none')
 </script>
 
 <template>
   <div class="space-y-6">
-    <!-- 类型选择 -->
     <div class="space-y-3">
       <div class="flex items-center gap-3 h-6">
         <Label>请求体类型</Label>
-        <Badge v-if="contentType" variant="outline" class="font-mono text-xs">
-          {{ contentType }}
+        <Badge v-if="BODY_NAME_MAP[currentType]" variant="outline" class="font-mono text-xs">
+          {{ BODY_NAME_MAP[currentType] }}
         </Badge>
       </div>
 
@@ -116,7 +72,7 @@ function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiPar
         :model-value="currentType"
         :disabled="disabled"
         class="flex flex-wrap gap-2"
-        @update:model-value="handleTypeChange($event as RequestBodyType)"
+        @update:model-value="updateRequestBodyType($event as RequestBodyType)"
       >
         <div
           v-for="type in REQUEST_BODY_TYPES"
@@ -137,7 +93,7 @@ function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiPar
       </RadioGroup>
     </div>
 
-    <!-- none 类型 -->
+    <!-- None -->
     <div
       v-if="isNoneType"
       class="text-center py-8 text-muted-foreground text-sm border rounded-md bg-muted/30"
@@ -145,7 +101,7 @@ function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiPar
       该接口不需要请求体
     </div>
 
-    <!-- JSON 类型 -->
+    <!-- JSON -->
     <div v-else-if="isJsonType" class="space-y-4">
       <div class="flex items-center gap-2 text-sm text-muted-foreground">
         <FileJson class="h-4 w-4" />
@@ -154,11 +110,11 @@ function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiPar
       <JsonSchemaEditor
         v-if="requestBody?.jsonSchema"
         :model-value="requestBody.jsonSchema"
-        @update:model-value="handleSchemaChange"
+        @update:model-value="updateRequestBodySchema"
       />
     </div>
 
-    <!-- 表单类型 -->
+    <!-- Form -->
     <div v-else-if="isFormType" class="space-y-4">
       <div class="flex items-center gap-2 text-sm text-muted-foreground">
         <FormInput class="h-4 w-4" />
@@ -170,13 +126,13 @@ function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiPar
         :param-type-options="isFormData ? FORM_DATA_TYPES : PARAM_TYPES"
         empty-text="暂无表单字段，点击添加"
         add-button-text="添加表单字段"
-        @add="handleAddFormField"
-        @remove="handleRemoveFormField"
-        @update="handleUpdateFormField"
+        @add="addParam('request-body')"
+        @remove="removeParam('request-body', $event)"
+        @update="(index, key, value) => updateParam('request-body', index, key, value)"
       />
     </div>
 
-    <!-- 二进制类型 -->
+    <!-- Binary -->
     <div
       v-else-if="isBinaryType"
       class="space-y-4"
@@ -190,7 +146,7 @@ function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiPar
       </div>
     </div>
 
-    <!-- 原始类型 -->
+    <!-- Raw -->
     <div
       v-else-if="isRawType"
       class="space-y-4"
@@ -204,7 +160,6 @@ function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiPar
       </div>
     </div>
 
-    <!-- 描述 -->
     <div v-if="!isNoneType" class="space-y-2">
       <Label>请求体描述</Label>
       <Textarea
@@ -213,7 +168,7 @@ function handleUpdateFormField(index: number, key: keyof ApiParam, value: ApiPar
         :disabled="disabled"
         rows="2"
         class="resize-none"
-        @update:model-value="handleDescriptionChange(String($event))"
+        @update:model-value="updateRequestBodyDescription($event as string)"
       />
     </div>
   </div>

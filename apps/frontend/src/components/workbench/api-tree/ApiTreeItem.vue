@@ -42,34 +42,28 @@ const emits = defineEmits<{
 
 const apiTreeStore = useApiTreeStore()
 const apiDragStore = useApiDragStore()
+
 const dragger = useApiTreeDrag(apiDragStore, apiTreeStore)
+
 const apiId = useRouteParams<string | undefined>('apiId')
 const router = useRouter()
 
-/** API 行元素引用 */
 const apiRowRef = useTemplateRef('apiRowRef')
 
-/** 是否正在拖拽当前项 */
 const isDragging = ref(false)
-
-/** 是否是拖拽目标 */
 const isDragOver = ref(false)
 
-/** 拖拽目标位置 */
 const dropPosition = ref<DropPosition | null>(null)
 
-/** 层级缩进 */
 const indentStyle = computed<StyleValue>(() => ({
   paddingLeft: `${((props.level ?? 0) + 1) * 12 + 8}px`,
 }))
 
-/** 是否选中 */
 const isSelected = computed(() =>
   apiTreeStore.selectedNodeId === props.api.id
   && apiTreeStore.selectedNodeType === 'api',
 )
 
-/** 点击选中 */
 function handleClick() {
   if (!apiId.value) {
     router.push({ name: 'ApiDetail', params: { apiId: props.api.id } })
@@ -87,19 +81,16 @@ watch(apiId, (newV) => {
   }
 }, { immediate: true })
 
-/** 克隆 API */
 function handleClone() {
   emits('clone', props.api)
 }
 
-/** 删除 API */
 function handleDelete() {
   emits('delete', props.api)
 }
 
 // ========== 拖拽事件处理 ==========
 
-/** 开始拖拽 */
 function handleDragStart(e: DragEvent) {
   isDragging.value = true
   e.dataTransfer!.effectAllowed = 'move'
@@ -113,7 +104,6 @@ function handleDragStart(e: DragEvent) {
   })
 }
 
-/** 拖拽结束 */
 function handleDragEnd() {
   isDragging.value = false
   isDragOver.value = false
@@ -121,7 +111,6 @@ function handleDragEnd() {
   apiDragStore.endDrag()
 }
 
-/** 拖拽经过 */
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
 
@@ -149,13 +138,11 @@ function handleDragOver(e: DragEvent) {
   }
 }
 
-/** 拖拽离开 */
 function handleDragLeave() {
   isDragOver.value = false
   dropPosition.value = null
 }
 
-/** 放置 */
 async function handleDrop(e: DragEvent) {
   e.preventDefault()
   e.stopPropagation()

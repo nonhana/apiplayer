@@ -1,3 +1,5 @@
+import type { RequestBodyType } from '@/types/api'
+
 /** HTTP 方法选项 */
 export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
 
@@ -83,6 +85,9 @@ export const requestBodyTypeLabels = {
   'raw': 'raw',
 } as const
 
+/** HTTP 状态码选项 */
+export const HTTP_STATUS_CODES = [200, 201, 204, 301, 302, 304, 400, 401, 403, 404, 422, 500, 502, 503] as const
+
 /** HTTP 状态码常用分类 */
 export const HTTP_STATUS_CATEGORIES = {
   success: [200, 201, 204],
@@ -138,3 +143,21 @@ export const HEADER_PARAMS = [
   'X-Forwarded-For',
   'X-API-Key',
 ] as const
+
+/** 请求体类型名称映射 */
+export const BODY_NAME_MAP: Record<RequestBodyType, string> = {
+  'json': 'application/json',
+  'form-data': 'multipart/form-data',
+  'x-www-form-urlencoded': 'application/x-www-form-urlencoded',
+  'binary': 'application/octet-stream',
+  'raw': 'text/plain',
+  'none': '',
+} as const
+
+/** 响应类型样式 */
+export const resStatusStyles = {
+  'success': 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
+  'redirect': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+  'client-error': 'bg-rose-500/15 text-rose-600 border-rose-500/30',
+  'server-error': 'bg-red-500/15 text-red-600 border-red-500/30',
+}
