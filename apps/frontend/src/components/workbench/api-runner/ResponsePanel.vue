@@ -11,17 +11,15 @@ import ResponseHeaders from './response/ResponseHeaders.vue'
 
 const runnerStore = useApiRunnerStore()
 
-type ResponseTab = 'body' | 'headers' | 'curl'
-
-const activeTab = ref<ResponseTab>('body')
-
-const tabItems: TabPageItem<ResponseTab>[] = [
+type TabType = 'body' | 'headers' | 'curl'
+const tabItems: TabPageItem<TabType>[] = [
   { value: 'body', label: 'Body', icon: FileText },
   { value: 'headers', label: 'Headers', icon: Settings },
   { value: 'curl', label: 'cURL', icon: Code },
 ]
 
-/** 状态码颜色 */
+const activeTab = ref<TabType>('body')
+
 const statusColor = computed(() => {
   const status = runnerStore.response?.status
   if (!status)
@@ -39,7 +37,6 @@ const statusColor = computed(() => {
   return 'bg-gray-500/15 text-gray-600 border-gray-500/30'
 })
 
-/** 格式化大小 */
 function formatSize(bytes: number): string {
   if (bytes < 1024)
     return `${bytes} B`

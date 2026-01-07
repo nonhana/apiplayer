@@ -241,9 +241,25 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
 
   // ========== 参数操作 ==========
 
+  /** 更新路径参数 */
+  function updatePathParam(index: number, key: keyof RuntimeParam, value: string | boolean) {
+    const param = pathParams.value[index]
+    if (param) {
+      (param as Record<string, unknown>)[key] = value
+    }
+  }
+
   /** 添加查询参数 */
   function addQueryParam() {
     queryParams.value.push(createEmptyRuntimeParam())
+  }
+
+  /** 更新查询参数 */
+  function updateQueryParam(index: number, key: keyof RuntimeParam, value: string | boolean) {
+    const param = queryParams.value[index]
+    if (param) {
+      (param as Record<string, unknown>)[key] = value
+    }
   }
 
   /** 删除查询参数 */
@@ -254,6 +270,14 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
   /** 添加请求头 */
   function addHeader() {
     headers.value.push(createEmptyRuntimeParam())
+  }
+
+  /** 更新请求头 */
+  function updateHeader(index: number, key: keyof RuntimeParam, value: string | boolean) {
+    const header = headers.value[index]
+    if (header) {
+      (header as Record<string, unknown>)[key] = value
+    }
   }
 
   /** 删除请求头 */
@@ -267,6 +291,14 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
       body.value.formData = []
     }
     body.value.formData.push(createEmptyRuntimeParam())
+  }
+
+  /** 更新表单字段 */
+  function updateFormField(index: number, key: keyof RuntimeParam, value: string | boolean) {
+    const field = body.value.formData?.[index]
+    if (field) {
+      (field as Record<string, unknown>)[key] = value
+    }
   }
 
   /** 删除表单字段 */
@@ -340,11 +372,15 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
     clearResponse,
 
     // 参数操作
+    updatePathParam,
     addQueryParam,
+    updateQueryParam,
     removeQueryParam,
     addHeader,
+    updateHeader,
     removeHeader,
     addFormField,
+    updateFormField,
     removeFormField,
 
     // Setters

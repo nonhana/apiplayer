@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Check, Copy } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
@@ -8,12 +9,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { useApiRunnerStore } from '@/stores/useApiRunnerStore'
 
 const runnerStore = useApiRunnerStore()
+const { curlCommand } = storeToRefs(runnerStore)
 
 const copied = ref(false)
 
 async function copyToClipboard() {
   try {
-    await navigator.clipboard.writeText(runnerStore.curlCommand)
+    await navigator.clipboard.writeText(curlCommand.value)
     copied.value = true
     toast.success('已复制到剪贴板')
 
@@ -48,7 +50,7 @@ async function copyToClipboard() {
       </div>
 
       <Textarea
-        :model-value="runnerStore.curlCommand"
+        v-model="curlCommand"
         readonly
         class="font-mono text-sm min-h-[200px] resize-none bg-muted/30"
       />

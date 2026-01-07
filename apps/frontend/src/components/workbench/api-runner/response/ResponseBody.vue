@@ -1,12 +1,14 @@
 <script lang="ts" setup>
+import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import CodeBlock from '@/components/common/CodeBlock.vue'
 import { useApiRunnerStore } from '@/stores/useApiRunnerStore'
 
 const runnerStore = useApiRunnerStore()
+const { response } = storeToRefs(runnerStore)
 
 const formattedBody = computed(() => {
-  const body = runnerStore.response?.body ?? ''
+  const body = response.value?.body ?? ''
 
   try {
     const parsed = JSON.parse(body)
@@ -19,7 +21,7 @@ const formattedBody = computed(() => {
 })
 
 const isJson = computed(() => {
-  const contentType = runnerStore.response?.headers?.['content-type'] ?? ''
+  const contentType = response.value?.headers?.['content-type'] ?? ''
   return contentType.includes('application/json')
 })
 </script>

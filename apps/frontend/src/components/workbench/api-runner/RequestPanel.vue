@@ -9,16 +9,15 @@ import BodyTab from './request/BodyTab.vue'
 import HeadersTab from './request/HeadersTab.vue'
 import ParamsTab from './request/ParamsTab.vue'
 
-type RequestTab = 'params' | 'headers' | 'body' | 'auth'
-
-const activeTab = ref<RequestTab>('params')
-
-const tabItems: TabPageItem<RequestTab>[] = [
+type TabType = 'params' | 'headers' | 'body' | 'auth'
+const tabItems: TabPageItem<TabType>[] = [
   { value: 'params', label: 'Params', icon: Link },
   { value: 'headers', label: 'Headers', icon: Settings },
   { value: 'body', label: 'Body', icon: FileText },
   { value: 'auth', label: 'Auth', icon: Key },
 ]
+
+const activeTab = ref<TabType>('params')
 </script>
 
 <template>

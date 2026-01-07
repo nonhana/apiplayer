@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -12,9 +13,10 @@ import {
 import { useApiRunnerStore } from '@/stores/useApiRunnerStore'
 
 const runnerStore = useApiRunnerStore()
+const { response } = storeToRefs(runnerStore)
 
 const headersList = computed(() => {
-  const headers = runnerStore.response?.headers ?? {}
+  const headers = response.value?.headers ?? {}
   return Object.entries(headers).map(([key, value]) => ({ key, value }))
 })
 </script>

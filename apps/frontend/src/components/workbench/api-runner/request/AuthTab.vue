@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { AuthType } from '@/types/proxy'
+import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,6 +14,8 @@ import {
 import { useApiRunnerStore } from '@/stores/useApiRunnerStore'
 
 const runnerStore = useApiRunnerStore()
+const { auth } = storeToRefs(runnerStore)
+const { setAuthType, setBearerToken, setBasicAuth } = runnerStore
 
 interface AuthOption {
   value: AuthType
@@ -26,34 +29,29 @@ const authOptions: AuthOption[] = [
   { value: 'basic', label: 'Basic Auth', description: '使用用户名和密码进行基础认证' },
 ]
 
-/** 当前认证类型 */
 const authType = computed({
-  get: () => runnerStore.auth.type,
-  set: (val: AuthType) => runnerStore.setAuthType(val),
+  get: () => auth.value.type,
+  set: (val: AuthType) => setAuthType(val),
 })
 
-/** Bearer Token */
 const bearerToken = computed({
-  get: () => runnerStore.auth.bearerToken ?? '',
-  set: val => runnerStore.setBearerToken(val),
+  get: () => auth.value.bearerToken ?? '',
+  set: val => setBearerToken(val),
 })
 
-/** Basic Auth 用户名 */
 const basicUsername = computed({
-  get: () => runnerStore.auth.basicUsername ?? '',
-  set: val => runnerStore.setBasicAuth(val, runnerStore.auth.basicPassword ?? ''),
+  get: () => auth.value.basicUsername ?? '',
+  set: val => setBasicAuth(val, auth.value.basicPassword ?? ''),
 })
 
-/** Basic Auth 密码 */
 const basicPassword = computed({
-  get: () => runnerStore.auth.basicPassword ?? '',
-  set: val => runnerStore.setBasicAuth(runnerStore.auth.basicUsername ?? '', val),
+  get: () => auth.value.basicPassword ?? '',
+  set: val => setBasicAuth(auth.value.basicUsername ?? '', val),
 })
 </script>
 
 <template>
   <div class="p-4 space-y-6">
-    <!-- 认证类型选择 -->
     <div class="space-y-2">
       <Label class="text-muted-foreground">认证方式</Label>
       <Select v-model="authType">
@@ -77,7 +75,6 @@ const basicPassword = computed({
       </p>
     </div>
 
-    <!-- 无认证 -->
     <div v-if="authType === 'none'" class="py-4 text-center text-muted-foreground">
       该请求不需要认证
     </div>
