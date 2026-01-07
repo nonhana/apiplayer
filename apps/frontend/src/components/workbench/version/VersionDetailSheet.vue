@@ -35,13 +35,9 @@ import dayjs from '@/lib/dayjs'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
-  /** 项目 ID */
   projectId: string
-  /** API ID */
   apiId: string
-  /** 版本 ID */
   versionId: string | null
-  /** 是否为当前版本 */
   isCurrent?: boolean
 }>()
 
@@ -54,53 +50,38 @@ const emits = defineEmits<{
 
 const isOpen = defineModel<boolean>('open', { required: true })
 
-/** 版本详情 */
 const versionDetail = ref<ApiVersionDetail | null>(null)
-
-/** 加载状态 */
 const isLoading = ref(false)
-
-/** 加载错误 */
 const loadError = ref<string | null>(null)
 
-/** 格式化创建时间 */
 const createdTimeFormatted = computed(() => {
   if (!versionDetail.value)
     return ''
   return dayjs(versionDetail.value.createdAt).format('YYYY-MM-DD HH:mm:ss')
 })
 
-/** 格式化发布时间 */
 const publishedTimeFormatted = computed(() => {
   if (!versionDetail.value?.publishedAt)
     return null
   return dayjs(versionDetail.value.publishedAt).format('YYYY-MM-DD HH:mm:ss')
 })
 
-/** 是否可以发布 */
 const canPublish = computed(() => versionDetail.value?.status === 'DRAFT')
-
-/** 是否可以归档 */
 const canArchive = computed(() => versionDetail.value?.status !== 'ARCHIVED')
-
-/** 是否可以回滚 */
 const canRollback = computed(() => versionDetail.value?.status === 'ARCHIVED')
 
-/** 请求体预览 JSON */
 const requestBodyPreview = computed(() => {
   if (!versionDetail.value?.requestBody)
     return null
   return JSON.stringify(versionDetail.value.requestBody, null, 2)
 })
 
-/** 响应定义预览 */
 const responsesPreview = computed(() => {
   if (!versionDetail.value?.responses?.length)
     return null
   return JSON.stringify(versionDetail.value.responses, null, 2)
 })
 
-/** 获取版本详情 */
 async function fetchVersionDetail() {
   if (!props.versionId)
     return
@@ -126,7 +107,6 @@ async function fetchVersionDetail() {
   }
 }
 
-/** 监听版本 ID 变化 */
 watch(
   () => props.versionId,
   (newId) => {
@@ -139,7 +119,6 @@ watch(
   },
 )
 
-/** 监听面板打开 */
 watch(isOpen, (open) => {
   if (open && props.versionId) {
     fetchVersionDetail()
@@ -176,7 +155,6 @@ watch(isOpen, (open) => {
         </div>
       </SheetHeader>
 
-      <!-- 加载状态 -->
       <div
         v-if="isLoading"
         class="flex-1 flex items-center justify-center"
@@ -184,7 +162,6 @@ watch(isOpen, (open) => {
         <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
 
-      <!-- 错误状态 -->
       <div
         v-else-if="loadError"
         class="flex-1 flex items-center justify-center text-destructive"
@@ -192,10 +169,8 @@ watch(isOpen, (open) => {
         {{ loadError }}
       </div>
 
-      <!-- 详情内容 -->
       <ScrollArea v-else-if="versionDetail" class="h-[calc(100dvh-9.875rem)]">
         <div class="p-6 space-y-6">
-          <!-- 版本状态 -->
           <div class="flex items-center gap-4">
             <Badge
               variant="outline"
@@ -218,7 +193,6 @@ watch(isOpen, (open) => {
             </div>
           </div>
 
-          <!-- 变更类型 -->
           <div v-if="versionDetail.changes?.length" class="space-y-2">
             <h4 class="text-sm font-medium flex items-center gap-2">
               <Tag class="h-4 w-4" />
@@ -236,7 +210,6 @@ watch(isOpen, (open) => {
             </div>
           </div>
 
-          <!-- 变更日志 -->
           <div v-if="versionDetail.changelog" class="space-y-2">
             <h4 class="text-sm font-medium">
               变更日志
@@ -248,13 +221,11 @@ watch(isOpen, (open) => {
 
           <Separator />
 
-          <!-- API 快照信息 -->
           <div class="space-y-4">
             <h4 class="text-sm font-medium">
               API 快照
             </h4>
 
-            <!-- 基本信息 -->
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span class="text-muted-foreground">名称:</span>
@@ -277,7 +248,6 @@ watch(isOpen, (open) => {
               </div>
             </div>
 
-            <!-- 标签 -->
             <div v-if="versionDetail.tags?.length" class="space-y-2">
               <span class="text-sm text-muted-foreground">标签:</span>
               <div class="flex flex-wrap gap-1">
@@ -292,7 +262,6 @@ watch(isOpen, (open) => {
               </div>
             </div>
 
-            <!-- 描述 -->
             <div v-if="versionDetail.description" class="space-y-2">
               <span class="text-sm text-muted-foreground">描述:</span>
               <p class="text-sm">
@@ -303,7 +272,6 @@ watch(isOpen, (open) => {
 
           <Separator />
 
-          <!-- 请求参数摘要 -->
           <div class="space-y-3">
             <h4 class="text-sm font-medium">
               请求参数
@@ -330,7 +298,6 @@ watch(isOpen, (open) => {
             </div>
           </div>
 
-          <!-- 请求体预览 -->
           <div v-if="requestBodyPreview" class="space-y-2">
             <h4 class="text-sm font-medium">
               请求体
@@ -342,7 +309,6 @@ watch(isOpen, (open) => {
             />
           </div>
 
-          <!-- 响应定义预览 -->
           <div v-if="responsesPreview" class="space-y-2">
             <h4 class="text-sm font-medium">
               响应定义 ({{ versionDetail.responses?.length ?? 0 }})
@@ -356,7 +322,6 @@ watch(isOpen, (open) => {
         </div>
       </ScrollArea>
 
-      <!-- 底部操作栏 -->
       <div
         v-if="versionDetail"
         class="px-6 py-4 border-t bg-muted/20 flex items-center justify-end gap-2"

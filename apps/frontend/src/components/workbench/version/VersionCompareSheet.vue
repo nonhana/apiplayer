@@ -27,13 +27,9 @@ import { versionDiffFieldLabels, versionStatusColors, versionStatusLabels } from
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
-  /** 项目 ID */
   projectId: string
-  /** API ID */
   apiId: string
-  /** 源版本 ID */
   fromVersionId: string | null
-  /** 目标版本 ID */
   toVersionId: string | null
 }>()
 
@@ -53,16 +49,10 @@ interface ComparisonResult {
 
 const isOpen = defineModel<boolean>('open', { required: true })
 
-/** 比较结果 */
 const comparison = ref<ApiVersionComparison | null>(null)
-
-/** 加载状态 */
 const isLoading = ref(false)
-
-/** 加载错误 */
 const loadError = ref<string | null>(null)
 
-/** 差异项列表 */
 const diffItems = computed<DiffField[]>(() => {
   if (!comparison.value?.diff)
     return []
@@ -71,19 +61,19 @@ const diffItems = computed<DiffField[]>(() => {
   const result: DiffField[] = []
 
   for (const diffItem of diffItems) {
-    result.push(...Object.entries(diffItem).map(([field, value]) => ({
-      field,
-      ...value,
-    })))
+    result.push(
+      ...Object.entries(diffItem).map(([field, value]) => ({
+        field,
+        ...value,
+      })),
+    )
   }
 
   return result
 })
 
-/** 是否有差异 */
 const hasDiff = computed(() => diffItems.value.length > 0)
 
-/** 差异分类 */
 const categorizedDiffs = computed(() => {
   const baseInfoFields = ['name', 'method', 'path', 'description', 'tags', 'status', 'sortOrder']
   const paramsFields = ['pathParams', 'queryParams', 'requestHeaders']
@@ -120,7 +110,6 @@ const categorizedDiffs = computed(() => {
   return result
 })
 
-/** 格式化值用于展示 */
 function formatValue(value: unknown): string {
   if (value === null || value === undefined) {
     return '(空)'
@@ -131,12 +120,10 @@ function formatValue(value: unknown): string {
   return String(value)
 }
 
-/** 判断值是否为复杂对象 */
 function isComplexValue(value: unknown): boolean {
   return typeof value === 'object' && value !== null
 }
 
-/** 获取比较数据 */
 async function fetchComparison() {
   if (!props.fromVersionId || !props.toVersionId)
     return
@@ -161,7 +148,6 @@ async function fetchComparison() {
   }
 }
 
-/** 监听版本 ID 变化 */
 watch(
   () => [props.fromVersionId, props.toVersionId],
   ([from, to]) => {
@@ -174,7 +160,6 @@ watch(
   },
 )
 
-/** 监听面板打开 */
 watch(isOpen, (open) => {
   if (open && props.fromVersionId && props.toVersionId) {
     fetchComparison()
@@ -205,7 +190,6 @@ watch(isOpen, (open) => {
         </div>
       </SheetHeader>
 
-      <!-- 加载状态 -->
       <div
         v-if="isLoading"
         class="flex-1 flex items-center justify-center"
@@ -213,7 +197,6 @@ watch(isOpen, (open) => {
         <Loader2 class="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
 
-      <!-- 错误状态 -->
       <div
         v-else-if="loadError"
         class="flex-1 flex items-center justify-center text-destructive"
@@ -221,12 +204,9 @@ watch(isOpen, (open) => {
         {{ loadError }}
       </div>
 
-      <!-- 比较结果 -->
       <ScrollArea v-else-if="comparison" class="h-[calc(100dvh-8.25rem)]">
         <div class="p-6 space-y-6">
-          <!-- 版本信息对比 -->
           <div class="grid grid-cols-2 gap-4">
-            <!-- From 版本 -->
             <div class="p-4 rounded-lg border bg-rose-50/50 dark:bg-rose-950/20">
               <div class="flex items-center gap-2 mb-2">
                 <Minus class="h-4 w-4 text-rose-600" />
@@ -254,7 +234,6 @@ watch(isOpen, (open) => {
               </div>
             </div>
 
-            <!-- To 版本 -->
             <div class="p-4 rounded-lg border bg-emerald-50/50 dark:bg-emerald-950/20">
               <div class="flex items-center gap-2 mb-2">
                 <Plus class="h-4 w-4 text-emerald-600" />
@@ -285,7 +264,6 @@ watch(isOpen, (open) => {
 
           <Separator />
 
-          <!-- 无差异 -->
           <div
             v-if="!hasDiff"
             class="flex flex-col items-center justify-center py-12 text-muted-foreground"
@@ -295,9 +273,7 @@ watch(isOpen, (open) => {
             <span class="text-sm">没有检测到任何差异</span>
           </div>
 
-          <!-- 差异详情 -->
           <template v-else>
-            <!-- 基本信息变更 -->
             <div v-if="categorizedDiffs.baseInfo.length > 0" class="space-y-3">
               <h4 class="text-sm font-medium text-muted-foreground">
                 基本信息变更 ({{ categorizedDiffs.baseInfo.length }})
@@ -347,7 +323,6 @@ watch(isOpen, (open) => {
               </div>
             </div>
 
-            <!-- 参数变更 -->
             <div v-if="categorizedDiffs.params.length > 0" class="space-y-3">
               <h4 class="text-sm font-medium text-muted-foreground">
                 请求参数变更 ({{ categorizedDiffs.params.length }})
@@ -389,7 +364,6 @@ watch(isOpen, (open) => {
               </div>
             </div>
 
-            <!-- 请求体变更 -->
             <div v-if="categorizedDiffs.body.length > 0" class="space-y-3">
               <h4 class="text-sm font-medium text-muted-foreground">
                 请求体变更
@@ -426,7 +400,6 @@ watch(isOpen, (open) => {
               </div>
             </div>
 
-            <!-- 响应定义变更 -->
             <div v-if="categorizedDiffs.responses.length > 0" class="space-y-3">
               <h4 class="text-sm font-medium text-muted-foreground">
                 响应定义变更
@@ -463,7 +436,6 @@ watch(isOpen, (open) => {
               </div>
             </div>
 
-            <!-- 其他变更 -->
             <div v-if="categorizedDiffs.other.length > 0" class="space-y-3">
               <h4 class="text-sm font-medium text-muted-foreground">
                 其他变更 ({{ categorizedDiffs.other.length }})

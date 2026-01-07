@@ -13,75 +13,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { VERSION_STATUSES, versionStatusLabels } from '@/constants/version'
-import RollbackConfirmDialog from './RollbackConfirmDialog.vue'
+import RollbackConfirmDialog from '../dialogs/RollbackConfirmDialog.vue'
 import VersionCompareSheet from './VersionCompareSheet.vue'
 import VersionDetailSheet from './VersionDetailSheet.vue'
 import VersionItem from './VersionItem.vue'
 
 const props = defineProps<{
-  /** 项目 ID */
   projectId: string
-  /** API ID */
   apiId: string
-  /** 当前版本 ID */
   currentVersionId?: string
 }>()
 
 const emits = defineEmits<{
-  /** 版本发生变化（发布/回滚后）需要刷新 API 详情 */
   (e: 'versionChanged'): void
 }>()
 
-/** 版本列表 */
+const VERSION_OPTIONS = [
+  { label: '全部', value: 'ALL' },
+  { label: '草稿', value: 'DRAFT' },
+  { label: '当前版本', value: 'CURRENT' },
+  { label: '已归档', value: 'ARCHIVED' },
+] as const
+type VersionOptionValue = (typeof VERSION_OPTIONS)[number]['value']
+
 const versions = ref<ApiVersionBrief[]>([])
-
-/** 加载状态 */
 const isLoading = ref(false)
-
-/** 加载错误 */
 const loadError = ref<string | null>(null)
-
-/** 筛选的状态 */
-const filterStatus = ref<string>('all')
-
-/** 选中的版本（用于查看详情） */
+const filterStatus = ref<VersionOptionValue>('ALL')
 const selectedVersionId = ref<string | null>(null)
 
-/** 比较模式：选择的两个版本 */
 const compareVersionIds = ref<[string | null, string | null]>([null, null])
 
-/** 是否显示详情面板 */
 const isDetailSheetOpen = ref(false)
-
-/** 是否显示比较面板 */
 const isCompareSheetOpen = ref(false)
-
-/** 回滚确认对话框 */
 const rollbackDialogOpen = ref(false)
+
 const rollbackTargetVersion = ref<ApiVersionBrief | null>(null)
 
-/** 筛选后的版本列表 */
 const filteredVersions = computed(() => {
-  if (filterStatus.value === 'all') {
+  if (filterStatus.value === 'ALL') {
     return versions.value
   }
   return versions.value.filter(v => v.status === filterStatus.value)
 })
 
-/** 当前版本 */
-const currentVersion = computed(() => {
-  return versions.value.find(v => v.id === props.currentVersionId)
-})
+const currentVersion = computed(() => versions.value.find(v => v.id === props.currentVersionId))
 
-/** 选中的版本详情 */
 const selectedVersion = computed(() => {
   if (!selectedVersionId.value)
     return null
   return versions.value.find(v => v.id === selectedVersionId.value) ?? null
 })
 
-/** 获取版本列表 */
 async function fetchVersions() {
   isLoading.value = true
   loadError.value = null
@@ -99,13 +82,11 @@ async function fetchVersions() {
   }
 }
 
-/** 查看版本详情 */
 function handleViewVersion(version: ApiVersionBrief) {
   selectedVersionId.value = version.id
   isDetailSheetOpen.value = true
 }
 
-/** 选择比较版本 */
 function handleCompareVersion(version: ApiVersionBrief) {
   const [first, second] = compareVersionIds.value
 
@@ -128,7 +109,6 @@ function handleCompareVersion(version: ApiVersionBrief) {
   }
 }
 
-/** 发布版本 */
 async function handlePublishVersion(version: ApiVersionBrief) {
   try {
     await versionApi.publishVersion(props.projectId, props.apiId, version.id)
@@ -141,7 +121,6 @@ async function handlePublishVersion(version: ApiVersionBrief) {
   }
 }
 
-/** 归档版本 */
 async function handleArchiveVersion(version: ApiVersionBrief) {
   try {
     await versionApi.archiveVersion(props.projectId, props.apiId, version.id)
@@ -153,13 +132,11 @@ async function handleArchiveVersion(version: ApiVersionBrief) {
   }
 }
 
-/** 打开回滚确认对话框 */
 function handleOpenRollbackDialog(version: ApiVersionBrief) {
   rollbackTargetVersion.value = version
   rollbackDialogOpen.value = true
 }
 
-/** 确认回滚 */
 async function handleConfirmRollback() {
   if (!rollbackTargetVersion.value)
     return
@@ -181,17 +158,14 @@ async function handleConfirmRollback() {
   }
 }
 
-/** 关闭比较面板时清空选择 */
 function handleCloseCompare() {
   isCompareSheetOpen.value = false
 }
 
 watchEffect(() => !isCompareSheetOpen.value && (compareVersionIds.value = [null, null]))
 
-/** 详情面板中获取到的完整版本数据 */
 const detailVersionData = ref<ApiVersionDetail | null>(null)
 
-/** 监听 API ID 变化，重新获取版本列表 */
 watch(
   () => props.apiId,
   () => {
@@ -209,7 +183,6 @@ defineExpose({
 
 <template>
   <div class="h-full flex flex-col">
-    <!-- 头部工具栏 -->
     <div class="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
       <div class="flex items-center gap-2">
         <GitBranch class="h-4 w-4 text-muted-foreground" />
@@ -220,26 +193,21 @@ defineExpose({
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- 状态筛选 -->
         <Select v-model="filterStatus">
           <SelectTrigger class="h-7 w-24 text-xs">
             <SelectValue placeholder="筛选状态" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">
-              全部
-            </SelectItem>
             <SelectItem
-              v-for="status in VERSION_STATUSES"
-              :key="status"
-              :value="status"
+              v-for="option in VERSION_OPTIONS"
+              :key="option.value"
+              :value="option.value"
             >
-              {{ versionStatusLabels[status] }}
+              {{ option.label }}
             </SelectItem>
           </SelectContent>
         </Select>
 
-        <!-- 刷新按钮 -->
         <Button
           variant="ghost"
           size="icon"
@@ -247,14 +215,11 @@ defineExpose({
           :disabled="isLoading"
           @click="fetchVersions"
         >
-          <RefreshCw
-            class="h-3.5 w-3.5" :class="[isLoading && 'animate-spin']"
-          />
+          <RefreshCw class="h-3.5 w-3.5" :class="[isLoading && 'animate-spin']" />
         </Button>
       </div>
     </div>
 
-    <!-- 当前版本信息 -->
     <div
       v-if="currentVersion"
       class="px-4 py-2 border-b bg-primary/5"
@@ -262,14 +227,12 @@ defineExpose({
       <div class="flex items-center gap-2 text-xs">
         <span class="text-muted-foreground">当前版本:</span>
         <span class="font-mono font-semibold text-primary">
-          v{{ currentVersion.version }}
+          {{ currentVersion.version }}
         </span>
       </div>
     </div>
 
-    <!-- 版本列表 -->
     <ScrollArea class="flex-1">
-      <!-- 加载状态 -->
       <div
         v-if="isLoading && versions.length === 0"
         class="flex items-center justify-center py-12"
@@ -280,7 +243,6 @@ defineExpose({
         </div>
       </div>
 
-      <!-- 错误状态 -->
       <div
         v-else-if="loadError"
         class="flex items-center justify-center py-12"
@@ -298,7 +260,6 @@ defineExpose({
         </div>
       </div>
 
-      <!-- 空状态 -->
       <div
         v-else-if="filteredVersions.length === 0"
         class="flex items-center justify-center py-12"
@@ -309,7 +270,6 @@ defineExpose({
         </div>
       </div>
 
-      <!-- 版本列表 -->
       <div v-else class="p-4 space-y-2">
         <VersionItem
           v-for="version in filteredVersions"
@@ -328,7 +288,6 @@ defineExpose({
       </div>
     </ScrollArea>
 
-    <!-- 版本详情面板 -->
     <VersionDetailSheet
       v-model:open="isDetailSheetOpen"
       :project-id="projectId"
@@ -341,7 +300,6 @@ defineExpose({
       @rollback="handleOpenRollbackDialog(selectedVersion!)"
     />
 
-    <!-- 版本比较面板 -->
     <VersionCompareSheet
       v-model:open="isCompareSheetOpen"
       :project-id="projectId"
@@ -351,7 +309,6 @@ defineExpose({
       @close="handleCloseCompare"
     />
 
-    <!-- 回滚确认对话框 -->
     <RollbackConfirmDialog
       v-model:open="rollbackDialogOpen"
       :version="rollbackTargetVersion"

@@ -11,11 +11,8 @@ import dayjs from '@/lib/dayjs'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
-  /** 项目 ID */
   projectId: string
-  /** API ID */
   apiId: string
-  /** 当前版本 ID */
   currentVersionId?: string
 }>()
 
@@ -23,19 +20,12 @@ const emits = defineEmits<{
   (e: 'openHistory'): void
 }>()
 
-/** 最近版本列表 */
 const recentVersions = ref<ApiVersionBrief[]>([])
-
-/** 加载状态 */
 const isLoading = ref(false)
-
-/** 总版本数 */
 const totalCount = ref(0)
 
-/** 当前版本 */
 const currentVersion = computed(() => recentVersions.value.find(v => v.id === props.currentVersionId))
 
-/** 获取最近版本 */
 async function fetchRecentVersions() {
   isLoading.value = true
   try {
@@ -51,10 +41,8 @@ async function fetchRecentVersions() {
   }
 }
 
-/** 格式化相对时间 */
 const formatRelativeTime = (dateStr: string) => dayjs(dateStr).fromNow()
 
-/** 监听 API ID 变化 */
 watch(
   () => props.apiId,
   () => {
@@ -83,7 +71,6 @@ defineExpose({
     </div>
 
     <div class="p-4">
-      <!-- 加载状态 -->
       <div
         v-if="isLoading"
         class="flex items-center justify-center py-4"
@@ -91,9 +78,7 @@ defineExpose({
         <Loader2 class="h-4 w-4 animate-spin text-muted-foreground" />
       </div>
 
-      <!-- 版本列表 -->
       <template v-else-if="recentVersions.length > 0">
-        <!-- 当前版本 -->
         <div
           v-if="currentVersion"
           class="mb-3 p-2 rounded-md bg-primary/5 border border-primary/20"
@@ -106,7 +91,6 @@ defineExpose({
           </div>
         </div>
 
-        <!-- 最近版本 -->
         <div class="space-y-2">
           <div
             v-for="version in recentVersions"
@@ -132,7 +116,6 @@ defineExpose({
 
         <Separator class="my-3" />
 
-        <!-- 查看全部按钮 -->
         <Button
           variant="outline"
           size="sm"
@@ -144,7 +127,6 @@ defineExpose({
         </Button>
       </template>
 
-      <!-- 空状态 -->
       <div
         v-else
         class="text-center py-4 text-sm text-muted-foreground"

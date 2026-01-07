@@ -36,15 +36,10 @@ import dayjs from '@/lib/dayjs'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
-  /** 版本信息 */
   version: ApiVersionBrief
-  /** 是否为当前选中版本 */
   isSelected?: boolean
-  /** 是否为当前 API 的活跃版本 */
   isCurrent?: boolean
-  /** 是否显示比较按钮 */
   showCompare?: boolean
-  /** 是否正在比较 */
   isComparing?: boolean
 }>()
 
@@ -56,35 +51,21 @@ const emits = defineEmits<{
   (e: 'rollback'): void
 }>()
 
-/** 格式化时间 */
 const formattedTime = computed(() => dayjs(props.version.createdAt).format('YYYY-MM-DD HH:mm'))
-
-/** 相对时间 */
 const relativeTime = computed(() => dayjs(props.version.createdAt).fromNow())
-
-/** 发布时间 */
 const publishedTime = computed(() =>
   props.version.publishedAt
     ? dayjs(props.version.publishedAt).format('YYYY-MM-DD HH:mm')
     : null,
 )
 
-/** 状态点颜色 */
 const statusDotColor = computed(() => versionStatusDotColors[props.version.status])
 
-/** 是否可以发布 */
 const canPublish = computed(() => props.version.status === 'DRAFT')
-
-/** 是否可以归档 */
 const canArchive = computed(() => props.version.status !== 'ARCHIVED')
-
-/** 是否可以回滚 */
 const canRollback = computed(() => props.version.status === 'ARCHIVED')
 
-/** 显示的变更标签（最多3个） */
 const displayChanges = computed(() => props.version.changes.slice(0, 3))
-
-/** 是否有更多变更 */
 const hasMoreChanges = computed(() => props.version.changes.length > 3)
 </script>
 
@@ -98,7 +79,6 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
     )"
     @click="emits('view')"
   >
-    <!-- 左侧时间线指示器 -->
     <div class="flex flex-col items-center shrink-0 pt-0.5">
       <div
         :class="cn(
@@ -109,9 +89,7 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
       <div class="flex-1 w-px bg-border mt-2" />
     </div>
 
-    <!-- 主体内容 -->
     <div class="flex-1 min-w-0 space-y-2">
-      <!-- 版本号 + 状态 -->
       <div class="flex items-center gap-2">
         <span class="font-mono font-semibold text-sm">
           v{{ version.version }}
@@ -131,7 +109,6 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
         </span>
       </div>
 
-      <!-- 摘要 -->
       <p
         v-if="version.summary"
         class="text-sm text-muted-foreground line-clamp-2"
@@ -139,7 +116,6 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
         {{ version.summary }}
       </p>
 
-      <!-- 变更标签 -->
       <div
         v-if="displayChanges.length > 0"
         class="flex flex-wrap gap-1"
@@ -160,7 +136,6 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
         </span>
       </div>
 
-      <!-- 时间信息 -->
       <div class="flex items-center gap-3 text-xs text-muted-foreground">
         <TooltipProvider :delay-duration="300">
           <Tooltip>
@@ -179,12 +154,10 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
       </div>
     </div>
 
-    <!-- 右侧操作按钮 -->
     <div
       class="flex items-start gap-1 shrink-0"
       @click.stop
     >
-      <!-- 比较按钮 -->
       <TooltipProvider v-if="showCompare" :delay-duration="300">
         <Tooltip>
           <TooltipTrigger as-child>
@@ -201,7 +174,6 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
         </Tooltip>
       </TooltipProvider>
 
-      <!-- 更多操作 -->
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <Button
