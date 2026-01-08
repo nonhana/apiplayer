@@ -10,8 +10,10 @@ export class WinstonLogger implements LoggerService {
   constructor(
     private readonly configService: ConfigService,
   ) {
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production'
+
     this.logger = createLogger({
-      level: this.configService.get<string>('NODE_ENV') === 'production' ? 'info' : 'debug',
+      level: isProduction ? 'info' : 'debug',
       format: format.combine(
         format.timestamp(),
         format.printf(({ timestamp, level, message }) => {
@@ -19,7 +21,11 @@ export class WinstonLogger implements LoggerService {
         }),
       ),
       transports: [
-        new transports.Console({ format: format.combine(format.colorize(), format.simple()) }),
+        // 开发环境启用控制台输出
+        // 生产环境只写文件
+        ...(!isProduction
+          ? [new transports.Console({ format: format.combine(format.colorize(), format.simple()) })]
+          : []),
         new transports.DailyRotateFile({
           filename: 'logs/combined-%DATE%.log',
           datePattern: 'YYYY-MM-DD',

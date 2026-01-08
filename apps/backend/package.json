@@ -11,7 +11,13 @@
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "postinstall": "prisma generate",
-    "rbac:seed": "tsx scripts/rbac-seed.ts"
+    "rbac:seed": "tsx scripts/rbac-seed.ts",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop apiplayer-api",
+    "pm2:restart": "pm2 restart apiplayer-api",
+    "pm2:delete": "pm2 delete apiplayer-api",
+    "pm2:logs": "pm2 logs apiplayer-api",
+    "pm2:monit": "pm2 monit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "catalog:backend",
