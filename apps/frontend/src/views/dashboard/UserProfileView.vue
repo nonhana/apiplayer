@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UpdateUserProfileReq, UserFullInfo } from '@/types/user'
-import { Loader2 } from 'lucide-vue-next'
+import { ImagePlus, Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
@@ -156,7 +156,6 @@ async function handleCropped(result: File) {
     </div>
 
     <div class="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-      <!-- 左侧：基础信息 & 头像 -->
       <Card>
         <CardHeader>
           <CardTitle>基本信息</CardTitle>
@@ -244,7 +243,6 @@ async function handleCropped(result: File) {
         </CardContent>
       </Card>
 
-      <!-- 右侧：账号与安全 -->
       <Card>
         <CardHeader>
           <CardTitle>账号与安全</CardTitle>
