@@ -10,7 +10,8 @@
     "lint:fix": "eslint . --fix",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "rbac:seed": "tsx scripts/rbac-seed.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "catalog:backend",
