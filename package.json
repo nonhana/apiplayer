@@ -5,6 +5,12 @@
   "workspaces": [
     "apps/*"
   ],
+  "scripts": {
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build:frontend": "pnpm --filter frontend build",
+    "dev:backend": "pnpm --filter backend dev",
+    "build:backend": "pnpm --filter backend build"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:public",
     "@types/node": "catalog:public",
