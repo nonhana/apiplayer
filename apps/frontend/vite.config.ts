@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => {
       vue(),
       tailwindcss(),
       compression({
-        algorithms: ['brotli'],
-        exclude: [/\.(br)$/],
+        algorithms: ['gzip'],
+        exclude: [/\.(gz)$/],
         threshold: 10240,
         deleteOriginalAssets: true,
       }),
@@ -25,7 +25,6 @@ export default defineConfig(({ mode }) => {
       visualizer({
         open: false,
         gzipSize: true,
-        brotliSize: true,
         filename: 'stats.html',
       }),
     ],
