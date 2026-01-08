@@ -47,6 +47,7 @@
     "shiki": "catalog:frontend",
     "tw-animate-css": "catalog:frontend",
     "vite": "catalog:frontend",
+    "vite-plugin-compression2": "catalog:frontend",
     "vite-plugin-monaco-editor-esm": "catalog:frontend",
     "vue-tsc": "catalog:frontend"
   }
