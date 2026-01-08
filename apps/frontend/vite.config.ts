@@ -3,7 +3,6 @@ import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig, loadEnv } from 'vite'
-import { compression } from 'vite-plugin-compression2'
 import monacoEditorEsmPlugin from 'vite-plugin-monaco-editor-esm'
 
 // https://vite.dev/config/
@@ -13,12 +12,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       tailwindcss(),
-      compression({
-        algorithms: ['gzip'],
-        exclude: [/\.(gz)$/],
-        threshold: 10240,
-        deleteOriginalAssets: false,
-      }),
       monacoEditorEsmPlugin({
         languageWorkers: ['editorWorkerService', 'json'],
       }),
