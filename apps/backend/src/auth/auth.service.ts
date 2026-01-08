@@ -3,6 +3,7 @@ import { compare, hash } from 'bcrypt'
 import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { DEFAULT_COOKIE_MAX_AGE, REMEMBER_ME_COOKIE_MAX_AGE } from '@/constants/cookie'
+import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SessionService } from '@/session/session.service'
 import { CheckAvailabilityReqDto, LoginReqDto, RegisterReqDto } from './dto'
@@ -231,20 +232,52 @@ export class AuthService {
       // 哈希密码
       const hashedPassword = await this.hashPassword(password)
 
-      // 创建用户
-      const newUser = await this.prisma.user.create({
-        data: {
-          email,
-          username,
-          name,
-          password: hashedPassword,
-          isActive: true,
-        },
+      // 获取团队所有者角色
+      const ownerRole = await this.prisma.role.findUnique({
+        where: { name: RoleName.TEAM_OWNER },
       })
 
-      this.logger.log(`新用户注册成功: ${newUser.email} (${newUser.username})`)
+      if (!ownerRole) {
+        this.logger.error('团队所有者角色不存在，请检查角色种子数据')
+        throw new HanaException('系统配置错误', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      }
 
-      return newUser
+      const result = await this.prisma.$transaction(async (tx) => {
+        // 创建用户
+        const newUser = await tx.user.create({
+          data: {
+            email,
+            username,
+            name,
+            password: hashedPassword,
+            isActive: true,
+          },
+        })
+
+        // 创建默认个人团队
+        const personalTeam = await tx.team.create({
+          data: {
+            name: `${name}的个人团队`,
+            slug: `personal-${username}`,
+            description: '注册时自动创建的个人团队',
+          },
+        })
+
+        // 将用户设为团队所有者
+        await tx.teamMember.create({
+          data: {
+            userId: newUser.id,
+            teamId: personalTeam.id,
+            roleId: ownerRole.id,
+          },
+        })
+
+        return { user: newUser, team: personalTeam }
+      })
+
+      this.logger.log(`新用户注册成功: ${result.user.email} (${result.user.username})，已创建个人团队: ${result.team.name}`)
+
+      return result.user
     }
     catch (error) {
       if (error instanceof HanaException) {
