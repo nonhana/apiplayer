@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
         algorithms: ['gzip'],
         exclude: [/\.(gz)$/],
         threshold: 10240,
-        deleteOriginalAssets: true,
+        deleteOriginalAssets: false,
       }),
       monacoEditorEsmPlugin({
         languageWorkers: ['editorWorkerService', 'json'],
