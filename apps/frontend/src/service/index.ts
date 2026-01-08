@@ -107,6 +107,8 @@ const options: Options = {
     methods: ['get'],
     statusCodes: [408, 413, 429, 500, 502, 503, 504],
   },
+  // 跨域请求时携带 Cookie
+  credentials: 'include',
 }
 
 const service: KyInstance = ky.create(options)
