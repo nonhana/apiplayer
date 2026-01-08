@@ -1,8 +1,7 @@
 import type { MultipartFile } from '@fastify/multipart'
 import type { FastifyRequest } from 'fastify'
 import type { MailProvider } from '@/infra/email/email.types'
-import type { UploadMode } from '@/infra/upload/upload.types'
-import { Body, Controller, Post, Query, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common'
 import { Schema } from 'json-schema-faker'
 import { JsonValue } from 'type-fest'
 import { ErrorCode } from '@/common/exceptions/error-code'
@@ -21,15 +20,10 @@ interface MultipartUploadRequest extends FastifyRequest {
 export class UtilController {
   constructor(private readonly utilService: UtilService) {}
 
-  /**
-   * 上传文件
-   *
-   * @description 指定上传模式，调用对应上传服务
-   */
+  /** 上传文件 */
   @Post('upload')
   async uploadFile(
     @Req() req: MultipartUploadRequest,
-    @Query('mode') mode?: UploadMode,
   ): Promise<{ url: string }> {
     const multipartFile = await req.file()
 
@@ -37,7 +31,7 @@ export class UtilController {
       throw new HanaException('未检测到上传文件，请确认 FormData 中包含字段 "file"', ErrorCode.INVALID_PARAMS, 400)
     }
 
-    const result = await this.utilService.uploadFile(multipartFile, mode)
+    const result = await this.utilService.uploadFile(multipartFile)
     const host = req.headers.host
 
     if (!host) {
@@ -51,25 +45,17 @@ export class UtilController {
     }
   }
 
-  /**
-   * 发送邮件
-   *
-   * @description 指定邮件 provider，调用对应邮件服务
-   */
+  /** 发送邮件 */
   @Post('email/send')
   async sendEmail(
     @Body() body: SendEmailDto,
-    @Query('provider') provider?: MailProvider,
   ): Promise<{ id?: string, provider: MailProvider }> {
-    const result = await this.utilService.sendMail(
-      {
-        to: body.to,
-        subject: body.subject,
-        text: body.text,
-        html: body.html,
-      },
-      provider,
-    )
+    const result = await this.utilService.sendMail({
+      to: body.to,
+      subject: body.subject,
+      text: body.text,
+      html: body.html,
+    })
 
     return {
       id: result.id,
@@ -77,11 +63,7 @@ export class UtilController {
     }
   }
 
-  /**
-   * 生成 Schema mock 数据
-   *
-   * @description 根据 JSON Schema 生成 mock 数据
-   */
+  /** 生成 Schema mock 数据 */
   @Post('schema-mock')
   async getSchemaMock(
     @Body() body: Schema,

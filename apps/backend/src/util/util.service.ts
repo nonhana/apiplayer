@@ -13,10 +13,12 @@ import { R2Service } from '@/infra/upload/r2.service'
 
 @Injectable()
 export class UtilService {
-  /** 整合上传服务到一个 Record */
+  // CONFIG: 手动配置上传模式
+  private readonly uploadMode: UploadMode = 'r2'
   private readonly uploadServices: Partial<Record<UploadMode, AbstractUploadService>>
 
-  /** 整合邮件服务到一个 Record */
+  // CONFIG: 手动配置邮件提供商
+  private readonly mailProvider: MailProvider = 'resend'
   private readonly mailServices: Partial<Record<MailProvider, AbstractMailService>>
 
   constructor(
@@ -34,19 +36,11 @@ export class UtilService {
     }
   }
 
-  /**
-   * 根据 `mode` 选择具体上传 service
-   *
-   * @param file Fastify multipart 上传的文件对象
-   * @param mode 上传模式，默认为 `'local'`
-   */
-  async uploadFile(file: MultipartFile, mode?: UploadMode): Promise<UploadFileResult> {
-    const uploadMode: UploadMode = mode ?? 'local'
-
-    const service = this.uploadServices[uploadMode]
+  async uploadFile(file: MultipartFile): Promise<UploadFileResult> {
+    const service = this.uploadServices[this.uploadMode]
     if (!service) {
       throw new HanaException(
-        `当前未配置上传模式 "${uploadMode}" 对应的实现，请检查服务模块导入或环境配置`,
+        `当前未配置上传模式 "${this.uploadMode}" 对应的实现，请检查服务模块导入或环境配置`,
         ErrorCode.INVALID_PARAMS,
       )
     }
@@ -60,14 +54,8 @@ export class UtilService {
     return service.uploadFile(input)
   }
 
-  /**
-   * 根据 provider 选择具体邮件 service。
-   *
-   * @param input 邮件内容
-   * @param provider 邮件提供商，默认为 'resend'
-   */
-  async sendMail(input: SendMailInput, provider?: MailProvider): Promise<SendMailResult> {
-    const mailProvider: MailProvider = provider ?? 'resend'
+  async sendMail(input: SendMailInput): Promise<SendMailResult> {
+    const mailProvider: MailProvider = this.mailProvider
 
     const service = this.mailServices[mailProvider]
     if (!service) {
