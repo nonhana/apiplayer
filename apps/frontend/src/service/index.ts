@@ -34,7 +34,7 @@ const hooks: Hooks = {
         : resJson.message
 
       if (resJson.code !== 0 && resJson.code !== 200) {
-        if (resJson.code === 401 || resJson.errorCode === 10012) {
+        if (resJson.code === 401 && resJson.errorCode === 10012) {
           if (!isReLogin) {
             isReLogin = true
             const userStore = useUserStore()
