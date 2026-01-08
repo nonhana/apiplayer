@@ -12,9 +12,11 @@ export interface CookieOptions {
 @Injectable()
 export class CookieService {
   private isProduction: boolean
+  private cookieDomain: string | undefined
 
   constructor(private readonly configService: ConfigService) {
     this.isProduction = this.configService.get('NODE_ENV') === 'production'
+    this.cookieDomain = this.configService.get<string>('COOKIE_DOMAIN') || undefined
   }
 
   /** 设置安全的 Session Cookie */
@@ -31,6 +33,7 @@ export class CookieService {
       sameSite: 'lax',
       path: '/',
       maxAge: maxAge * 1000,
+      ...(this.cookieDomain && { domain: this.cookieDomain }),
     })
   }
 
@@ -48,6 +51,7 @@ export class CookieService {
       sameSite: 'lax',
       path: '/',
       maxAge: maxAge * 1000,
+      ...(this.cookieDomain && { domain: this.cookieDomain }),
     })
   }
 
@@ -59,6 +63,7 @@ export class CookieService {
       sameSite: 'lax',
       path: '/',
       expires: new Date(0),
+      ...(this.cookieDomain && { domain: this.cookieDomain }),
     })
   }
 }

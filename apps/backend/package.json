@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nest start --watch",
     "build": "tsdown",
-    "start": "node dist/main.js",
+    "start": "node dist/main.cjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prisma:generate": "prisma generate",
