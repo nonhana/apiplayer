@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => {
       vue(),
       tailwindcss(),
       compression({
-        algorithms: ['zstd'],
-        exclude: [/\.(zst)$/],
+        algorithms: ['brotli'],
+        exclude: [/\.(br)$/],
         threshold: 10240,
         deleteOriginalAssets: true,
       }),
