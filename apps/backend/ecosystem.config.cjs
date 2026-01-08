@@ -5,7 +5,7 @@ module.exports = {
     {
       // 基础配置
       name: 'apiplayer-api',
-      script: './dist/main.js',
+      script: './dist/main.cjs',
       cwd: __dirname,
 
       // 运行模式
