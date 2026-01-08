@@ -7,10 +7,12 @@ export const REDIS_CLIENT = 'REDIS_CLIENT'
 const redisProvider: Provider<RedisClient> = {
   provide: REDIS_CLIENT,
   useFactory: async (configService: ConfigService) => {
+    const password = configService.get<string>('REDIS_PASSWORD')
     const client = new Redis({
       host: configService.get<string>('REDIS_HOST'),
       port: configService.get<number>('REDIS_PORT'),
       db: configService.get<number>('REDIS_DB'),
+      ...(password && { password }),
     })
 
     client.on('error', (err) => {
