@@ -1,0 +1,96 @@
+# 前端自动化部署
+# 触发条件：推送到 main 分支且 apps/frontend 目录有变化
+# 部署流程：GitHub Actions 构建 → rsync 上传到服务器
+
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/frontend/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+  workflow_dispatch:
+    inputs:
+      skip_cache:
+        description: "跳过缓存重新构建"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "10"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 📦 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: 🟢 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - name: 📚 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔧 创建环境变量文件
+        run: |
+          cat > apps/frontend/.env.production << EOF
+          VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
+          EOF
+
+      - name: 🏗️ 构建前端
+        run: pnpm build:frontend
+
+      - name: 📊 显示构建产物信息
+        run: |
+          echo "===== 构建产物 ====="
+          ls -lah apps/frontend/dist/
+          echo ""
+          echo "===== 总大小 ====="
+          du -sh apps/frontend/dist/
+
+      - name: 🔑 配置 SSH 密钥
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 部署到服务器
+        run: |
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='stats.html' \
+            apps/frontend/dist/ \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.FRONTEND_DEPLOY_PATH }}/
+
+      - name: ✅ 部署完成通知
+        if: success()
+        run: |
+          echo "🎉 前端部署成功！"
+          echo "📍 部署路径: ${{ secrets.FRONTEND_DEPLOY_PATH }}"
+          echo "⏰ 部署时间: $(date '+%Y-%m-%d %H:%M:%S')"
+
+      - name: ❌ 部署失败通知
+        if: failure()
+        run: |
+          echo "💥 前端部署失败！"
+          echo "请检查日志排查问题。"

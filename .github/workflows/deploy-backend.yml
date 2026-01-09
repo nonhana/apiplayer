@@ -1,0 +1,96 @@
+# 后端自动化部署
+# 触发条件：推送到 main 分支且 apps/backend 目录有变化
+# 部署流程：SSH 连接服务器 → git pull → 安装依赖 → 构建 → PM2 重启
+
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/backend/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+  workflow_dispatch:
+    inputs:
+      run_prisma_push:
+        description: "执行 Prisma 数据库推送"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 🚀 通过 SSH 部署后端
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+
+            echo "===== 🚀 开始部署后端 ====="
+            echo "⏰ 开始时间: $(date '+%Y-%m-%d %H:%M:%S')"
+
+            cd ${{ secrets.PROJECT_PATH }}
+            echo "📂 工作目录: $(pwd)"
+
+            echo ""
+            echo "===== 📥 拉取最新代码 ====="
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo ""
+            echo "===== 📦 安装依赖 ====="
+            pnpm install --frozen-lockfile
+
+            cd apps/backend
+
+            echo ""
+            echo "===== 🔄 Prisma Generate ====="
+            pnpm prisma:generate
+
+            if [ "${{ github.event.inputs.run_prisma_push }}" = "true" ]; then
+              echo ""
+              echo "===== 🗃️ Prisma DB Push ====="
+              pnpm prisma:push
+            fi
+
+            echo ""
+            echo "===== 🏗️ 构建项目 ====="
+            pnpm build
+
+            echo ""
+            echo "===== 🔄 重启服务 ====="
+            pnpm pm2:restart
+
+            sleep 3
+
+            echo ""
+            echo "===== ✅ 服务状态 ====="
+            pm2 status apiplayer-api
+
+            echo ""
+            echo "===== 🎉 后端部署完成 ====="
+            echo "⏰ 完成时间: $(date '+%Y-%m-%d %H:%M:%S')"
+
+      - name: ✅ 部署完成
+        if: success()
+        run: echo "🎉 后端部署成功！"
+
+      - name: ❌ 部署失败
+        if: failure()
+        run: |
+          echo "💥 后端部署失败！"
+          echo "请检查日志排查问题。"
