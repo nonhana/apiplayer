@@ -35,6 +35,9 @@ export const useApiTreeStore = defineStore('apiTree', () => {
   /** 是否有树数据 */
   const hasTree = computed(() => tree.value.length > 0)
 
+  /** 是否有分组 */
+  const hasGroups = computed(() => tree.value.some(node => node.children.length > 0))
+
   /** 过滤后的树（根据搜索关键词） */
   const filteredTree = computed(() => {
     if (!searchQuery.value.trim())
@@ -416,6 +419,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
 
     // 计算属性
     hasTree,
+    hasGroups,
     filteredTree,
 
     // 方法

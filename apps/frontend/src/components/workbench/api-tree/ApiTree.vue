@@ -9,6 +9,7 @@ import {
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
+import { toast } from 'vue-sonner'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useApiTreeDrag } from '@/composables/useApiTreeDrag'
@@ -29,7 +30,7 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
-const { projectId, loadingStatus, filteredTree } = storeToRefs(apiTreeStore)
+const { projectId, loadingStatus, filteredTree, hasGroups } = storeToRefs(apiTreeStore)
 
 const isLoading = computed(() => loadingStatus.value === 'loading')
 const hasData = computed(() => filteredTree.value.length > 0)
@@ -40,6 +41,16 @@ const { isDragging } = storeToRefs(apiDragStore)
 const dragger = useApiTreeDrag(apiDragStore, apiTreeStore)
 
 const searchInput = ref('')
+
+// 工具栏创建 API 时先进行分组校验
+function handleToolbarCreateApi() {
+  if (!hasGroups.value) {
+    toast.error('接口必须归属于某个分组，请先创建分组')
+    emits('createGroup')
+    return
+  }
+  emits('createApi')
+}
 
 /** 是否正在拖拽到 Root 区域 */
 const isRootDragOver = ref(false)
@@ -95,7 +106,7 @@ onMounted(() => {
 <template>
   <div class="h-full flex flex-col">
     <ApiTreeToolbar
-      @create-api="emits('createApi')"
+      @create-api="handleToolbarCreateApi"
       @create-group="emits('createGroup')"
     />
 

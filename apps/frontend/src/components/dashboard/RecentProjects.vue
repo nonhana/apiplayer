@@ -60,7 +60,7 @@ defineExpose({
 </script>
 
 <template>
-  <Card v-if="isLoading || hasRecentProjects" class="border-dashed">
+  <Card v-if="isLoading || hasRecentProjects">
     <CardHeader class="pb-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">

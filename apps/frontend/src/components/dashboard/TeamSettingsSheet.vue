@@ -4,7 +4,7 @@ import {
   Settings,
   Users,
 } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Sheet,
@@ -35,6 +35,10 @@ const isOpen = defineModel<boolean>('open', { required: true })
 const isAdmin = computed(() => {
   const roleName = props.team.currentUserRole?.name
   return roleName === ROLE_NAME.TEAM_OWNER || roleName === ROLE_NAME.TEAM_ADMIN
+})
+
+watchEffect(() => {
+  console.log('props.team', props.team)
 })
 
 /** 当前用户是否为所有者 */

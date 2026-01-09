@@ -6,7 +6,7 @@ import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { CreateTeamReqDto, TeamDetailDto, TeamDto, TeamsDto, UpdateTeamReqDto } from './dto'
+import { CreateTeamReqDto, TeamDetailDto, TeamDto, TeamItemDto, TeamsDto, UpdateTeamReqDto } from './dto'
 import { TeamService } from './team.service'
 
 @Controller('teams')
@@ -38,9 +38,9 @@ export class TeamController {
   @Get('all')
   async getAllUserTeams(
     @ReqUser('id') userId: string,
-  ): Promise<TeamDto[]> {
+  ): Promise<TeamItemDto[]> {
     const result = await this.teamService.getAllUserTeams(userId)
-    return plainToInstance(TeamDto, result)
+    return plainToInstance(TeamItemDto, result)
   }
 
   /** 获取团队详情 */

@@ -23,7 +23,7 @@ const teamStore = useTeamStore()
   <CommandItem
     :key="team.id"
     :value="team.name"
-    class="gap-2 group"
+    class="gap-2"
     @select="emits('selectTeam', team.id)"
   >
     <Avatar class="h-5 w-5 border">
@@ -40,7 +40,7 @@ const teamStore = useTeamStore()
     <Button
       variant="ghost"
       size="icon"
-      class="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+      class="h-6 w-6 text-muted-foreground"
       @click="emits('openTeamSettings', team, $event)"
     >
       <Settings class="h-3.5 w-3.5" />

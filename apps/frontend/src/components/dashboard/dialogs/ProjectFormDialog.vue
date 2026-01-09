@@ -270,7 +270,7 @@ watch(isOpen, (open) => {
           </FormField>
         </div>
 
-        <DialogFooter class="gap-2 sm:gap-0">
+        <DialogFooter class="gap-0 sm:gap-2">
           <Button
             type="button"
             variant="outline"
