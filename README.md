@@ -19,8 +19,6 @@
   <strong>English</strong> | <a href="./README.zh-CN.md">简体中文</a>
 </p>
 
----
-
 ## Introduction
 
 ApiPlayer is a **web-based API management platform** similar to [ApiFox](https://apifox.com) and [Postman](https://www.postman.com). It provides development teams with a lightweight and efficient API documentation and debugging experience — no software installation or project configuration required, just open your browser and collaborate.
@@ -133,8 +131,6 @@ pnpm build:backend   # Build backend
 ## License
 
 [MIT](./LICENSE)
-
----
 
 <p align="center">
   Made with ❤️ by <a href="https://github.com/nonhana">nonhana</a>

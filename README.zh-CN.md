@@ -19,8 +19,6 @@
   <a href="./README.md">English</a> | <strong>简体中文</strong>
 </p>
 
----
-
 ## 简介
 
 ApiPlayer 是一个类 [ApiFox](https://apifox.com) / [Postman](https://www.postman.com) 的 **Web 端 API 管理平台**。它旨在为开发团队提供轻量、高效的 API 文档管理与调试体验——无需繁琐的软件安装与项目配置，打开浏览器即可协作。
@@ -133,8 +131,6 @@ pnpm build:backend   # 构建后端
 ## 许可证
 
 [MIT](./LICENSE)
-
----
 
 <p align="center">
   Made with ❤️ by <a href="https://github.com/nonhana">nonhana</a>
