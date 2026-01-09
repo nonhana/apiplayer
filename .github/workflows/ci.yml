@@ -12,7 +12,6 @@ concurrency:
 
 env:
   NODE_VERSION: "22"
-  PRISMA_SKIP_POSTINSTALL_GENERATE: "true"
 
 jobs:
   lint:
@@ -98,11 +97,6 @@ jobs:
 
       - name: 📚 安装依赖
         run: pnpm install --frozen-lockfile
-
-      - name: 🔄 Prisma Generate
-        run: pnpm --filter backend prisma:generate
-        env:
-          DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
 
       - name: 🏗️ 构建
         run: pnpm build:backend

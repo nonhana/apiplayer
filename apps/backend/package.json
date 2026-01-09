@@ -10,7 +10,6 @@
     "lint:fix": "eslint . --fix",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "postinstall": "prisma generate",
     "rbac:seed": "tsx scripts/rbac-seed.ts",
     "pm2:start": "pm2 start ecosystem.config.cjs",
     "pm2:stop": "pm2 stop apiplayer-api",
