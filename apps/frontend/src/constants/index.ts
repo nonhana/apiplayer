@@ -2,9 +2,14 @@
 // 存放一些常量
 
 /**
- * 隐藏头部导航的路由名称
+ * 公共路由
  */
-export const PUBLIC_ROUTES = ['Login', 'Register', 'Home', 'NotFound', 'Workbench']
+export const PUBLIC_ROUTES = ['Login', 'Register', 'Home', 'NotFound']
+
+/**
+ * 已登录用户应该跳转到 Dashboard 的路由
+ */
+export const AUTH_REDIRECT_ROUTES = ['Home', 'Login', 'Register']
 
 /**
  * 项目可见性

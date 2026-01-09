@@ -1,6 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
-import { PUBLIC_ROUTES } from '@/constants'
+import { AUTH_REDIRECT_ROUTES, PUBLIC_ROUTES } from '@/constants'
 import { useUserStore } from '@/stores/useUserStore'
 
 const routes: RouteRecordRaw[] = [
@@ -75,16 +75,20 @@ const router = createRouter({
 
 router.beforeEach((to, _, next) => {
   const userStore = useUserStore()
-  if (PUBLIC_ROUTES.includes(to.name as string)) {
+  const isPublicRoute = PUBLIC_ROUTES.includes(to.name as string)
+  const goToDashboard = AUTH_REDIRECT_ROUTES.includes(to.name as string)
+
+  if (userStore.isAuthenticated && goToDashboard) {
+    next({ name: 'Dashboard' })
+  }
+  else if (isPublicRoute) {
+    next()
+  }
+  else if (userStore.isAuthenticated) {
     next()
   }
   else {
-    if (userStore.isAuthenticated) {
-      next()
-    }
-    else {
-      next({ name: 'Login' })
-    }
+    next({ name: 'Login' })
   }
 })
 
