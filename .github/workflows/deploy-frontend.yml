@@ -25,7 +25,6 @@ concurrency:
 
 env:
   NODE_VERSION: "22"
-  PNPM_VERSION: "10"
 
 jobs:
   build-and-deploy:
@@ -38,8 +37,6 @@ jobs:
 
       - name: 📦 安装 pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - name: 🟢 设置 Node.js
         uses: actions/setup-node@v4
