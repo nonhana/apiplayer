@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       run_prisma_push:
-        description: "执行 Prisma 数据库推送"
+        description: "Run Prisma database push"
         required: false
         default: false
         type: boolean
@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: 🚀 通过 SSH 部署后端
+      - name: Deploy backend via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -40,57 +40,57 @@ jobs:
           script: |
             set -e
 
-            echo "===== 🚀 开始部署后端 ====="
-            echo "⏰ 开始时间: $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "===== Start backend deployment ====="
+            echo "Start time: $(date '+%Y-%m-%d %H:%M:%S')"
 
             cd ${{ secrets.PROJECT_PATH }}
-            echo "📂 工作目录: $(pwd)"
+            echo "Working directory: $(pwd)"
 
             echo ""
-            echo "===== 📥 拉取最新代码 ====="
+            echo "===== Pull latest code ====="
             git fetch origin main
             git reset --hard origin/main
 
             echo ""
-            echo "===== 📦 安装依赖 ====="
+            echo "===== Install dependencies ====="
             pnpm install --frozen-lockfile
 
             cd apps/backend
 
             echo ""
-            echo "===== 🔄 Prisma Generate ====="
+            echo "===== Prisma Generate ====="
             pnpm prisma:generate
 
             if [ "${{ github.event.inputs.run_prisma_push }}" = "true" ]; then
               echo ""
-              echo "===== 🗃️ Prisma DB Push ====="
+              echo "===== Prisma DB Push ====="
               pnpm prisma:push
             fi
 
             echo ""
-            echo "===== 🏗️ 构建项目 ====="
+            echo "===== Build project ====="
             pnpm build
 
             echo ""
-            echo "===== 🔄 重启服务 ====="
+            echo "===== Restart service ====="
             pnpm pm2:restart
 
             sleep 3
 
             echo ""
-            echo "===== ✅ 服务状态 ====="
+            echo "===== Service status ====="
             pm2 status apiplayer-api
 
             echo ""
-            echo "===== 🎉 后端部署完成 ====="
-            echo "⏰ 完成时间: $(date '+%Y-%m-%d %H:%M:%S')"
+            echo "===== Backend deployment finished ====="
+            echo "End time: $(date '+%Y-%m-%d %H:%M:%S')"
 
-      - name: ✅ 部署完成
+      - name: Deployment succeeded
         if: success()
-        run: echo "🎉 后端部署成功！"
+        run: echo "Backend deployment successful."
 
-      - name: ❌ 部署失败
+      - name: Deployment failed
         if: failure()
         run: |
-          echo "💥 后端部署失败！"
-          echo "请检查日志排查问题。"
+          echo "Backend deployment failed."
+          echo "Please check the logs for details."

@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       skip_cache:
-        description: "跳过缓存重新构建"
+        description: "Skip cache and force rebuild"
         required: false
         default: false
         type: boolean
@@ -32,46 +32,46 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: 📥 检出代码
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: 📦 安装 pnpm
+      - name: Install pnpm
         uses: pnpm/action-setup@v4
 
-      - name: 🟢 设置 Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
 
-      - name: 📚 安装依赖
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🔧 创建环境变量文件
+      - name: Create environment variables file
         run: |
           cat > apps/frontend/.env.production << EOF
           VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
           EOF
 
-      - name: 🏗️ 构建前端
+      - name: Build frontend
         run: pnpm build:frontend
 
-      - name: 📊 显示构建产物信息
+      - name: Show build artifacts info
         run: |
-          echo "===== 构建产物 ====="
+          echo "===== Build Artifacts ====="
           ls -lah apps/frontend/dist/
           echo ""
-          echo "===== 总大小 ====="
+          echo "===== Total Size ====="
           du -sh apps/frontend/dist/
 
-      - name: 🔑 配置 SSH 密钥
+      - name: Configure SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 🚀 部署到服务器
+      - name: Deploy to server
         run: |
           rsync -avz --delete \
             --exclude='.git' \
@@ -79,15 +79,15 @@ jobs:
             apps/frontend/dist/ \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.FRONTEND_DEPLOY_PATH }}/
 
-      - name: ✅ 部署完成通知
+      - name: Deployment success notice
         if: success()
         run: |
-          echo "🎉 前端部署成功！"
-          echo "📍 部署路径: ${{ secrets.FRONTEND_DEPLOY_PATH }}"
-          echo "⏰ 部署时间: $(date '+%Y-%m-%d %H:%M:%S')"
+          echo "Frontend deployment successful!"
+          echo "Deploy path: ${{ secrets.FRONTEND_DEPLOY_PATH }}"
+          echo "Time: $(date '+%Y-%m-%d %H:%M:%S')"
 
-      - name: ❌ 部署失败通知
+      - name: Deployment failure notice
         if: failure()
         run: |
-          echo "💥 前端部署失败！"
-          echo "请检查日志排查问题。"
+          echo "Frontend deployment failed!"
+          echo "Check logs for details."

@@ -15,93 +15,93 @@ env:
 
 jobs:
   lint:
-    name: 🔍 代码检查
+    name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - name: 📥 检出代码
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: 📦 安装 pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
-      - name: 🟢 设置 Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
 
-      - name: 📚 安装依赖
+      - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🔍 ESLint 检查
+      - name: Run ESLint
         run: |
           pnpm --filter frontend lint
           pnpm --filter backend lint
 
   build-frontend:
-    name: 🏗️ 构建前端
+    name: Build Frontend
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: lint
 
     steps:
-      - name: 📥 检出代码
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: 📦 安装 pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
-      - name: 🟢 设置 Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
 
-      - name: 📚 安装依赖
+      - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🔧 创建环境变量文件
+      - name: Generate Environment Variables
         run: |
           cat > apps/frontend/.env.production << EOF
-          VITE_API_BASE_URL=https://api.example.com
+          VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
           EOF
 
-      - name: 🏗️ 构建
+      - name: Build
         run: pnpm build:frontend
 
-      - name: 📊 构建产物信息
+      - name: Build Artifacts Info
         run: |
-          echo "构建产物大小:"
+          echo "Build size:"
           du -sh apps/frontend/dist/
 
   build-backend:
-    name: 🏗️ 构建后端
+    name: Build Backend
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: lint
 
     steps:
-      - name: 📥 检出代码
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: 📦 安装 pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
-      - name: 🟢 设置 Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "pnpm"
 
-      - name: 📚 安装依赖
+      - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🏗️ 构建
+      - name: Build
         run: pnpm build:backend
 
-      - name: 📊 构建产物信息
+      - name: Build Artifacts Info
         run: |
-          echo "构建产物:"
+          echo "Build artifacts:"
           ls -lah apps/backend/dist/
