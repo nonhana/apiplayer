@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { SupportedLanguage } from '@/types/code-editor'
+import { useColorMode } from '@vueuse/core'
 import { onBeforeUnmount, onMounted, useTemplateRef, watch } from 'vue'
 import { monaco } from '@/lib/monaco'
 
@@ -29,6 +30,8 @@ let editorInstance: monaco.editor.IStandaloneCodeEditor | null = null
 /** 是否正在内部更新（防止循环） */
 let isInternalUpdate = false
 
+const mode = useColorMode()
+
 function createEditor() {
   if (!containerRef.value)
     return
@@ -37,7 +40,7 @@ function createEditor() {
     editorInstance = monaco.editor.create(containerRef.value, {
       value: code.value,
       language: props.language,
-      theme: 'vs',
+      theme: mode.value === 'dark' ? 'vs-dark' : 'vs',
       readOnly: props.readonly,
       minimap: { enabled: false },
       fontSize: 13,
@@ -133,6 +136,10 @@ watch(
     editorInstance?.updateOptions({ readOnly: newReadonly })
   },
 )
+
+watch(mode, () => {
+  monaco.editor.setTheme(mode.value === 'dark' ? 'vs-dark' : 'vs')
+})
 
 onMounted(() => {
   createEditor()

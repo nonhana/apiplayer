@@ -3,6 +3,7 @@ import { ArrowLeft, Settings } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import ModeToggle from '@/components/common/ModeToggle.vue'
 import {
   Avatar,
   AvatarFallback,
@@ -113,6 +114,7 @@ function handleLogout() {
     <div class="flex-1" />
 
     <div class="flex items-center gap-2">
+      <ModeToggle />
       <Button
         variant="ghost"
         size="icon"

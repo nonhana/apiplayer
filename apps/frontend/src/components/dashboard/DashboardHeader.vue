@@ -18,6 +18,7 @@ import {
 import { getAbbreviation } from '@/lib/utils'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
+import ModeToggle from '../common/ModeToggle.vue'
 import CreateTeamDialog from './dialogs/CreateTeamDialog.vue'
 import TeamSwitcher from './TeamSwitcher.vue'
 
@@ -67,6 +68,7 @@ onMounted(() => {
     </div>
 
     <div class="ml-auto flex items-center gap-4">
+      <ModeToggle />
       <Button
         v-if="!userStore.isAuthenticated"
         variant="outline"
