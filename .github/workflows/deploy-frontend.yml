@@ -25,6 +25,7 @@ concurrency:
 
 env:
   NODE_VERSION: "22"
+  PRISMA_SKIP_POSTINSTALL_GENERATE: "true"
 
 jobs:
   build-and-deploy:
