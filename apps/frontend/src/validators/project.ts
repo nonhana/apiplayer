@@ -6,10 +6,10 @@ import z from 'zod'
  * 包含所有字段，使用统一的校验规则
  */
 export const projectFormSchema = toTypedSchema(z.object({
-  name: z.string()
+  name: z.string({ required_error: '请填写项目名称' })
     .min(2, '项目名称长度不能少于 2 个字符')
     .max(50, '项目名称长度不能超过 50 个字符'),
-  slug: z.string()
+  slug: z.string({ required_error: '请填写项目标识符' })
     .min(2, '项目标识符长度不能少于 2 个字符')
     .max(30, '项目标识符长度不能超过 30 个字符')
     .regex(/^[a-z0-9-]+$/, '项目标识符只能包含小写字母、数字和连字符'),

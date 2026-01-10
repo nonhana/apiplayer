@@ -10,11 +10,12 @@ const envTypeEnum = z.enum(['DEV', 'TEST', 'STAGING', 'PROD'], {
  * 创建项目环境表单校验规则
  */
 export const createProjectEnvFormSchema = toTypedSchema(z.object({
-  name: z.string()
+  name: z.string({ required_error: '请填写环境名称' })
     .min(2, '环境名称长度不能少于 2 个字符')
     .max(30, '环境名称长度不能超过 30 个字符'),
   type: envTypeEnum,
-  baseUrl: z.string()
+  baseUrl: z.string({ required_error: '请填写 URL' })
+    .min(1, '请填写 URL')
     .url('请输入有效的 URL'),
   isDefault: z.boolean().default(false),
 }))

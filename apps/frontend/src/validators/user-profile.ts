@@ -5,10 +5,10 @@ import z from 'zod'
  * 用户资料表单校验规则
  */
 export const userProfileFormSchema = toTypedSchema(z.object({
-  name: z.string()
+  name: z.string({ required_error: '请填写显示名称' })
     .min(1, '显示名称不能为空')
     .max(50, '显示名称长度不能超过 50 个字符'),
-  username: z.string()
+  username: z.string({ required_error: '请填写用户名' })
     .min(3, '用户名至少 3 个字符')
     .max(20, '用户名不能超过 20 个字符')
     .regex(/^[\w-]+$/, '用户名仅限字母、数字、下划线或中划线'),
