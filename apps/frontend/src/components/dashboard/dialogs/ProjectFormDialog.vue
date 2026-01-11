@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { slugify } from '@/lib/slug'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { projectFormSchema } from '@/validators/project'
 
@@ -69,22 +70,12 @@ const { handleSubmit, resetForm, setFieldValue, setValues, values } = useForm<Pr
   },
 })
 
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[\s_]+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
 /** 监听名称变化，自动生成 slug（仅创建模式） */
 watch(
   () => values.name,
   (newV) => {
-    if (isCreateMode.value && newV) {
-      setFieldValue('slug', generateSlug(newV))
+    if (isCreateMode.value) {
+      setFieldValue('slug', newV ? slugify(newV) : '')
     }
   },
 )

@@ -37,7 +37,8 @@
     "vue-picture-cropper": "catalog:frontend",
     "vue-router": "catalog:frontend",
     "vue-sonner": "catalog:frontend",
-    "zod": "catalog:frontend"
+    "zod": "catalog:frontend",
+    "pinyin-pro": "catalog:frontend"
   },
   "devDependencies": {
     "@types/lodash-es": "catalog:frontend",

@@ -205,6 +205,9 @@ catalogs:
     pinia-plugin-persistedstate:
       specifier: ^4.7.1
       version: 4.7.1
+    pinyin-pro:
+      specifier: ^3.25.0
+      version: 3.27.0
     reka-ui:
       specifier: ^2.7.0
       version: 2.7.0
@@ -491,6 +494,9 @@ importers:
       pinia-plugin-persistedstate:
         specifier: catalog:frontend
         version: 4.7.1(pinia@3.0.4(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3)))
+      pinyin-pro:
+        specifier: catalog:frontend
+        version: 3.27.0
       reka-ui:
         specifier: catalog:frontend
         version: 2.7.0(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
@@ -5062,6 +5068,9 @@ packages:
   pino@10.1.0:
     resolution: {integrity: sha512-0zZC2ygfdqvqK8zJIr1e+wT1T/L+LF6qvqvbzEQ6tiMAoTqEVK9a1K3YRu8HEUvGEvNqZyPJTtb2sNIoTkB83w==}
     hasBin: true
+
+  pinyin-pro@3.27.0:
+    resolution: {integrity: sha512-Osdgjwe7Rm17N2paDMM47yW+jUIUH3+0RGo8QP39ZTLpTaJVDK0T58hOLaMQJbcMmAebVuK2ePunTEVEx1clNQ==}
 
   piscina@4.9.2:
     resolution: {integrity: sha512-Fq0FERJWFEUpB4eSY59wSNwXD4RYqR+nR/WiEVcZW8IWfVBxJJafcgTEZDQo8k3w0sUarJ8RyVbbUF4GQ2LGbQ==}
@@ -11325,6 +11334,8 @@ snapshots:
       safe-stable-stringify: 2.5.0
       sonic-boom: 4.2.0
       thread-stream: 3.1.0
+
+  pinyin-pro@3.27.0: {}
 
   piscina@4.9.2:
     optionalDependencies:

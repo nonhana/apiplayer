@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { slugify } from '@/lib/slug'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { createTeamFormSchema } from '@/validators/team'
 
@@ -43,22 +44,10 @@ const { handleSubmit, resetForm, setFieldValue, values } = useForm({
   },
 })
 
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[\s_]+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
 watch(
   () => values.name,
   (newV) => {
-    if (newV) {
-      setFieldValue('slug', generateSlug(newV))
-    }
+    setFieldValue('slug', newV ? slugify(newV) : '')
   },
 )
 
