@@ -27,6 +27,7 @@
     "nanoid": "catalog:frontend",
     "pinia": "catalog:frontend",
     "pinia-plugin-persistedstate": "catalog:frontend",
+    "pinyin-pro": "catalog:frontend",
     "reka-ui": "catalog:frontend",
     "swrv": "catalog:frontend",
     "tailwind-merge": "catalog:frontend",
@@ -37,8 +38,7 @@
     "vue-picture-cropper": "catalog:frontend",
     "vue-router": "catalog:frontend",
     "vue-sonner": "catalog:frontend",
-    "zod": "catalog:frontend",
-    "pinyin-pro": "catalog:frontend"
+    "zod": "catalog:frontend"
   },
   "devDependencies": {
     "@types/lodash-es": "catalog:frontend",

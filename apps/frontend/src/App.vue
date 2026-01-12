@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+import { watch } from 'vue'
 import { Toaster } from '@/components/ui/sonner'
 import { useGlobalStore } from '@/stores/useGlobalStore'
 import { useUserStore } from '@/stores/useUserStore'
 import 'vue-sonner/style.css'
 
 const globalStore = useGlobalStore()
-const userStore = useUserStore()
+const { initRoles } = globalStore
 
-// App init
-onMounted(() => {
-  if (userStore.isAuthenticated) {
-    globalStore.initRoles()
+const userStore = useUserStore()
+const { isAuthenticated } = storeToRefs(userStore)
+
+watch(isAuthenticated, (newV) => {
+  if (newV) {
+    initRoles()
   }
 })
 </script>
