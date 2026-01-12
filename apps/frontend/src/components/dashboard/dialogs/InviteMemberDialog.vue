@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { ProjectMember } from '@/types/project'
 import type { RoleItem } from '@/types/role'
-import type { TeamMember } from '@/types/team'
+import type { TeamInvitation, TeamMember } from '@/types/team'
 import type { UserBriefInfo } from '@/types/user'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2, Mail, Users } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch, watchEffect } from 'vue'
 import { toast } from 'vue-sonner'
@@ -45,18 +45,22 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   (e: 'invited', members: MemberResult[]): void
+  (e: 'invitationSent', invitation: TeamInvitation): void
 }>()
 
 const globalStore = useGlobalStore()
-const { teamRoles, projectRoles } = storeToRefs(globalStore)
+const { teamRoles, projectRoles, teamInviteMode } = storeToRefs(globalStore)
 
 const isOpen = defineModel<boolean>('open', { required: true })
 
 const isTeamMode = computed(() => props.type === 'team')
 
+/** 是否使用邮箱邀请模式（仅在团队模式下适用） */
+const isEmailInviteMode = computed(() => isTeamMode.value && teamInviteMode.value === 'email')
+
 const teamMemberOptions = ref<UserBriefInfo[]>([])
 
-// 如果当前为“邀请项目成员”模式，需要获取当前团队的成员列表
+// 如果当前为"邀请项目成员"模式，需要获取当前团队的成员列表
 watchEffect(async () => {
   if (!isTeamMode.value) {
     if (!props.teamId) {
@@ -71,7 +75,13 @@ watchEffect(async () => {
   }
 })
 
+// 直接添加模式的状态
 const selectedUsers = ref<UserBriefInfo[]>([])
+
+// 邮箱邀请模式的状态
+const inviteEmail = ref('')
+
+// 公共状态
 const selectedRoleId = ref('')
 const nickname = ref('')
 const isSubmitting = ref(false)
@@ -85,22 +95,48 @@ const roleList = computed<RoleItem[]>(() => {
 
 const defaultRoleId = computed(() => {
   if (isTeamMode.value) {
-    return teamRoles.value.find(r => r.name === ROLE_NAME.TEAM_MEMBER)!.id
+    return teamRoles.value.find(r => r.name === ROLE_NAME.TEAM_MEMBER)?.id ?? ''
   }
-  return projectRoles.value.find(r => r.name === ROLE_NAME.PROJECT_VIEWER)!.id
+  return projectRoles.value.find(r => r.name === ROLE_NAME.PROJECT_VIEWER)?.id ?? ''
 })
 
-const canSubmit = computed(() =>
-  selectedUsers.value.length > 0 && selectedRoleId.value && !isSubmitting.value,
-)
+/** 邮箱格式是否有效 */
+const isEmailValid = computed(() => {
+  if (!inviteEmail.value.trim())
+    return false
+  const emailRegex = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
+  return emailRegex.test(inviteEmail.value.trim())
+})
 
-async function inviteTeamMembers() {
+const canSubmit = computed(() => {
+  if (isSubmitting.value)
+    return false
+  if (!selectedRoleId.value)
+    return false
+
+  if (isEmailInviteMode.value) {
+    return isEmailValid.value
+  }
+  return selectedUsers.value.length > 0
+})
+
+// 直接添加模式：邀请团队成员
+async function inviteTeamMembersDirect() {
   return await teamApi.inviteTeamMembers(props.teamId!, {
     members: selectedUsers.value.map(user => ({
       userId: user.id,
       roleId: selectedRoleId.value,
       nickname: nickname.value || undefined,
     })),
+  })
+}
+
+// 邮箱邀请模式：发送邀请邮件
+async function sendEmailInvitation() {
+  return await teamApi.sendInvitation(props.teamId!, {
+    email: inviteEmail.value.trim(),
+    roleId: selectedRoleId.value,
+    nickname: nickname.value || undefined,
   })
 }
 
@@ -119,19 +155,32 @@ async function handleSubmit() {
 
   const typeLabel = isTeamMode.value ? '团队' : '项目'
   isSubmitting.value = true
+
   try {
-    const newMembers = isTeamMode.value
-      ? await inviteTeamMembers()
-      : await inviteProjectMembers()
+    if (isEmailInviteMode.value) {
+      // 邮箱邀请模式
+      const invitation = await sendEmailInvitation()
+      toast.success('邀请已发送', {
+        description: `邀请邮件已发送至 ${inviteEmail.value}`,
+      })
+      emits('invitationSent', invitation)
+      isOpen.value = false
+      resetForm()
+    }
+    else {
+      // 直接添加模式
+      const newMembers = isTeamMode.value
+        ? await inviteTeamMembersDirect()
+        : await inviteProjectMembers()
 
-    toast.success('邀请成功', {
-      description: `已邀请 ${newMembers.length} 名用户加入${typeLabel}`,
-    })
+      toast.success('邀请成功', {
+        description: `已邀请 ${newMembers.length} 名用户加入${typeLabel}`,
+      })
 
-    emits('invited', newMembers)
-
-    isOpen.value = false
-    resetForm()
+      emits('invited', newMembers)
+      isOpen.value = false
+      resetForm()
+    }
   }
   catch (error) {
     console.error(`邀请成员加入${typeLabel}失败`, error)
@@ -143,6 +192,7 @@ async function handleSubmit() {
 
 function resetForm() {
   selectedUsers.value = []
+  inviteEmail.value = ''
   selectedRoleId.value = defaultRoleId.value
   nickname.value = ''
 }
@@ -154,15 +204,41 @@ watch(isOpen, open => !open && resetForm())
   <Dialog v-model:open="isOpen">
     <DialogContent class="sm:max-w-120">
       <DialogHeader>
-        <DialogTitle>邀请成员</DialogTitle>
+        <DialogTitle class="flex items-center gap-2">
+          <Mail v-if="isEmailInviteMode" class="h-5 w-5" />
+          <Users v-else class="h-5 w-5" />
+          邀请成员
+        </DialogTitle>
         <DialogDescription>
-          邀请新成员加入{{ isTeamMode ? '团队' : '项目' }}
+          <template v-if="isEmailInviteMode">
+            输入邮箱地址，发送邀请链接至
+          </template>
+          <template v-else>
+            邀请新成员加入{{ isTeamMode ? '团队' : '项目' }}
+          </template>
           <span class="font-medium text-foreground">{{ resourceName }}</span>
         </DialogDescription>
       </DialogHeader>
 
       <div class="space-y-4 py-2">
-        <div class="space-y-2">
+        <!-- 邮箱邀请模式 -->
+        <div v-if="isEmailInviteMode" class="space-y-2">
+          <Label class="text-sm font-medium leading-none">
+            邮箱地址 <span class="text-destructive">*</span>
+          </Label>
+          <Input
+            v-model="inviteEmail"
+            type="email"
+            placeholder="请输入被邀请人的邮箱地址"
+            :disabled="isSubmitting"
+          />
+          <p v-if="inviteEmail && !isEmailValid" class="text-xs text-destructive">
+            请输入有效的邮箱地址
+          </p>
+        </div>
+
+        <!-- 直接添加模式 -->
+        <div v-else class="space-y-2">
           <Label class="text-sm font-medium leading-none">
             选择用户 <span class="text-destructive">*</span>
           </Label>
@@ -222,7 +298,12 @@ watch(isOpen, open => !open && resetForm())
           @click="handleSubmit"
         >
           <Loader2 v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
-          邀请 {{ selectedUsers.length > 0 ? `(${selectedUsers.length})` : '' }}
+          <template v-if="isEmailInviteMode">
+            发送邀请
+          </template>
+          <template v-else>
+            邀请 {{ selectedUsers.length > 0 ? `(${selectedUsers.length})` : '' }}
+          </template>
         </Button>
       </DialogFooter>
     </DialogContent>

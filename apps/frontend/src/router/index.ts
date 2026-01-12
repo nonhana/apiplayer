@@ -30,6 +30,11 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/invite/accept',
+    name: 'AcceptInvite',
+    component: () => import('@/views/invite/AcceptInviteView.vue'),
+  },
+  {
     path: '/dashboard',
     component: () => import('@/layouts/DashboardLayout.vue'),
     children: [

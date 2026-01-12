@@ -2,7 +2,7 @@
 import { Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { authApi } from '@/api/auth'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,8 @@ const form = useForm({
   validationSchema: loginFormSchema,
 })
 
+const route = useRoute()
+
 const onSubmit = form.handleSubmit(async (values) => {
   isLoading.value = true
   try {
@@ -31,7 +33,15 @@ const onSubmit = form.handleSubmit(async (values) => {
     toast.success('欢迎回来！', {
       description: '登录成功，欢迎使用。',
     })
-    router.push('/dashboard')
+
+    // 如果有 redirect 参数，跳转到该地址
+    const redirect = route.query.redirect as string | undefined
+    if (redirect) {
+      router.push(redirect)
+    }
+    else {
+      router.push('/dashboard')
+    }
   }
   catch (error) {
     console.error('登录失败', error)

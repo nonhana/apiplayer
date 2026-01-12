@@ -247,6 +247,7 @@ export type UserWhereInput = {
   apiVersions?: Prisma.APIVersionListRelationFilter
   userSessions?: Prisma.UserSessionListRelationFilter
   operationLogs?: Prisma.APIOperationLogListRelationFilter
+  teamInvitations?: Prisma.TeamInvitationListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -271,6 +272,7 @@ export type UserOrderByWithRelationInput = {
   apiVersions?: Prisma.APIVersionOrderByRelationAggregateInput
   userSessions?: Prisma.UserSessionOrderByRelationAggregateInput
   operationLogs?: Prisma.APIOperationLogOrderByRelationAggregateInput
+  teamInvitations?: Prisma.TeamInvitationOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -298,6 +300,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   apiVersions?: Prisma.APIVersionListRelationFilter
   userSessions?: Prisma.UserSessionListRelationFilter
   operationLogs?: Prisma.APIOperationLogListRelationFilter
+  teamInvitations?: Prisma.TeamInvitationListRelationFilter
 }, "id" | "email" | "username">
 
 export type UserOrderByWithAggregationInput = {
@@ -358,6 +361,7 @@ export type UserCreateInput = {
   apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -382,6 +386,7 @@ export type UserUncheckedCreateInput = {
   apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserUpdateInput = {
@@ -406,6 +411,7 @@ export type UserUpdateInput = {
   apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -430,6 +436,7 @@ export type UserUncheckedUpdateInput = {
   apiVersions?: Prisma.APIVersionUncheckedUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -568,6 +575,20 @@ export type UserUpdateOneRequiredWithoutTeamMembersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTeamMembersInput, Prisma.UserUpdateWithoutTeamMembersInput>, Prisma.UserUncheckedUpdateWithoutTeamMembersInput>
 }
 
+export type UserCreateNestedOneWithoutTeamInvitationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTeamInvitationsInput, Prisma.UserUncheckedCreateWithoutTeamInvitationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTeamInvitationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutTeamInvitationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutTeamInvitationsInput, Prisma.UserUncheckedCreateWithoutTeamInvitationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutTeamInvitationsInput
+  upsert?: Prisma.UserUpsertWithoutTeamInvitationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTeamInvitationsInput, Prisma.UserUpdateWithoutTeamInvitationsInput>, Prisma.UserUncheckedUpdateWithoutTeamInvitationsInput>
+}
+
 export type UserCreateNestedOneWithoutProjectMembersInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutProjectMembersInput, Prisma.UserUncheckedCreateWithoutProjectMembersInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectMembersInput
@@ -689,6 +710,7 @@ export type UserCreateWithoutUserSessionsInput = {
   createdAPIs?: Prisma.APICreateNestedManyWithoutCreatorInput
   apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
   operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateWithoutUserSessionsInput = {
@@ -712,6 +734,7 @@ export type UserUncheckedCreateWithoutUserSessionsInput = {
   createdAPIs?: Prisma.APIUncheckedCreateNestedManyWithoutCreatorInput
   apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
   operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserCreateOrConnectWithoutUserSessionsInput = {
@@ -751,6 +774,7 @@ export type UserUpdateWithoutUserSessionsInput = {
   createdAPIs?: Prisma.APIUpdateManyWithoutCreatorNestedInput
   apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
   operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateWithoutUserSessionsInput = {
@@ -774,6 +798,7 @@ export type UserUncheckedUpdateWithoutUserSessionsInput = {
   createdAPIs?: Prisma.APIUncheckedUpdateManyWithoutCreatorNestedInput
   apiVersions?: Prisma.APIVersionUncheckedUpdateManyWithoutEditorNestedInput
   operationLogs?: Prisma.APIOperationLogUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
 }
 
 export type UserCreateWithoutTeamMembersInput = {
@@ -797,6 +822,7 @@ export type UserCreateWithoutTeamMembersInput = {
   apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateWithoutTeamMembersInput = {
@@ -820,6 +846,7 @@ export type UserUncheckedCreateWithoutTeamMembersInput = {
   apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserCreateOrConnectWithoutTeamMembersInput = {
@@ -859,6 +886,7 @@ export type UserUpdateWithoutTeamMembersInput = {
   apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTeamMembersInput = {
@@ -874,6 +902,119 @@ export type UserUncheckedUpdateWithoutTeamMembersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  projectMembers?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
+  recentlyProjects?: Prisma.RecentlyProjectUncheckedUpdateManyWithoutUserNestedInput
+  ownedAPIs?: Prisma.APIUncheckedUpdateManyWithoutOwnerNestedInput
+  editedAPIs?: Prisma.APIUncheckedUpdateManyWithoutEditorNestedInput
+  createdAPIs?: Prisma.APIUncheckedUpdateManyWithoutCreatorNestedInput
+  apiVersions?: Prisma.APIVersionUncheckedUpdateManyWithoutEditorNestedInput
+  userSessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
+  operationLogs?: Prisma.APIOperationLogUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
+}
+
+export type UserCreateWithoutTeamInvitationsInput = {
+  id?: string
+  email: string
+  username: string
+  name?: string
+  password: string
+  avatar?: string | null
+  bio?: string | null
+  isActive?: boolean
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isAdmin?: boolean
+  teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutUserInput
+  projectMembers?: Prisma.ProjectMemberCreateNestedManyWithoutUserInput
+  recentlyProjects?: Prisma.RecentlyProjectCreateNestedManyWithoutUserInput
+  ownedAPIs?: Prisma.APICreateNestedManyWithoutOwnerInput
+  editedAPIs?: Prisma.APICreateNestedManyWithoutEditorInput
+  createdAPIs?: Prisma.APICreateNestedManyWithoutCreatorInput
+  apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
+  userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
+  operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutTeamInvitationsInput = {
+  id?: string
+  email: string
+  username: string
+  name?: string
+  password: string
+  avatar?: string | null
+  bio?: string | null
+  isActive?: boolean
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  isAdmin?: boolean
+  teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutUserInput
+  projectMembers?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutUserInput
+  recentlyProjects?: Prisma.RecentlyProjectUncheckedCreateNestedManyWithoutUserInput
+  ownedAPIs?: Prisma.APIUncheckedCreateNestedManyWithoutOwnerInput
+  editedAPIs?: Prisma.APIUncheckedCreateNestedManyWithoutEditorInput
+  createdAPIs?: Prisma.APIUncheckedCreateNestedManyWithoutCreatorInput
+  apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
+  userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
+  operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutTeamInvitationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutTeamInvitationsInput, Prisma.UserUncheckedCreateWithoutTeamInvitationsInput>
+}
+
+export type UserUpsertWithoutTeamInvitationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutTeamInvitationsInput, Prisma.UserUncheckedUpdateWithoutTeamInvitationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutTeamInvitationsInput, Prisma.UserUncheckedCreateWithoutTeamInvitationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutTeamInvitationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutTeamInvitationsInput, Prisma.UserUncheckedUpdateWithoutTeamInvitationsInput>
+}
+
+export type UserUpdateWithoutTeamInvitationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teamMembers?: Prisma.TeamMemberUpdateManyWithoutUserNestedInput
+  projectMembers?: Prisma.ProjectMemberUpdateManyWithoutUserNestedInput
+  recentlyProjects?: Prisma.RecentlyProjectUpdateManyWithoutUserNestedInput
+  ownedAPIs?: Prisma.APIUpdateManyWithoutOwnerNestedInput
+  editedAPIs?: Prisma.APIUpdateManyWithoutEditorNestedInput
+  createdAPIs?: Prisma.APIUpdateManyWithoutCreatorNestedInput
+  apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
+  userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
+  operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutTeamInvitationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isAdmin?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutUserNestedInput
   projectMembers?: Prisma.ProjectMemberUncheckedUpdateManyWithoutUserNestedInput
   recentlyProjects?: Prisma.RecentlyProjectUncheckedUpdateManyWithoutUserNestedInput
   ownedAPIs?: Prisma.APIUncheckedUpdateManyWithoutOwnerNestedInput
@@ -905,6 +1046,7 @@ export type UserCreateWithoutProjectMembersInput = {
   apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateWithoutProjectMembersInput = {
@@ -928,6 +1070,7 @@ export type UserUncheckedCreateWithoutProjectMembersInput = {
   apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserCreateOrConnectWithoutProjectMembersInput = {
@@ -967,6 +1110,7 @@ export type UserUpdateWithoutProjectMembersInput = {
   apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectMembersInput = {
@@ -990,6 +1134,7 @@ export type UserUncheckedUpdateWithoutProjectMembersInput = {
   apiVersions?: Prisma.APIVersionUncheckedUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
 }
 
 export type UserCreateWithoutRecentlyProjectsInput = {
@@ -1013,6 +1158,7 @@ export type UserCreateWithoutRecentlyProjectsInput = {
   apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateWithoutRecentlyProjectsInput = {
@@ -1036,6 +1182,7 @@ export type UserUncheckedCreateWithoutRecentlyProjectsInput = {
   apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserCreateOrConnectWithoutRecentlyProjectsInput = {
@@ -1075,6 +1222,7 @@ export type UserUpdateWithoutRecentlyProjectsInput = {
   apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRecentlyProjectsInput = {
@@ -1098,6 +1246,7 @@ export type UserUncheckedUpdateWithoutRecentlyProjectsInput = {
   apiVersions?: Prisma.APIVersionUncheckedUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
 }
 
 export type UserCreateWithoutOwnedAPIsInput = {
@@ -1121,6 +1270,7 @@ export type UserCreateWithoutOwnedAPIsInput = {
   apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateWithoutOwnedAPIsInput = {
@@ -1144,6 +1294,7 @@ export type UserUncheckedCreateWithoutOwnedAPIsInput = {
   apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserCreateOrConnectWithoutOwnedAPIsInput = {
@@ -1172,6 +1323,7 @@ export type UserCreateWithoutEditedAPIsInput = {
   apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateWithoutEditedAPIsInput = {
@@ -1195,6 +1347,7 @@ export type UserUncheckedCreateWithoutEditedAPIsInput = {
   apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserCreateOrConnectWithoutEditedAPIsInput = {
@@ -1223,6 +1376,7 @@ export type UserCreateWithoutCreatedAPIsInput = {
   apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateWithoutCreatedAPIsInput = {
@@ -1246,6 +1400,7 @@ export type UserUncheckedCreateWithoutCreatedAPIsInput = {
   apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserCreateOrConnectWithoutCreatedAPIsInput = {
@@ -1285,6 +1440,7 @@ export type UserUpdateWithoutOwnedAPIsInput = {
   apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOwnedAPIsInput = {
@@ -1308,6 +1464,7 @@ export type UserUncheckedUpdateWithoutOwnedAPIsInput = {
   apiVersions?: Prisma.APIVersionUncheckedUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUpsertWithoutEditedAPIsInput = {
@@ -1342,6 +1499,7 @@ export type UserUpdateWithoutEditedAPIsInput = {
   apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEditedAPIsInput = {
@@ -1365,6 +1523,7 @@ export type UserUncheckedUpdateWithoutEditedAPIsInput = {
   apiVersions?: Prisma.APIVersionUncheckedUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUpsertWithoutCreatedAPIsInput = {
@@ -1399,6 +1558,7 @@ export type UserUpdateWithoutCreatedAPIsInput = {
   apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCreatedAPIsInput = {
@@ -1422,6 +1582,7 @@ export type UserUncheckedUpdateWithoutCreatedAPIsInput = {
   apiVersions?: Prisma.APIVersionUncheckedUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
 }
 
 export type UserCreateWithoutApiVersionsInput = {
@@ -1445,6 +1606,7 @@ export type UserCreateWithoutApiVersionsInput = {
   createdAPIs?: Prisma.APICreateNestedManyWithoutCreatorInput
   userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateWithoutApiVersionsInput = {
@@ -1468,6 +1630,7 @@ export type UserUncheckedCreateWithoutApiVersionsInput = {
   createdAPIs?: Prisma.APIUncheckedCreateNestedManyWithoutCreatorInput
   userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
   operationLogs?: Prisma.APIOperationLogUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserCreateOrConnectWithoutApiVersionsInput = {
@@ -1507,6 +1670,7 @@ export type UserUpdateWithoutApiVersionsInput = {
   createdAPIs?: Prisma.APIUpdateManyWithoutCreatorNestedInput
   userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateWithoutApiVersionsInput = {
@@ -1530,6 +1694,7 @@ export type UserUncheckedUpdateWithoutApiVersionsInput = {
   createdAPIs?: Prisma.APIUncheckedUpdateManyWithoutCreatorNestedInput
   userSessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
   operationLogs?: Prisma.APIOperationLogUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
 }
 
 export type UserCreateWithoutOperationLogsInput = {
@@ -1553,6 +1718,7 @@ export type UserCreateWithoutOperationLogsInput = {
   createdAPIs?: Prisma.APICreateNestedManyWithoutCreatorInput
   apiVersions?: Prisma.APIVersionCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationCreateNestedManyWithoutInviterInput
 }
 
 export type UserUncheckedCreateWithoutOperationLogsInput = {
@@ -1576,6 +1742,7 @@ export type UserUncheckedCreateWithoutOperationLogsInput = {
   createdAPIs?: Prisma.APIUncheckedCreateNestedManyWithoutCreatorInput
   apiVersions?: Prisma.APIVersionUncheckedCreateNestedManyWithoutEditorInput
   userSessions?: Prisma.UserSessionUncheckedCreateNestedManyWithoutUserInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedCreateNestedManyWithoutInviterInput
 }
 
 export type UserCreateOrConnectWithoutOperationLogsInput = {
@@ -1615,6 +1782,7 @@ export type UserUpdateWithoutOperationLogsInput = {
   createdAPIs?: Prisma.APIUpdateManyWithoutCreatorNestedInput
   apiVersions?: Prisma.APIVersionUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUpdateManyWithoutInviterNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOperationLogsInput = {
@@ -1638,6 +1806,7 @@ export type UserUncheckedUpdateWithoutOperationLogsInput = {
   createdAPIs?: Prisma.APIUncheckedUpdateManyWithoutCreatorNestedInput
   apiVersions?: Prisma.APIVersionUncheckedUpdateManyWithoutEditorNestedInput
   userSessions?: Prisma.UserSessionUncheckedUpdateManyWithoutUserNestedInput
+  teamInvitations?: Prisma.TeamInvitationUncheckedUpdateManyWithoutInviterNestedInput
 }
 
 
@@ -1655,6 +1824,7 @@ export type UserCountOutputType = {
   apiVersions: number
   userSessions: number
   operationLogs: number
+  teamInvitations: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1667,6 +1837,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   apiVersions?: boolean | UserCountOutputTypeCountApiVersionsArgs
   userSessions?: boolean | UserCountOutputTypeCountUserSessionsArgs
   operationLogs?: boolean | UserCountOutputTypeCountOperationLogsArgs
+  teamInvitations?: boolean | UserCountOutputTypeCountTeamInvitationsArgs
 }
 
 /**
@@ -1742,6 +1913,13 @@ export type UserCountOutputTypeCountOperationLogsArgs<ExtArgs extends runtime.Ty
   where?: Prisma.APIOperationLogWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountTeamInvitationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TeamInvitationWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1765,6 +1943,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   apiVersions?: boolean | Prisma.User$apiVersionsArgs<ExtArgs>
   userSessions?: boolean | Prisma.User$userSessionsArgs<ExtArgs>
   operationLogs?: boolean | Prisma.User$operationLogsArgs<ExtArgs>
+  teamInvitations?: boolean | Prisma.User$teamInvitationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1824,6 +2003,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   apiVersions?: boolean | Prisma.User$apiVersionsArgs<ExtArgs>
   userSessions?: boolean | Prisma.User$userSessionsArgs<ExtArgs>
   operationLogs?: boolean | Prisma.User$operationLogsArgs<ExtArgs>
+  teamInvitations?: boolean | Prisma.User$teamInvitationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1841,6 +2021,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     apiVersions: Prisma.$APIVersionPayload<ExtArgs>[]
     userSessions: Prisma.$UserSessionPayload<ExtArgs>[]
     operationLogs: Prisma.$APIOperationLogPayload<ExtArgs>[]
+    teamInvitations: Prisma.$TeamInvitationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2258,6 +2439,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   apiVersions<T extends Prisma.User$apiVersionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$apiVersionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$APIVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   userSessions<T extends Prisma.User$userSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$userSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   operationLogs<T extends Prisma.User$operationLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$operationLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$APIOperationLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  teamInvitations<T extends Prisma.User$teamInvitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$teamInvitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2900,6 +3082,30 @@ export type User$operationLogsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.APIOperationLogScalarFieldEnum | Prisma.APIOperationLogScalarFieldEnum[]
+}
+
+/**
+ * User.teamInvitations
+ */
+export type User$teamInvitationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TeamInvitation
+   */
+  select?: Prisma.TeamInvitationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TeamInvitation
+   */
+  omit?: Prisma.TeamInvitationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TeamInvitationInclude<ExtArgs> | null
+  where?: Prisma.TeamInvitationWhereInput
+  orderBy?: Prisma.TeamInvitationOrderByWithRelationInput | Prisma.TeamInvitationOrderByWithRelationInput[]
+  cursor?: Prisma.TeamInvitationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TeamInvitationScalarFieldEnum | Prisma.TeamInvitationScalarFieldEnum[]
 }
 
 /**

@@ -391,6 +391,7 @@ export const ModelName = {
   UserSession: 'UserSession',
   Team: 'Team',
   TeamMember: 'TeamMember',
+  TeamInvitation: 'TeamInvitation',
   Project: 'Project',
   ProjectMember: 'ProjectMember',
   ProjectEnvironment: 'ProjectEnvironment',
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "permission" | "role" | "rolePermission" | "user" | "userSession" | "team" | "teamMember" | "project" | "projectMember" | "projectEnvironment" | "recentlyProject" | "aPIGroup" | "aPI" | "aPIVersion" | "aPISnapshot" | "aPIVersionComparison" | "aPIOperationLog" | "globalParam" | "systemConfig"
+    modelProps: "permission" | "role" | "rolePermission" | "user" | "userSession" | "team" | "teamMember" | "teamInvitation" | "project" | "projectMember" | "projectEnvironment" | "recentlyProject" | "aPIGroup" | "aPI" | "aPIVersion" | "aPISnapshot" | "aPIVersionComparison" | "aPIOperationLog" | "globalParam" | "systemConfig"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -937,6 +938,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TeamMemberCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TeamMemberCountAggregateOutputType> | number
+        }
+      }
+    }
+    TeamInvitation: {
+      payload: Prisma.$TeamInvitationPayload<ExtArgs>
+      fields: Prisma.TeamInvitationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TeamInvitationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TeamInvitationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload>
+        }
+        findFirst: {
+          args: Prisma.TeamInvitationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TeamInvitationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload>
+        }
+        findMany: {
+          args: Prisma.TeamInvitationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload>[]
+        }
+        create: {
+          args: Prisma.TeamInvitationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload>
+        }
+        createMany: {
+          args: Prisma.TeamInvitationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TeamInvitationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload>[]
+        }
+        delete: {
+          args: Prisma.TeamInvitationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload>
+        }
+        update: {
+          args: Prisma.TeamInvitationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload>
+        }
+        deleteMany: {
+          args: Prisma.TeamInvitationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TeamInvitationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TeamInvitationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload>[]
+        }
+        upsert: {
+          args: Prisma.TeamInvitationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TeamInvitationPayload>
+        }
+        aggregate: {
+          args: Prisma.TeamInvitationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTeamInvitation>
+        }
+        groupBy: {
+          args: Prisma.TeamInvitationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeamInvitationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TeamInvitationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TeamInvitationCountAggregateOutputType> | number
         }
       }
     }
@@ -1954,6 +2029,23 @@ export const TeamMemberScalarFieldEnum = {
 export type TeamMemberScalarFieldEnum = (typeof TeamMemberScalarFieldEnum)[keyof typeof TeamMemberScalarFieldEnum]
 
 
+export const TeamInvitationScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  email: 'email',
+  roleId: 'roleId',
+  nickname: 'nickname',
+  token: 'token',
+  status: 'status',
+  inviterId: 'inviterId',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  acceptedAt: 'acceptedAt'
+} as const
+
+export type TeamInvitationScalarFieldEnum = (typeof TeamInvitationScalarFieldEnum)[keyof typeof TeamInvitationScalarFieldEnum]
+
+
 export const ProjectScalarFieldEnum = {
   id: 'id',
   teamId: 'teamId',
@@ -2240,6 +2332,20 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'InvitationStatus'
+ */
+export type EnumInvitationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvitationStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'InvitationStatus[]'
+ */
+export type ListEnumInvitationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvitationStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'RecordStatus'
  */
 export type EnumRecordStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'RecordStatus'>
@@ -2508,6 +2614,7 @@ export type GlobalOmitConfig = {
   userSession?: Prisma.UserSessionOmit
   team?: Prisma.TeamOmit
   teamMember?: Prisma.TeamMemberOmit
+  teamInvitation?: Prisma.TeamInvitationOmit
   project?: Prisma.ProjectOmit
   projectMember?: Prisma.ProjectMemberOmit
   projectEnvironment?: Prisma.ProjectEnvironmentOmit

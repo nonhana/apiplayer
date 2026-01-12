@@ -62,6 +62,18 @@ export enum ErrorCode {
   CANNOT_MODIFY_OWNER_ROLE = 30010,
   /** 团队成员数量已达上限 */
   TEAM_MEMBER_LIMIT_EXCEEDED = 30011,
+  /** 邀请不存在 */
+  INVITATION_NOT_FOUND = 30012,
+  /** 邀请已过期 */
+  INVITATION_EXPIRED = 30013,
+  /** 邀请已被接受 */
+  INVITATION_ALREADY_ACCEPTED = 30014,
+  /** 邀请已被取消 */
+  INVITATION_CANCELLED = 30015,
+  /** 邀请邮箱不匹配 */
+  INVITATION_EMAIL_MISMATCH = 30016,
+  /** 该邮箱已有待处理的邀请 */
+  INVITATION_ALREADY_PENDING = 30017,
 
   /** 项目不存在 */
   PROJECT_NOT_FOUND = 40001,

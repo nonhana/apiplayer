@@ -114,3 +114,56 @@ export interface UpdateTeamMemberReq {
   roleId: string
   nickname?: string
 }
+
+// ============================================================================
+// 团队邀请相关类型
+// ============================================================================
+
+/** 邀请状态 */
+export type InvitationStatus = 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED'
+
+/** 发送邀请请求 */
+export interface SendInvitationReq {
+  email: string
+  roleId: string
+  nickname?: string
+}
+
+/** 邀请信息 */
+export interface TeamInvitation {
+  id: string
+  email: string
+  nickname?: string
+  status: InvitationStatus
+  inviter: UserBriefInfo
+  role: RoleBrief
+  expiresAt: string
+  createdAt: string
+  acceptedAt?: string
+}
+
+/** 验证邀请响应 */
+export interface VerifyInvitationResult {
+  valid: boolean
+  invitation?: {
+    id: string
+    email: string
+    teamName: string
+    teamAvatar?: string
+    teamSlug: string
+    roleName: string
+    roleDescription?: string
+    inviterName: string
+    expiresAt: string
+  }
+  error?: 'INVALID_TOKEN' | 'EXPIRED' | 'ALREADY_ACCEPTED' | 'CANCELLED'
+  emailRegistered?: boolean
+}
+
+/** 接受邀请响应 */
+export interface AcceptInvitationResult {
+  success: boolean
+  teamId?: string
+  teamSlug?: string
+  error?: 'EMAIL_MISMATCH' | 'INVALID_TOKEN' | 'EXPIRED' | 'ALREADY_MEMBER' | 'CANCELLED'
+}

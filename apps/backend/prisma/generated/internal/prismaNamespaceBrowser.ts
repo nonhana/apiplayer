@@ -58,6 +58,7 @@ export const ModelName = {
   UserSession: 'UserSession',
   Team: 'Team',
   TeamMember: 'TeamMember',
+  TeamInvitation: 'TeamInvitation',
   Project: 'Project',
   ProjectMember: 'ProjectMember',
   ProjectEnvironment: 'ProjectEnvironment',
@@ -173,6 +174,23 @@ export const TeamMemberScalarFieldEnum = {
 } as const
 
 export type TeamMemberScalarFieldEnum = (typeof TeamMemberScalarFieldEnum)[keyof typeof TeamMemberScalarFieldEnum]
+
+
+export const TeamInvitationScalarFieldEnum = {
+  id: 'id',
+  teamId: 'teamId',
+  email: 'email',
+  roleId: 'roleId',
+  nickname: 'nickname',
+  token: 'token',
+  status: 'status',
+  inviterId: 'inviterId',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  acceptedAt: 'acceptedAt'
+} as const
+
+export type TeamInvitationScalarFieldEnum = (typeof TeamInvitationScalarFieldEnum)[keyof typeof TeamInvitationScalarFieldEnum]
 
 
 export const ProjectScalarFieldEnum = {

@@ -4,7 +4,7 @@
 /**
  * 公共路由
  */
-export const PUBLIC_ROUTES = ['Login', 'Register', 'Home', 'NotFound']
+export const PUBLIC_ROUTES = ['Login', 'Register', 'Home', 'NotFound', 'AcceptInvite']
 
 /**
  * 已登录用户应该跳转到 Dashboard 的路由

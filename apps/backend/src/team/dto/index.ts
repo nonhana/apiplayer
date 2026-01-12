@@ -1,4 +1,5 @@
 export * from './create-team.dto'
+export * from './invitation'
 export * from './member'
 export * from './team-project.dto'
 export * from './team.dto'

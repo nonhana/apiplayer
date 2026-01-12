@@ -104,6 +104,14 @@ enum APIOperationType {
   RESTORE
 }
 
+// 团队邀请状态
+enum InvitationStatus {
+  PENDING // 待处理
+  ACCEPTED // 已接受
+  EXPIRED // 已过期
+  CANCELLED // 已取消（邀请者撤销）
+}
+
 // ============================================================================
 // RBAC 权限模型
 // ============================================================================
@@ -132,6 +140,7 @@ model Role {
   rolePermissions RolePermission[]
   teamMembers     TeamMember[]
   projectMembers  ProjectMember[]
+  teamInvitations TeamInvitation[]
 
   @@map("roles")
 }
@@ -176,6 +185,7 @@ model User {
   apiVersions      APIVersion[]
   userSessions     UserSession[]
   operationLogs    APIOperationLog[]
+  teamInvitations  TeamInvitation[]  @relation("TeamInvitations")
 
   @@index([email])
   @@index([username])
@@ -206,8 +216,9 @@ model Team {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  members  TeamMember[]
-  projects Project[]
+  members     TeamMember[]
+  projects    Project[]
+  invitations TeamInvitation[]
 
   @@index([slug])
   @@map("teams")
@@ -229,6 +240,29 @@ model TeamMember {
   @@index([teamId])
   @@index([userId])
   @@map("team_members")
+}
+
+model TeamInvitation {
+  id         String           @id @default(cuid())
+  teamId     String
+  email      String // 被邀请人邮箱
+  roleId     String // 邀请时指定的角色
+  nickname   String? // 在团队中的昵称
+  token      String           @unique // 邀请 token
+  status     InvitationStatus @default(PENDING)
+  inviterId  String // 邀请人 ID
+  expiresAt  DateTime // 过期时间
+  createdAt  DateTime         @default(now())
+  acceptedAt DateTime? // 接受时间
+
+  team    Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  inviter User @relation("TeamInvitations", fields: [inviterId], references: [id])
+  role    Role @relation(fields: [roleId], references: [id])
+
+  @@index([token])
+  @@index([email])
+  @@index([teamId])
+  @@map("team_invitations")
 }
 
 model Project {

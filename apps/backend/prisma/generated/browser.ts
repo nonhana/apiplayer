@@ -53,6 +53,11 @@ export type Team = Prisma.TeamModel
  */
 export type TeamMember = Prisma.TeamMemberModel
 /**
+ * Model TeamInvitation
+ * 
+ */
+export type TeamInvitation = Prisma.TeamInvitationModel
+/**
  * Model Project
  * 
  */

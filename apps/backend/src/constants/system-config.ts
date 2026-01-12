@@ -15,6 +15,11 @@ export const systemConfigs = [
     description: '团队最大成员数量',
   },
   {
+    key: 'team.invite_mode',
+    value: 'direct',
+    description: '团队邀请模式: direct(直接添加) | email(邮箱邀请)',
+  },
+  {
     key: 'project.max_apis',
     value: 1000,
     description: '单个项目最大 API 数量',
@@ -32,3 +37,6 @@ export const systemConfigs = [
 ] as const
 
 export type SystemConfigType = (typeof systemConfigs)[number]['key']
+
+/** 团队邀请模式类型 */
+export type TeamInviteMode = 'direct' | 'email'

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { authApi } from '@/api/auth'
 import { Button } from '@/components/ui/button'
@@ -11,11 +11,20 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 import { registerFormSchema } from '@/validators/register'
 
+const route = useRoute()
 const router = useRouter()
 const isLoading = ref(false)
 
 const form = useForm({
   validationSchema: registerFormSchema,
+})
+
+// 如果 URL 中有 email 参数，预填充邮箱
+onMounted(() => {
+  const email = route.query.email as string | undefined
+  if (email) {
+    form.setFieldValue('email', email)
+  }
 })
 
 const onSubmit = form.handleSubmit(async (values) => {
@@ -25,7 +34,18 @@ const onSubmit = form.handleSubmit(async (values) => {
     toast.success('注册成功！', {
       description: '您现在可以使用新账号登录。',
     })
-    router.push('/auth/login')
+
+    // 如果有 redirect 参数，传递给登录页
+    const redirect = route.query.redirect as string | undefined
+    if (redirect) {
+      router.push({
+        path: '/auth/login',
+        query: { redirect },
+      })
+    }
+    else {
+      router.push('/auth/login')
+    }
   }
   catch (error) {
     console.error('注册失败', error)

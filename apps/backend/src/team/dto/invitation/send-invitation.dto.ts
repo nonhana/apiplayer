@@ -1,0 +1,19 @@
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator'
+
+/**
+ * 发送团队邀请请求 DTO
+ */
+export class SendInvitationDto {
+  @IsEmail({}, { message: '邮箱格式不正确' })
+  @IsNotEmpty({ message: '邮箱不能为空' })
+  email: string
+
+  @IsNotEmpty({ message: '角色 ID 不能为空' })
+  @IsString({ message: '角色 ID 必须是字符串' })
+  roleId: string
+
+  @IsOptional()
+  @IsString({ message: '昵称必须是字符串' })
+  @MaxLength(50, { message: '昵称长度不能超过 50 个字符' })
+  nickname?: string
+}
