@@ -5,7 +5,13 @@ export function slugify(value: string): string {
     return ''
   }
 
-  const transliterated = pinyin(value, { toneType: 'none' })
+  // 匹配中文
+  const chineseRegex = /\p{Unified_Ideograph}/gu
+
+  const transliterated = value.replace(chineseRegex, (match) => {
+    return ` ${pinyin(match, { toneType: 'none', type: 'array' }).join(' ')} `
+  })
+
   return transliterated
     .toLowerCase()
     .trim()
