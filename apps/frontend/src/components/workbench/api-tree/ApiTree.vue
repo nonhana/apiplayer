@@ -30,7 +30,7 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
-const { projectId, loadingStatus, filteredTree, hasGroups } = storeToRefs(apiTreeStore)
+const { projectId, loadingStatus, filteredTree, hasTree } = storeToRefs(apiTreeStore)
 
 const isLoading = computed(() => loadingStatus.value === 'loading')
 const hasData = computed(() => filteredTree.value.length > 0)
@@ -44,7 +44,7 @@ const searchInput = ref('')
 
 // 工具栏创建 API 时先进行分组校验
 function handleToolbarCreateApi() {
-  if (!hasGroups.value) {
+  if (!hasTree.value) {
     toast.error('接口必须归属于某个分组，请先创建分组')
     emits('createGroup')
     return

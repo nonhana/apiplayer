@@ -61,7 +61,7 @@ function handleLogout() {
 </script>
 
 <template>
-  <header class="h-12 border-b border-border flex items-center px-4 bg-background shrink-0">
+  <header class="h-14 border-b border-border flex items-center px-4 bg-background shrink-0">
     <div class="flex items-center gap-3">
       <Button
         variant="ghost"
