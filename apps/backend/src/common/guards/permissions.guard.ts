@@ -1,16 +1,16 @@
 import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { FastifyRequest } from 'fastify'
-import { ErrorCode } from '@/common/exceptions/error-code'
-import { HanaException } from '@/common/exceptions/hana.exception'
-import { PermissionContext, PermissionContextConfig, PermissionContextParamName } from '@/common/types/permission'
-import { PermissionCheckerService } from '@/permission/permission-checker.service'
 import {
   CONTEXT_PERMISSIONS_KEY,
   PROJECT_CONTEXT_KEY,
   SYSTEM_CONTEXT_KEY,
   TEAM_CONTEXT_KEY,
-} from '../decorators/permissions.decorator'
+} from '@/common/decorators/permissions.decorator'
+import { IS_PUBLIC_KEY } from '@/common/decorators/public.decorator'
+import { HanaException } from '@/common/exceptions/hana.exception'
+import { PermissionContext, PermissionContextConfig, PermissionContextParamName } from '@/common/types/permission'
+import { PermissionCheckerService } from '@/permission/permission-checker.service'
 
 /**
  * 权限守卫
@@ -26,6 +26,15 @@ export class PermissionsGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // 检查是否为公开路由
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ])
+    if (isPublic) {
+      return true
+    }
+
     // 检查是否设置了上下文权限要求
     const contextConfig = this.reflector.getAllAndOverride<PermissionContextConfig>(
       CONTEXT_PERMISSIONS_KEY,
@@ -61,7 +70,7 @@ export class PermissionsGuard implements CanActivate {
 
     if (!user) {
       this.logger.warn('用户未登录，无法进行权限验证')
-      throw new HanaException('请先登录', ErrorCode.SESSION_EXPIRED, 401)
+      throw new HanaException('SESSION_EXPIRED')
     }
 
     try {
@@ -69,17 +78,13 @@ export class PermissionsGuard implements CanActivate {
       if (teamContext) {
         const teamId = this.extractContextId(request, teamContext.paramName)
         if (!teamId) {
-          throw new HanaException(
-            `无法获取团队ID参数: ${teamContext.paramName}`,
-            ErrorCode.INVALID_PARAMS,
-            400,
-          )
+          throw new HanaException('INVALID_PARAMS')
         }
 
         const isTeamMember = await this.permissionCheckerService.isTeamMember(user.id, teamId)
         if (!isTeamMember) {
           this.logger.warn(`用户 ${user.username} 不是团队 ${teamId} 的成员`)
-          throw new HanaException('您不是该团队的成员', ErrorCode.INSUFFICIENT_PERMISSIONS, 403)
+          throw new HanaException('NOT_TEAM_MEMBER')
         }
 
         this.logger.debug(`用户 ${user.username} 团队成员身份验证通过`)
@@ -89,17 +94,13 @@ export class PermissionsGuard implements CanActivate {
       if (projectContext) {
         const projectId = this.extractContextId(request, projectContext.paramName)
         if (!projectId) {
-          throw new HanaException(
-            `无法获取项目ID参数: ${projectContext.paramName}`,
-            ErrorCode.INVALID_PARAMS,
-            400,
-          )
+          throw new HanaException('INVALID_PARAMS')
         }
 
         const isProjectMember = await this.permissionCheckerService.isProjectMember(user.id, projectId)
         if (!isProjectMember) {
           this.logger.warn(`用户 ${user.username} 不是项目 ${projectId} 的成员`)
-          throw new HanaException('您不是该项目的成员', ErrorCode.INSUFFICIENT_PERMISSIONS, 403)
+          throw new HanaException('NOT_PROJECT_MEMBER')
         }
 
         this.logger.debug(`用户 ${user.username} 项目成员身份验证通过`)
@@ -143,11 +144,7 @@ export class PermissionsGuard implements CanActivate {
             `用户 ${user.username} 在上下文 ${JSON.stringify(permissionContext)} 中权限不足，缺少权限: ${missingPermissions.join(', ')}`,
           )
 
-          throw new HanaException(
-            `权限不足，需要以下权限: ${missingPermissions.join(', ')}`,
-            ErrorCode.INSUFFICIENT_PERMISSIONS,
-            403,
-          )
+          throw new HanaException('INSUFFICIENT_PERMISSIONS')
         }
 
         this.logger.debug(`用户 ${user.username} 上下文权限验证通过`)
@@ -160,7 +157,7 @@ export class PermissionsGuard implements CanActivate {
         throw error
       }
       this.logger.error('权限验证失败:', error)
-      throw new HanaException('权限验证失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -179,11 +176,7 @@ export class PermissionsGuard implements CanActivate {
     if (config.paramName) {
       const contextId = this.extractContextId(request, config.paramName)
       if (!contextId) {
-        throw new HanaException(
-          `无法获取${config.type}ID参数: ${config.paramName}`,
-          ErrorCode.INVALID_PARAMS,
-          400,
-        )
+        throw new HanaException('INVALID_PARAMS')
       }
       context.id = contextId
     }

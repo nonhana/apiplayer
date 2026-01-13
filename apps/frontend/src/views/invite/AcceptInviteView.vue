@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle2, Loader2, Mail, Users, XCircle } from 'lucide
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
-import { invitationApi } from '@/api/team'
+import { teamApi } from '@/api/team'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,13 +22,13 @@ const isAccepting = ref(false)
 const verifyResult = ref<VerifyInvitationResult | null>(null)
 
 /** 错误消息映射 */
-const errorMessages: Record<string, string> = {
-  INVALID_TOKEN: '邀请链接无效或已被使用',
-  EXPIRED: '邀请链接已过期',
-  ALREADY_ACCEPTED: '该邀请已被接受',
-  CANCELLED: '该邀请已被撤销',
-  EMAIL_MISMATCH: '请使用被邀请的邮箱账号登录',
-  ALREADY_MEMBER: '您已经是该团队的成员',
+const errorMessages: Record<number, string> = {
+  // INVALID_TOKEN: '邀请链接无效或已被使用',
+  // EXPIRED: '邀请链接已过期',
+  // ALREADY_ACCEPTED: '该邀请已被接受',
+  // CANCELLED: '该邀请已被撤销',
+  // EMAIL_MISMATCH: '请使用被邀请的邮箱账号登录',
+  // ALREADY_MEMBER: '您已经是该团队的成员',
 }
 
 const errorMessage = computed(() => {
@@ -84,7 +84,7 @@ async function verifyInvitation() {
   }
 
   try {
-    verifyResult.value = await invitationApi.verifyInvitation(token.value)
+    verifyResult.value = await teamApi.verifyInvitation(token.value)
   }
   catch (error) {
     console.error('验证邀请失败', error)
@@ -101,7 +101,7 @@ async function handleAccept() {
 
   isAccepting.value = true
   try {
-    const result = await invitationApi.acceptInvitation(token.value)
+    const result = await teamApi.acceptInvitation(token.value)
 
     if (result.success) {
       toast.success('加入成功', {

@@ -142,22 +142,24 @@ export interface TeamInvitation {
   acceptedAt?: string
 }
 
+/** 邀请简要信息 */
+export interface InvitationBrief {
+  id: string
+  email: string
+  teamName: string
+  teamAvatar?: string
+  teamSlug: string
+  roleName: string
+  roleDescription?: string
+  inviterName: string
+  expiresAt: string
+}
+
 /** 验证邀请响应 */
 export interface VerifyInvitationResult {
   valid: boolean
-  invitation?: {
-    id: string
-    email: string
-    teamName: string
-    teamAvatar?: string
-    teamSlug: string
-    roleName: string
-    roleDescription?: string
-    inviterName: string
-    expiresAt: string
-  }
-  error?: 'INVALID_TOKEN' | 'EXPIRED' | 'ALREADY_ACCEPTED' | 'CANCELLED'
-  emailRegistered?: boolean
+  invitation: InvitationBrief
+  emailRegistered: boolean
 }
 
 /** 接受邀请响应 */
@@ -165,5 +167,4 @@ export interface AcceptInvitationResult {
   success: boolean
   teamId?: string
   teamSlug?: string
-  error?: 'EMAIL_MISMATCH' | 'INVALID_TOKEN' | 'EXPIRED' | 'ALREADY_MEMBER' | 'CANCELLED'
 }

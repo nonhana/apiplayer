@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ProjectUtilsService } from '@/project/utils.service'
@@ -27,7 +26,7 @@ export class VersionService {
       })
 
       if (!api) {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       const versions = await this.prisma.aPIVersion.findMany({
@@ -54,14 +53,10 @@ export class VersionService {
       this.logger.error(`获取版本列表失败: ${error.message}`, error.stack)
 
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2025') {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
-      throw new HanaException(
-        '获取版本列表失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -80,7 +75,7 @@ export class VersionService {
       })
 
       if (!api) {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       const version = await this.prisma.aPIVersion.findUnique({
@@ -89,7 +84,7 @@ export class VersionService {
       })
 
       if (!version) {
-        throw new HanaException('API 版本不存在', ErrorCode.API_VERSION_NOT_FOUND, 404)
+        throw new HanaException('API_VERSION_NOT_FOUND')
       }
 
       this.logger.log(
@@ -105,14 +100,10 @@ export class VersionService {
       this.logger.error(`获取版本详情失败: ${error.message}`, error.stack)
 
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2025') {
-        throw new HanaException('API 版本不存在', ErrorCode.API_VERSION_NOT_FOUND, 404)
+        throw new HanaException('API_VERSION_NOT_FOUND')
       }
 
-      throw new HanaException(
-        '获取版本详情失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -132,7 +123,7 @@ export class VersionService {
       })
 
       if (!api) {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       // 开启事务
@@ -217,17 +208,9 @@ export class VersionService {
         throw error
       this.logger.error(`创建草稿版本失败: ${error.message}`, error.stack)
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
-        throw new HanaException(
-          '该版本号已存在',
-          ErrorCode.INVALID_PARAMS,
-          400,
-        )
+        throw new HanaException('API_VERSION_EXISTS')
       }
-      throw new HanaException(
-        '创建草稿版本失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -245,7 +228,7 @@ export class VersionService {
         where: { id: apiId, projectId, recordStatus: 'ACTIVE' },
       })
       if (!api) {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       // 检查目标版本
@@ -255,7 +238,7 @@ export class VersionService {
       })
 
       if (!targetVersion) {
-        throw new HanaException('目标版本不存在', ErrorCode.API_VERSION_NOT_FOUND, 404)
+        throw new HanaException('API_VERSION_NOT_FOUND')
       }
 
       // 开启事务
@@ -320,17 +303,9 @@ export class VersionService {
       this.logger.error(`发布版本失败: ${error.message}`, error.stack)
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
         // 主要是 API path&method 冲突，每个 API 的 path&method 是唯一的
-        throw new HanaException(
-          '发布失败：同一路径与方法的 API 已存在',
-          ErrorCode.API_PATH_METHOD_CONFLICT,
-          400,
-        )
+        throw new HanaException('API_PATH_METHOD_CONFLICT')
       }
-      throw new HanaException(
-        '发布版本失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -349,7 +324,7 @@ export class VersionService {
       })
 
       if (!version) {
-        throw new HanaException('API 版本不存在', ErrorCode.API_VERSION_NOT_FOUND, 404)
+        throw new HanaException('API_VERSION_NOT_FOUND')
       }
 
       // 如果已归档则跳过
@@ -385,14 +360,10 @@ export class VersionService {
       this.logger.error(`归档版本失败: ${error.message}`, error.stack)
 
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2025') {
-        throw new HanaException('API 版本不存在', ErrorCode.API_VERSION_NOT_FOUND, 404)
+        throw new HanaException('API_VERSION_NOT_FOUND')
       }
 
-      throw new HanaException(
-        '归档版本失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -412,7 +383,7 @@ export class VersionService {
       })
 
       if (!api) {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       const targetVersion = await this.prisma.aPIVersion.findUnique({
@@ -421,23 +392,15 @@ export class VersionService {
       })
 
       if (!targetVersion) {
-        throw new HanaException('目标版本不存在', ErrorCode.API_VERSION_NOT_FOUND, 404)
+        throw new HanaException('API_VERSION_NOT_FOUND')
       }
 
       if (!targetVersion.snapshot) {
-        throw new HanaException(
-          '目标版本缺少快照数据，无法回滚',
-          ErrorCode.INTERNAL_SERVER_ERROR,
-          500,
-        )
+        throw new HanaException('INTERNAL_SERVER_ERROR')
       }
 
       if (targetVersion.status === 'DRAFT') {
-        throw new HanaException(
-          '不能回滚到草稿版本，请先发布该版本',
-          ErrorCode.INVALID_PARAMS,
-          400,
-        )
+        throw new HanaException('INVALID_PARAMS')
       }
 
       await this.prisma.$transaction(async (tx) => {
@@ -534,22 +497,14 @@ export class VersionService {
       this.logger.error(`回滚到指定版本失败: ${error.message}`, error.stack)
 
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2025') {
-        throw new HanaException('API 或版本不存在', ErrorCode.API_VERSION_NOT_FOUND, 404)
+        throw new HanaException('API_VERSION_NOT_FOUND')
       }
 
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
-        throw new HanaException(
-          '创建回滚版本失败：生成的版本号已存在',
-          ErrorCode.API_VERSION_EXISTS,
-          400,
-        )
+        throw new HanaException('API_VERSION_EXISTS')
       }
 
-      throw new HanaException(
-        '回滚到指定版本失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -565,11 +520,7 @@ export class VersionService {
       await this.projectUtilsService.getProjectById(projectId)
 
       if (fromVersionId === toVersionId) {
-        throw new HanaException(
-          '不能比较同一个版本',
-          ErrorCode.INVALID_PARAMS,
-          400,
-        )
+        throw new HanaException('INVALID_PARAMS')
       }
 
       const api = await this.prisma.aPI.findUnique({
@@ -577,7 +528,7 @@ export class VersionService {
       })
 
       if (!api) {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       const versions = await this.prisma.aPIVersion.findMany({
@@ -590,11 +541,7 @@ export class VersionService {
       })
 
       if (versions.length !== 2) {
-        throw new HanaException(
-          '待比较的版本不存在或不属于当前 API',
-          ErrorCode.API_VERSION_NOT_FOUND,
-          404,
-        )
+        throw new HanaException('API_VERSION_NOT_FOUND')
       }
 
       const fromVersion = versions.find(v => v.id === fromVersionId)!
@@ -639,14 +586,10 @@ export class VersionService {
       this.logger.error(`比较版本失败: ${error.message}`, error.stack)
 
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2025') {
-        throw new HanaException('API 版本不存在', ErrorCode.API_VERSION_NOT_FOUND, 404)
+        throw new HanaException('API_VERSION_NOT_FOUND')
       }
 
-      throw new HanaException(
-        '比较版本失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

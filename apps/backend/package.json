@@ -19,6 +19,7 @@
     "pm2:monit": "pm2 monit"
   },
   "dependencies": {
+    "@apiplayer/shared": "workspace:*",
     "@aws-sdk/client-s3": "catalog:backend",
     "@fastify/cookie": "catalog:backend",
     "@fastify/multipart": "catalog:backend",
@@ -66,7 +67,6 @@
     "prisma": "catalog:backend",
     "source-map-support": "catalog:backend",
     "ts-loader": "catalog:backend",
-    "tsconfig-paths": "catalog:backend",
-    "tsdown": "catalog:backend"
+    "tsconfig-paths": "catalog:backend"
   }
 }

@@ -135,9 +135,6 @@ catalogs:
     tsconfig-paths:
       specifier: ^4.2.0
       version: 4.2.0
-    tsdown:
-      specifier: ^0.19.0
-      version: 0.19.0
     type-fest:
       specifier: ^5.3.1
       version: 5.3.1
@@ -217,9 +214,6 @@ catalogs:
     shiki:
       specifier: ^3.21.0
       version: 3.21.0
-    swrv:
-      specifier: ^1.1.0
-      version: 1.1.0
     tailwind-merge:
       specifier: ^3.4.0
       version: 3.4.0
@@ -272,6 +266,9 @@ catalogs:
     eslint:
       specifier: ^9.39.2
       version: 9.39.2
+    tsdown:
+      specifier: ^0.19.0
+      version: 0.19.0
     tsx:
       specifier: ^4.21.0
       version: 4.21.0
@@ -292,6 +289,9 @@ importers:
       eslint:
         specifier: catalog:public
         version: 9.39.2(jiti@2.6.1)
+      tsdown:
+        specifier: catalog:public
+        version: 0.19.0(synckit@0.11.11)(typescript@5.9.3)(vue-tsc@3.2.2(typescript@5.9.3))
       tsx:
         specifier: catalog:public
         version: 4.21.0
@@ -301,6 +301,9 @@ importers:
 
   apps/backend:
     dependencies:
+      '@apiplayer/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@aws-sdk/client-s3':
         specifier: catalog:backend
         version: 3.966.0
@@ -440,12 +443,12 @@ importers:
       tsconfig-paths:
         specifier: catalog:backend
         version: 4.2.0
-      tsdown:
-        specifier: catalog:backend
-        version: 0.19.0(synckit@0.11.11)(typescript@5.9.3)(vue-tsc@3.2.2(typescript@5.9.3))
 
   apps/frontend:
     dependencies:
+      '@apiplayer/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@tailwindcss/vite':
         specifier: catalog:frontend
         version: 4.1.18(vite@7.3.1(@types/node@25.0.6)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.43.1)(tsx@4.21.0)(yaml@2.8.2))
@@ -500,9 +503,6 @@ importers:
       reka-ui:
         specifier: catalog:frontend
         version: 2.7.0(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
-      swrv:
-        specifier: catalog:frontend
-        version: 1.1.0(vue@3.5.26(typescript@5.9.3))
       tailwind-merge:
         specifier: catalog:frontend
         version: 3.4.0
@@ -561,6 +561,8 @@ importers:
       vue-tsc:
         specifier: catalog:frontend
         version: 3.2.2(typescript@5.9.3)
+
+  packages/shared: {}
 
 packages:
 
@@ -5608,11 +5610,6 @@ packages:
 
   swagger-ui-dist@5.31.0:
     resolution: {integrity: sha512-zSUTIck02fSga6rc0RZP3b7J7wgHXwLea8ZjgLA3Vgnb8QeOl3Wou2/j5QkzSGeoz6HusP/coYuJl33aQxQZpg==}
-
-  swrv@1.1.0:
-    resolution: {integrity: sha512-pjllRDr2s0iTwiE5Isvip51dZGR7GjLH1gCSVyE8bQnbAx6xackXsFdojau+1O5u98yHF5V73HQGOFxKUXO9gQ==}
-    peerDependencies:
-      vue: '>=3.2.26 < 4'
 
   symbol-observable@4.0.0:
     resolution: {integrity: sha512-b19dMThMV4HVFynSAM1++gBHAbk2Tc/osgLIBZMKsyqh34jb2e8Os7T6ZW/Bt3pJFdBTd2JwAnAAEQV7rSNvcQ==}
@@ -11887,10 +11884,6 @@ snapshots:
   swagger-ui-dist@5.31.0:
     dependencies:
       '@scarf/scarf': 1.4.0
-
-  swrv@1.1.0(vue@3.5.26(typescript@5.9.3)):
-    dependencies:
-      vue: 3.5.26(typescript@5.9.3)
 
   symbol-observable@4.0.0: {}
 

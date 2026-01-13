@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ProjectUtilsService } from '@/project/utils.service'
@@ -111,16 +110,9 @@ export class ApiService {
         throw error
       this.logger.error(`创建 API 失败: ${error.message}`, error.stack)
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
-        throw new HanaException(
-          '同一路径与方法的 API 已存在',
-          ErrorCode.API_PATH_METHOD_CONFLICT,
-        )
+        throw new HanaException('API_PATH_METHOD_CONFLICT')
       }
-      throw new HanaException(
-        '创建 API 失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -175,11 +167,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`获取 API 列表失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '获取 API 列表失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -200,7 +188,7 @@ export class ApiService {
       })
 
       if (!api || api.projectId !== projectId || api.recordStatus !== 'ACTIVE') {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       return api
@@ -209,11 +197,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`获取 API 详情失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '获取 API 详情失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -229,7 +213,7 @@ export class ApiService {
         include: { currentVersion: { include: { snapshot: true } } },
       })
       if (!api || api.projectId !== projectId || api.recordStatus !== 'ACTIVE') {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       // 更新流程：
@@ -365,16 +349,9 @@ export class ApiService {
         throw error
       this.logger.error(`更新 API 失败: ${error.message}`, error.stack)
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
-        throw new HanaException(
-          '同一路径与方法的 API 已存在',
-          ErrorCode.API_PATH_METHOD_CONFLICT,
-        )
+        throw new HanaException('API_PATH_METHOD_CONFLICT')
       }
-      throw new HanaException(
-        '更新 API 失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -385,7 +362,7 @@ export class ApiService {
 
       const api = await this.prisma.aPI.findUnique({ where: { id: apiId } })
       if (!api || api.projectId !== projectId || api.recordStatus !== 'ACTIVE') {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       // 软删除
@@ -408,11 +385,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`删除 API 失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '删除 API 失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -429,7 +402,7 @@ export class ApiService {
         include: { currentVersion: { include: { snapshot: true } } },
       })
       if (!source || source.projectId !== projectId || source.recordStatus !== 'ACTIVE') {
-        throw new HanaException('源 API 不存在', ErrorCode.INVALID_PARAMS, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       // 目标基础信息（若未提供则沿用源 API）
@@ -518,16 +491,9 @@ export class ApiService {
         throw error
       this.logger.error(`复制 API 失败: ${error.message}`, error.stack)
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
-        throw new HanaException(
-          '同一路径与方法的 API 已存在',
-          ErrorCode.API_PATH_METHOD_CONFLICT,
-        )
+        throw new HanaException('API_PATH_METHOD_CONFLICT')
       }
-      throw new HanaException(
-        '复制 API 失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -550,7 +516,7 @@ export class ApiService {
       const validIds = new Set(apis.map(api => api.id))
       for (const id of ids) {
         if (!validIds.has(id)) {
-          throw new HanaException('包含无效的 API ID', ErrorCode.INVALID_PARAMS, 404)
+          throw new HanaException('INVALID_PARAMS')
         }
       }
 
@@ -571,11 +537,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`更新 API 排序失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '更新 API 排序失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -605,7 +567,7 @@ export class ApiService {
       })
 
       if (!api) {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       const whereCondition: Prisma.APIOperationLogWhereInput = {
@@ -665,11 +627,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`获取 API 操作日志失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '获取 API 操作日志失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

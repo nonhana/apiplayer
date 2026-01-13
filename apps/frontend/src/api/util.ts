@@ -27,7 +27,6 @@ export const utilApi = {
     }).json<Record<string, unknown>>()
   },
 
-  /** 获取公开配置 */
   getPublicConfig: () => {
     return http.get('util/config/public').json<PublicConfig>()
   },

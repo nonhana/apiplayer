@@ -1,3 +1,4 @@
+import type { HanaErrorData } from '../exceptions/hana.exception'
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common'
 import { FastifyReply } from 'fastify'
 import { HanaException } from '../exceptions/hana.exception'
@@ -19,36 +20,36 @@ export class AllExceptionFilter implements ExceptionFilter {
 
     // 处理其他 HttpException
     if (exception instanceof HttpException) {
-      const code = exception.getStatus()
+      const status = exception.getStatus()
       const responseData = exception.getResponse()
 
-      let errorInfo: Record<string, any>
+      let errorData: HanaErrorData
 
       // 如果响应数据是字符串，包装成对象
       if (typeof responseData === 'string') {
-        errorInfo = {
-          code,
+        errorData = {
+          status,
           message: responseData,
-          errorCode: code,
+          code: status,
         }
       }
       else {
         // 类型断言以处理对象类型的响应数据
         const data = responseData as Record<string, any>
-        errorInfo = {
-          code,
+        errorData = {
+          status,
           message: data?.message || exception.message || 'Unknown Error',
-          errorCode: data?.errorCode || code,
+          code: data?.code || status,
           ...(data?.timestamp && { timestamp: data.timestamp }),
         }
       }
 
       // 特殊处理文件上传过大的情况
-      if (code === HttpStatus.PAYLOAD_TOO_LARGE) {
-        errorInfo.message = '上传文件过大，请根据上传的具体要求说明重新上传'
+      if (status === HttpStatus.PAYLOAD_TOO_LARGE) {
+        errorData.message = '上传文件过大，请根据上传的具体要求说明重新上传'
       }
 
-      response.status(code).send(errorInfo)
+      response.status(status).send(errorData)
       return
     }
 
@@ -57,12 +58,12 @@ export class AllExceptionFilter implements ExceptionFilter {
       || (exception as any)?.status
       || HttpStatus.INTERNAL_SERVER_ERROR
 
-    const errorInfo = {
+    const errorData: HanaErrorData = {
+      status: code,
+      message: exception.message || '未知错误',
       code,
-      message: exception.message || 'Internal Server Error',
-      errorCode: code,
     }
 
-    response.status(code).send(errorInfo)
+    response.status(code).send(errorData)
   }
 }

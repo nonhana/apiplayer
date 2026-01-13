@@ -5,7 +5,6 @@ import { faker } from '@faker-js/faker'
 import { Injectable, Optional } from '@nestjs/common'
 import { JSONSchemaFaker, Schema } from 'json-schema-faker'
 import { JsonValue } from 'type-fest'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { ResendMailService } from '@/infra/email/resend-mail.service'
 import { LocalUploadService } from '@/infra/upload/local-upload.service'
@@ -39,10 +38,7 @@ export class UtilService {
   async uploadFile(file: MultipartFile): Promise<UploadFileResult> {
     const service = this.uploadServices[this.uploadMode]
     if (!service) {
-      throw new HanaException(
-        `当前未配置上传模式 "${this.uploadMode}" 对应的实现，请检查服务模块导入或环境配置`,
-        ErrorCode.INVALID_PARAMS,
-      )
+      throw new HanaException('INVALID_PARAMS')
     }
 
     const input: UploadFileInput = {
@@ -59,10 +55,7 @@ export class UtilService {
 
     const service = this.mailServices[mailProvider]
     if (!service) {
-      throw new HanaException(
-        `当前未配置邮件提供商 "${mailProvider}" 对应的实现，请检查服务模块导入或环境配置`,
-        ErrorCode.INVALID_PARAMS,
-      )
+      throw new HanaException('INVALID_PARAMS')
     }
 
     return service.sendMail(input)

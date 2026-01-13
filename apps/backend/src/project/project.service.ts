@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
@@ -73,7 +72,7 @@ export class ProjectService {
       }
 
       this.logger.error(`创建项目失败: ${error.message}`, error.stack)
-      throw new HanaException('创建项目失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -111,7 +110,7 @@ export class ProjectService {
     }
     catch (error) {
       this.logger.error(`获取用户全部项目列表失败: ${error.message}`, error.stack)
-      throw new HanaException('获取项目列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -181,7 +180,7 @@ export class ProjectService {
     }
     catch (error) {
       this.logger.error(`获取用户项目列表失败: ${error.message}`, error.stack)
-      throw new HanaException('获取项目列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -218,11 +217,11 @@ export class ProjectService {
       })
 
       if (!project) {
-        throw new HanaException('项目不存在', ErrorCode.PROJECT_NOT_FOUND, 404)
+        throw new HanaException('PROJECT_NOT_FOUND')
       }
 
       if (project.status !== 'ACTIVE') {
-        throw new HanaException('项目已被删除', ErrorCode.PROJECT_DELETED)
+        throw new HanaException('PROJECT_DELETED')
       }
 
       // 记录用户访问
@@ -235,7 +234,7 @@ export class ProjectService {
         throw error
       }
       this.logger.error(`获取项目详情失败: ${error.message}`, error.stack)
-      throw new HanaException('获取项目详情失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -267,7 +266,7 @@ export class ProjectService {
         throw error
       }
       this.logger.error(`更新项目信息失败: ${error.message}`, error.stack)
-      throw new HanaException('更新项目信息失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -348,7 +347,7 @@ export class ProjectService {
         throw error
       }
       this.logger.error(`删除项目失败: ${error.message}`, error.stack)
-      throw new HanaException('删除项目失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -373,7 +372,7 @@ export class ProjectService {
     }
     catch (error) {
       this.logger.error(`获取最近访问项目失败: ${error.message}`, error.stack)
-      throw new HanaException('获取最近访问项目失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -400,7 +399,7 @@ export class ProjectService {
       })
 
       if (!membership) {
-        throw new HanaException('您不是该项目的成员', ErrorCode.NOT_PROJECT_MEMBER, 403)
+        throw new HanaException('NOT_PROJECT_MEMBER')
       }
 
       const permissions = membership.role.rolePermissions.map(rp => rp.permission.name)
@@ -416,7 +415,7 @@ export class ProjectService {
       }
 
       this.logger.error(`获取用户项目角色失败: ${error.message}`, error.stack)
-      throw new HanaException('获取用户项目角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

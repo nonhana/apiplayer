@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { Permission } from 'prisma/generated/client'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { CreatePermissionReqDto, CreatePermissionsReqDto, GetPermissionsReqDto, UpdatePermissionReqDto } from './dto'
@@ -20,11 +19,7 @@ export class PermissionService {
       })
 
       if (existingPermission) {
-        throw new HanaException(
-          `权限 "${createDto.name}" 已存在`,
-          ErrorCode.PERMISSION_NAME_EXISTS,
-          409,
-        )
+        throw new HanaException('PERMISSION_NAME_EXISTS')
       }
 
       const permission = await this.prisma.permission.create({ data: createDto })
@@ -38,7 +33,7 @@ export class PermissionService {
         throw error
       }
       this.logger.error('创建权限失败:', error)
-      throw new HanaException('创建权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -57,12 +52,7 @@ export class PermissionService {
       })
 
       if (existingPermissions.length > 0) {
-        const existingNames = existingPermissions.map(p => p.name)
-        throw new HanaException(
-          `以下权限已存在: ${existingNames.join(', ')}`,
-          ErrorCode.PERMISSION_NAME_EXISTS,
-          409,
-        )
+        throw new HanaException('PERMISSION_NAME_EXISTS')
       }
 
       // 批量创建
@@ -81,7 +71,7 @@ export class PermissionService {
         throw error
       }
       this.logger.error('批量创建权限失败:', error)
-      throw new HanaException('批量创建权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -91,7 +81,7 @@ export class PermissionService {
       const permission = await this.prisma.permission.findUnique({ where: { id } })
 
       if (!permission) {
-        throw new HanaException('权限不存在', ErrorCode.PERMISSION_NOT_FOUND, 404)
+        throw new HanaException('PERMISSION_NOT_FOUND')
       }
 
       return permission
@@ -101,7 +91,7 @@ export class PermissionService {
         throw error
       }
       this.logger.error('获取权限详情失败:', error)
-      throw new HanaException('获取权限详情失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -146,7 +136,7 @@ export class PermissionService {
     }
     catch (error) {
       this.logger.error('查询权限列表失败:', error)
-      throw new HanaException('查询权限列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -157,7 +147,7 @@ export class PermissionService {
       const existingPermission = await this.prisma.permission.findUnique({ where: { id } })
 
       if (!existingPermission) {
-        throw new HanaException('权限不存在', ErrorCode.PERMISSION_NOT_FOUND, 404)
+        throw new HanaException('PERMISSION_NOT_FOUND')
       }
 
       // 如果要更新名称，检查新名称是否已存在
@@ -167,11 +157,7 @@ export class PermissionService {
         })
 
         if (nameExists) {
-          throw new HanaException(
-            `权限名称 "${updateDto.name}" 已存在`,
-            ErrorCode.PERMISSION_NAME_EXISTS,
-            409,
-          )
+          throw new HanaException('PERMISSION_NAME_EXISTS')
         }
       }
 
@@ -188,7 +174,7 @@ export class PermissionService {
         throw error
       }
       this.logger.error('更新权限失败:', error)
-      throw new HanaException('更新权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -198,7 +184,7 @@ export class PermissionService {
       const permission = await this.prisma.permission.findUnique({ where: { id } })
 
       if (!permission) {
-        throw new HanaException('权限不存在', ErrorCode.PERMISSION_NOT_FOUND, 404)
+        throw new HanaException('PERMISSION_NOT_FOUND')
       }
 
       await this.prisma.permission.delete({ where: { id } })
@@ -210,7 +196,7 @@ export class PermissionService {
         throw error
       }
       this.logger.error('删除权限失败:', error)
-      throw new HanaException('删除权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -221,7 +207,7 @@ export class PermissionService {
     }
     catch (error) {
       this.logger.error('根据名称获取权限失败:', error)
-      throw new HanaException('获取权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -235,7 +221,7 @@ export class PermissionService {
     }
     catch (error) {
       this.logger.error('根据资源类型获取权限失败:', error)
-      throw new HanaException('获取权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -252,7 +238,7 @@ export class PermissionService {
     }
     catch (error) {
       this.logger.error('获取资源类型失败:', error)
-      throw new HanaException('获取资源类型失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

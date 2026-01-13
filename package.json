@@ -3,7 +3,8 @@
   "private": true,
   "packageManager": "pnpm@10.28.0",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "dev:frontend": "pnpm --filter frontend dev",
@@ -16,6 +17,7 @@
     "@antfu/eslint-config": "catalog:public",
     "@types/node": "catalog:public",
     "eslint": "catalog:public",
+    "tsdown": "catalog:public",
     "tsx": "catalog:public",
     "typescript": "catalog:public"
   }

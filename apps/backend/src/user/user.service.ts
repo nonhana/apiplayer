@@ -2,7 +2,6 @@ import { Inject, Injectable, Logger } from '@nestjs/common'
 import Redis from 'ioredis'
 import { UserUpdateInput, UserWhereInput } from 'prisma/generated/models'
 import { AuthService } from '@/auth/auth.service'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { REDIS_CLIENT } from '@/infra/redis/redis.module'
@@ -41,7 +40,7 @@ export class UserService {
       })
 
       if (!user) {
-        throw new HanaException('用户不存在', ErrorCode.USER_NOT_FOUND, 404)
+        throw new HanaException('USER_NOT_FOUND')
       }
 
       return user
@@ -50,7 +49,7 @@ export class UserService {
       if (error instanceof HanaException) {
         throw error
       }
-      throw new HanaException('获取用户资料失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -62,11 +61,11 @@ export class UserService {
       })
 
       if (!user) {
-        throw new HanaException('用户不存在', ErrorCode.USER_NOT_FOUND, 404)
+        throw new HanaException('USER_NOT_FOUND')
       }
 
       if (!user.isActive) {
-        throw new HanaException('账号已被禁用，无法发送验证码', ErrorCode.ACCOUNT_DISABLED, 403)
+        throw new HanaException('ACCOUNT_DISABLED')
       }
 
       const code = this.generateVerificationCode()
@@ -90,7 +89,7 @@ export class UserService {
         throw error
       }
       this.logger.error('发送邮箱验证码失败:', error)
-      throw new HanaException('发送验证码失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -113,11 +112,11 @@ export class UserService {
       })
 
       if (!user) {
-        throw new HanaException('用户不存在', ErrorCode.USER_NOT_FOUND, 404)
+        throw new HanaException('USER_NOT_FOUND')
       }
 
       if (!user.isActive) {
-        throw new HanaException('账号已被禁用，无法修改资料', ErrorCode.ACCOUNT_DISABLED, 403)
+        throw new HanaException('ACCOUNT_DISABLED')
       }
 
       const requiresVerification = (!!newEmail && newEmail !== user.email) || !!newPassword
@@ -125,14 +124,14 @@ export class UserService {
       // 如果存在敏感字段变更，则必须校验验证码
       if (requiresVerification) {
         if (!verificationCode) {
-          throw new HanaException('修改邮箱或密码需要提供邮箱验证码', ErrorCode.INVALID_VERIFICATION_CODE, 400)
+          throw new HanaException('INVALID_VERIFICATION_CODE')
         }
 
         const key = this.getVerificationCodeKey(userId)
         const storedCode = await this.redisClient.get(key)
 
         if (!storedCode || storedCode !== verificationCode) {
-          throw new HanaException('验证码错误或已过期', ErrorCode.INVALID_VERIFICATION_CODE, 400)
+          throw new HanaException('INVALID_VERIFICATION_CODE')
         }
 
         // 校验通过后立即失效，防止重复使用
@@ -159,7 +158,7 @@ export class UserService {
         })
 
         if (existingUsernameUser && existingUsernameUser.id !== user.id) {
-          throw new HanaException('该用户名已被占用', ErrorCode.USERNAME_ALREADY_EXISTS, 409)
+          throw new HanaException('USERNAME_ALREADY_EXISTS')
         }
 
         updateData.username = username
@@ -171,7 +170,7 @@ export class UserService {
         })
 
         if (existingEmailUser && existingEmailUser.id !== user.id) {
-          throw new HanaException('该邮箱已被注册', ErrorCode.EMAIL_ALREADY_REGISTERED, 409)
+          throw new HanaException('EMAIL_ALREADY_REGISTERED')
         }
 
         updateData.email = newEmail
@@ -179,7 +178,7 @@ export class UserService {
 
       if (newPassword) {
         if (!confirmNewPassword || confirmNewPassword !== newPassword) {
-          throw new HanaException('两次密码输入不一致', ErrorCode.PASSWORD_MISMATCH, 400)
+          throw new HanaException('PASSWORD_MISMATCH')
         }
 
         const hashedPassword = await this.authService.hashPassword(newPassword)
@@ -205,7 +204,7 @@ export class UserService {
         throw error
       }
       this.logger.error('更新用户个人资料失败:', error)
-      throw new HanaException('更新用户个人资料失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -214,10 +213,10 @@ export class UserService {
     try {
       const user = await this.prisma.user.findUnique({ where: { id } })
       if (!user) {
-        throw new HanaException('用户不存在', ErrorCode.USER_NOT_FOUND, 404)
+        throw new HanaException('USER_NOT_FOUND')
       }
       if (!user.isActive) {
-        throw new HanaException('用户账号已被禁用', ErrorCode.ACCOUNT_DISABLED, 403)
+        throw new HanaException('ACCOUNT_DISABLED')
       }
       return user
     }
@@ -226,7 +225,7 @@ export class UserService {
         throw error
       }
       this.logger.error('获取用户失败:', error)
-      throw new HanaException('获取用户失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -235,10 +234,10 @@ export class UserService {
     try {
       const user = await this.prisma.user.findUnique({ where: { email } })
       if (!user) {
-        throw new HanaException('被邀请的用户不存在', ErrorCode.USER_NOT_FOUND, 404)
+        throw new HanaException('USER_NOT_FOUND')
       }
       if (!user.isActive) {
-        throw new HanaException('被邀请的用户账号已被禁用', ErrorCode.ACCOUNT_DISABLED, 403)
+        throw new HanaException('ACCOUNT_DISABLED')
       }
       return user
     }
@@ -247,7 +246,7 @@ export class UserService {
         throw error
       }
       this.logger.error('获取用户失败:', error)
-      throw new HanaException('获取用户失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -298,7 +297,7 @@ export class UserService {
     }
     catch (error) {
       this.logger.error(`搜索用户失败: ${error.message}`, error.stack)
-      throw new HanaException('搜索用户失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

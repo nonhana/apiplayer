@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { CreateProjectEnvReqDto, UpdateProjectEnvReqDto } from './dto'
@@ -28,7 +27,7 @@ export class ProjectEnvService {
       })
 
       if (existingEnv) {
-        throw new HanaException('环境名称已存在', ErrorCode.ENVIRONMENT_NAME_EXISTS)
+        throw new HanaException('ENVIRONMENT_NAME_EXISTS')
       }
 
       // 如果设置为默认环境，需要先取消其他默认环境
@@ -64,7 +63,7 @@ export class ProjectEnvService {
         throw error
       }
       this.logger.error(`创建项目环境失败: ${error.message}`, error.stack)
-      throw new HanaException('创建项目环境失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -87,7 +86,7 @@ export class ProjectEnvService {
         throw error
       }
       this.logger.error(`获取项目环境列表失败: ${error.message}`, error.stack)
-      throw new HanaException('获取项目环境列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -100,7 +99,7 @@ export class ProjectEnvService {
       })
 
       if (!existingEnv || existingEnv.projectId !== projectId) {
-        throw new HanaException('环境不存在', ErrorCode.ENVIRONMENT_NOT_FOUND, 404)
+        throw new HanaException('ENVIRONMENT_NOT_FOUND')
       }
 
       // 如果更新名称，检查是否重复
@@ -115,7 +114,7 @@ export class ProjectEnvService {
         })
 
         if (duplicateEnv) {
-          throw new HanaException('环境名称已存在', ErrorCode.ENVIRONMENT_NAME_EXISTS)
+          throw new HanaException('ENVIRONMENT_NAME_EXISTS')
         }
       }
 
@@ -152,7 +151,7 @@ export class ProjectEnvService {
         throw error
       }
       this.logger.error(`更新项目环境失败: ${error.message}`, error.stack)
-      throw new HanaException('更新项目环境失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -166,7 +165,7 @@ export class ProjectEnvService {
       })
 
       if (!environment || environment.projectId !== projectId) {
-        throw new HanaException('环境不存在', ErrorCode.ENVIRONMENT_NOT_FOUND, 404)
+        throw new HanaException('ENVIRONMENT_NOT_FOUND')
       }
 
       // 如果已经是默认环境，直接返回（幂等性）
@@ -202,7 +201,7 @@ export class ProjectEnvService {
         throw error
       }
       this.logger.error(`设置默认环境失败: ${error.message}`, error.stack)
-      throw new HanaException('设置默认环境失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -216,7 +215,7 @@ export class ProjectEnvService {
       })
 
       if (!environment || environment.projectId !== projectId) {
-        throw new HanaException('环境不存在', ErrorCode.ENVIRONMENT_NOT_FOUND, 404)
+        throw new HanaException('ENVIRONMENT_NOT_FOUND')
       }
 
       if (environment.isDefault) {
@@ -225,7 +224,7 @@ export class ProjectEnvService {
         })
 
         if (envCount === 1) {
-          throw new HanaException('不能删除项目的最后一个环境', ErrorCode.CANNOT_DELETE_LAST_ENVIRONMENT)
+          throw new HanaException('CANNOT_DELETE_LAST_ENVIRONMENT')
         }
 
         // 如果删除的是默认环境，需要设置其他环境为默认
@@ -260,7 +259,7 @@ export class ProjectEnvService {
         throw error
       }
       this.logger.error(`删除项目环境失败: ${error.message}`, error.stack)
-      throw new HanaException('删除项目环境失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

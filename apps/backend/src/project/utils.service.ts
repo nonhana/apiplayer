@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 
@@ -20,7 +19,7 @@ export class ProjectUtilsService {
     })
 
     if (existingProject) {
-      throw new HanaException('项目名称已存在', ErrorCode.PROJECT_NAME_EXISTS)
+      throw new HanaException('PROJECT_NAME_EXISTS')
     }
   }
 
@@ -36,7 +35,7 @@ export class ProjectUtilsService {
     })
 
     if (existingProject) {
-      throw new HanaException('项目标识符已存在', ErrorCode.PROJECT_SLUG_EXISTS)
+      throw new HanaException('PROJECT_SLUG_EXISTS')
     }
   }
 
@@ -47,11 +46,11 @@ export class ProjectUtilsService {
     })
 
     if (!project) {
-      throw new HanaException('项目不存在', ErrorCode.PROJECT_NOT_FOUND, 404)
+      throw new HanaException('PROJECT_NOT_FOUND')
     }
 
     if (project.status !== 'ACTIVE') {
-      throw new HanaException('项目已被删除', ErrorCode.PROJECT_DELETED)
+      throw new HanaException('PROJECT_DELETED')
     }
 
     return project

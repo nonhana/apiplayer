@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@apiplayer/shared": "workspace:*",
     "@tailwindcss/vite": "catalog:frontend",
     "@tanstack/vue-table": "catalog:frontend",
     "@vee-validate/zod": "catalog:frontend",
@@ -29,7 +30,6 @@
     "pinia-plugin-persistedstate": "catalog:frontend",
     "pinyin-pro": "catalog:frontend",
     "reka-ui": "catalog:frontend",
-    "swrv": "catalog:frontend",
     "tailwind-merge": "catalog:frontend",
     "tailwindcss": "catalog:frontend",
     "uuid": "catalog:frontend",

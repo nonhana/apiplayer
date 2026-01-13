@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { RoleWhereInput } from 'prisma/generated/models'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import {
@@ -25,11 +24,7 @@ export class RoleService {
       })
 
       if (existingRole) {
-        throw new HanaException(
-          `角色 "${createDto.name}" 已存在`,
-          ErrorCode.ROLE_NAME_EXISTS,
-          409,
-        )
+        throw new HanaException('ROLE_NAME_EXISTS')
       }
 
       const { permissionIds, ...roleData } = createDto
@@ -41,13 +36,7 @@ export class RoleService {
         })
 
         if (permissions.length !== permissionIds.length) {
-          const foundIds = permissions.map(p => p.id)
-          const missingIds = permissionIds.filter(id => !foundIds.includes(id))
-          throw new HanaException(
-            `以下权限不存在: ${missingIds.join(', ')}`,
-            ErrorCode.PERMISSION_NOT_FOUND,
-            404,
-          )
+          throw new HanaException('PERMISSION_NOT_FOUND')
         }
       }
 
@@ -80,7 +69,7 @@ export class RoleService {
         throw error
       }
       this.logger.error('创建角色失败:', error)
-      throw new HanaException('创建角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -127,7 +116,7 @@ export class RoleService {
     }
     catch (error) {
       this.logger.error('获取角色列表失败:', error)
-      throw new HanaException('获取角色列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -146,7 +135,7 @@ export class RoleService {
       })
 
       if (!role) {
-        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+        throw new HanaException('ROLE_NOT_FOUND')
       }
 
       return role
@@ -156,7 +145,7 @@ export class RoleService {
         throw error
       }
       this.logger.error('获取角色详情失败:', error)
-      throw new HanaException('获取角色详情失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -167,7 +156,7 @@ export class RoleService {
       const existingRole = await this.prisma.role.findUnique({ where: { id } })
 
       if (!existingRole) {
-        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+        throw new HanaException('ROLE_NOT_FOUND')
       }
 
       // 如果要更新名称，检查新名称是否已存在
@@ -177,11 +166,7 @@ export class RoleService {
         })
 
         if (nameExists) {
-          throw new HanaException(
-            `角色名称 "${updateDto.name}" 已存在`,
-            ErrorCode.ROLE_NAME_EXISTS,
-            409,
-          )
+          throw new HanaException('ROLE_NAME_EXISTS')
         }
       }
 
@@ -205,7 +190,7 @@ export class RoleService {
         throw error
       }
       this.logger.error('更新角色失败:', error)
-      throw new HanaException('更新角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -217,16 +202,12 @@ export class RoleService {
       })
 
       if (!role) {
-        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+        throw new HanaException('ROLE_NOT_FOUND')
       }
 
       // 检查是否为系统角色
       if (role.type === 'SYSTEM') {
-        throw new HanaException(
-          '系统角色不能删除',
-          ErrorCode.SYSTEM_ROLE_CANNOT_DELETE,
-          400,
-        )
+        throw new HanaException('SYSTEM_ROLE_CANNOT_DELETE')
       }
 
       await this.prisma.role.delete({
@@ -240,7 +221,7 @@ export class RoleService {
         throw error
       }
       this.logger.error('删除角色失败:', error)
-      throw new HanaException('删除角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -256,7 +237,7 @@ export class RoleService {
       })
 
       if (!role) {
-        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+        throw new HanaException('ROLE_NOT_FOUND')
       }
 
       // 验证权限是否存在
@@ -265,13 +246,7 @@ export class RoleService {
       })
 
       if (permissions.length !== permissionIds.length) {
-        const foundIds = permissions.map(p => p.id)
-        const missingIds = permissionIds.filter(id => !foundIds.includes(id))
-        throw new HanaException(
-          `以下权限不存在: ${missingIds.join(', ')}`,
-          ErrorCode.PERMISSION_NOT_FOUND,
-          404,
-        )
+        throw new HanaException('PERMISSION_NOT_FOUND')
       }
 
       await this.prisma.$transaction(async (tx) => {
@@ -298,7 +273,7 @@ export class RoleService {
         throw error
       }
       this.logger.error('分配权限失败:', error)
-      throw new HanaException('分配权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -369,7 +344,7 @@ export class RoleService {
     }
     catch (error) {
       this.logger.error('获取用户权限失败:', error)
-      throw new HanaException('获取用户权限失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -388,7 +363,7 @@ export class RoleService {
       })
 
       if (!role) {
-        throw new HanaException('角色不存在', ErrorCode.ROLE_NOT_FOUND, 404)
+        throw new HanaException('ROLE_NOT_FOUND')
       }
 
       return role
@@ -398,7 +373,7 @@ export class RoleService {
         throw error
       }
       this.logger.error('获取角色详情失败:', error)
-      throw new HanaException('获取角色详情失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

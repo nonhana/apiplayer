@@ -68,10 +68,6 @@ export const teamApi = {
   removeTeamMember: (teamId: string, memberId: string) =>
     http.delete(`team-members/${teamId}/members/${memberId}`).json<void>(),
 
-  // ============================================================================
-  // 团队邀请相关 API（邮箱邀请模式）
-  // ============================================================================
-
   /** 发送团队邀请 */
   sendInvitation: (teamId: string, data: SendInvitationReq) =>
     http.post(`team-invitations/${teamId}/invitations`, { json: data }).json<TeamInvitation>(),
@@ -83,11 +79,7 @@ export const teamApi = {
   /** 撤销邀请 */
   cancelInvitation: (teamId: string, invitationId: string) =>
     http.delete(`team-invitations/${teamId}/invitations/${invitationId}`).json<void>(),
-}
 
-/** 公开的邀请 API（无需登录） */
-export const invitationApi = {
-  /** 验证邀请 token */
   verifyInvitation: (token: string) =>
     http.get('invitations/verify', { searchParams: { token } }).json<VerifyInvitationResult>(),
 

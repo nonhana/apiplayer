@@ -4,7 +4,6 @@ import { extname } from 'node:path'
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import {
   AbstractUploadService,
@@ -46,7 +45,7 @@ export class R2Service extends AbstractUploadService {
       || !tempConfig.bucket
       || !tempConfig.domain
     ) {
-      throw new HanaException('R2 configuration is not complete', ErrorCode.ENV_CONFIG_ERROR, 500)
+      throw new HanaException('ENV_CONFIG_ERROR')
     }
 
     this.r2Config = tempConfig

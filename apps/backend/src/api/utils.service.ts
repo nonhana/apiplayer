@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common'
 import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 
@@ -14,7 +13,7 @@ export class ApiUtilsService {
       where: { id: groupId },
     })
     if (!group || group.projectId !== projectId) {
-      throw new HanaException('API 分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+      throw new HanaException('API_GROUP_NOT_FOUND')
     }
   }
 

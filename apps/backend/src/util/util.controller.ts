@@ -6,7 +6,6 @@ import { ConfigService } from '@nestjs/config'
 import { Schema } from 'json-schema-faker'
 import { JsonValue } from 'type-fest'
 import { Public } from '@/common/decorators/public.decorator'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { UPLOADS_URL_PREFIX } from '@/constants/file-upload'
@@ -39,14 +38,14 @@ export class UtilController {
     const multipartFile = await req.file()
 
     if (!multipartFile) {
-      throw new HanaException('未检测到上传文件，请确认 FormData 中包含字段 "file"', ErrorCode.INVALID_PARAMS, 400)
+      throw new HanaException('INVALID_PARAMS')
     }
 
     const result = await this.utilService.uploadFile(multipartFile)
     const host = req.headers.host
 
     if (!host) {
-      throw new HanaException('无法解析请求 Host 头信息', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
 
     const fileUrl = result.url ?? `${req.protocol}://${host}${UPLOADS_URL_PREFIX}/${result.key}`

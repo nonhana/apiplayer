@@ -2,15 +2,14 @@ import { randomUUID } from 'node:crypto'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InvitationStatus } from 'prisma/generated/enums'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { RoleService } from '@/role/role.service'
 import { UtilService } from '@/util/util.service'
-import { SendInvitationDto, VerifyInvitationDto } from './dto'
+import { SendInvitationDto } from './dto'
 import { TeamUtilsService } from './utils.service'
 
-/** 邀请过期天数，默认 7 天 */
+const DEFAULT_FRONTEND_URL = 'http://localhost:5173'
 const DEFAULT_INVITATION_EXPIRES_DAYS = 7
 
 @Injectable()
@@ -26,7 +25,7 @@ export class TeamInvitationService {
     private readonly utilService: UtilService,
     private readonly configService: ConfigService,
   ) {
-    this.frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:5173'
+    this.frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? DEFAULT_FRONTEND_URL
     this.invitationExpiresDays = this.configService.get<number>('INVITATION_EXPIRES_DAYS') ?? DEFAULT_INVITATION_EXPIRES_DAYS
   }
 
@@ -49,10 +48,7 @@ export class TeamInvitationService {
       })
 
       if (existingMember) {
-        throw new HanaException(
-          '该用户已经是团队成员',
-          ErrorCode.USER_ALREADY_TEAM_MEMBER,
-        )
+        throw new HanaException('USER_ALREADY_TEAM_MEMBER')
       }
 
       // 检查是否有待处理的邀请
@@ -65,10 +61,7 @@ export class TeamInvitationService {
       })
 
       if (existingInvitation) {
-        throw new HanaException(
-          '该邮箱已有待处理的邀请，请勿重复发送',
-          ErrorCode.INVITATION_ALREADY_PENDING,
-        )
+        throw new HanaException('INVITATION_ALREADY_PENDING')
       }
 
       // 生成邀请 token
@@ -127,7 +120,7 @@ export class TeamInvitationService {
         throw error
       }
       this.logger.error(`发送团队邀请失败: ${error.message}`, error.stack)
-      throw new HanaException('发送团队邀请失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -152,7 +145,7 @@ export class TeamInvitationService {
         throw error
       }
       this.logger.error(`获取团队邀请列表失败: ${error.message}`, error.stack)
-      throw new HanaException('获取团队邀请列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -166,11 +159,11 @@ export class TeamInvitationService {
       })
 
       if (!invitation || invitation.teamId !== teamId) {
-        throw new HanaException('邀请不存在', ErrorCode.INVITATION_NOT_FOUND, 404)
+        throw new HanaException('INVITATION_NOT_FOUND')
       }
 
       if (invitation.status !== InvitationStatus.PENDING) {
-        throw new HanaException('只能撤销待处理的邀请', ErrorCode.INVALID_PARAMS)
+        throw new HanaException('INVALID_PARAMS')
       }
 
       await this.prisma.teamInvitation.update({
@@ -189,12 +182,12 @@ export class TeamInvitationService {
         throw error
       }
       this.logger.error(`撤销邀请失败: ${error.message}`, error.stack)
-      throw new HanaException('撤销邀请失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
   /** 验证邀请 token */
-  async verifyInvitation(token: string): Promise<VerifyInvitationDto> {
+  async verifyInvitation(token: string) {
     try {
       const invitation = await this.prisma.teamInvitation.findUnique({
         where: { token },
@@ -206,15 +199,15 @@ export class TeamInvitationService {
       })
 
       if (!invitation) {
-        return { valid: false, error: 'INVALID_TOKEN' }
+        throw new HanaException('INVITATION_NOT_FOUND')
       }
 
       if (invitation.status === InvitationStatus.ACCEPTED) {
-        return { valid: false, error: 'ALREADY_ACCEPTED' }
+        throw new HanaException('INVITATION_ALREADY_ACCEPTED')
       }
 
       if (invitation.status === InvitationStatus.CANCELLED) {
-        return { valid: false, error: 'CANCELLED' }
+        throw new HanaException('INVITATION_CANCELLED')
       }
 
       if (invitation.expiresAt < new Date() || invitation.status === InvitationStatus.EXPIRED) {
@@ -225,7 +218,7 @@ export class TeamInvitationService {
             data: { status: InvitationStatus.EXPIRED },
           })
         }
-        return { valid: false, error: 'EXPIRED' }
+        throw new HanaException('INVITATION_EXPIRED')
       }
 
       // 检查邮箱是否已注册
@@ -236,22 +229,15 @@ export class TeamInvitationService {
       return {
         valid: true,
         emailRegistered: !!existingUser,
-        invitation: {
-          id: invitation.id,
-          email: invitation.email,
-          teamName: invitation.team.name,
-          teamAvatar: invitation.team.avatar ?? undefined,
-          teamSlug: invitation.team.slug,
-          roleName: invitation.role.name,
-          roleDescription: invitation.role.description ?? undefined,
-          inviterName: invitation.inviter.name,
-          expiresAt: invitation.expiresAt,
-        },
+        invitation,
       }
     }
     catch (error) {
+      if (error instanceof HanaException) {
+        throw error
+      }
       this.logger.error(`验证邀请失败: ${error.message}`, error.stack)
-      return { valid: false, error: 'INVALID_TOKEN' }
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -267,15 +253,15 @@ export class TeamInvitationService {
       })
 
       if (!invitation) {
-        return { success: false, error: 'INVALID_TOKEN' as const }
+        throw new HanaException('INVITATION_NOT_FOUND')
       }
 
       if (invitation.status === InvitationStatus.ACCEPTED) {
-        return { success: false, error: 'INVALID_TOKEN' as const }
+        throw new HanaException('INVITATION_ALREADY_ACCEPTED')
       }
 
       if (invitation.status === InvitationStatus.CANCELLED) {
-        return { success: false, error: 'CANCELLED' as const }
+        throw new HanaException('INVITATION_CANCELLED')
       }
 
       if (invitation.expiresAt < new Date()) {
@@ -284,7 +270,7 @@ export class TeamInvitationService {
           where: { id: invitation.id },
           data: { status: InvitationStatus.EXPIRED },
         })
-        return { success: false, error: 'EXPIRED' as const }
+        throw new HanaException('INVITATION_EXPIRED')
       }
 
       // 获取当前用户信息
@@ -293,12 +279,12 @@ export class TeamInvitationService {
       })
 
       if (!user) {
-        return { success: false, error: 'INVALID_TOKEN' as const }
+        throw new HanaException('USER_NOT_FOUND')
       }
 
       // 验证邮箱是否匹配
       if (user.email !== invitation.email) {
-        return { success: false, error: 'EMAIL_MISMATCH' as const }
+        throw new HanaException('INVITATION_EMAIL_MISMATCH')
       }
 
       // 检查用户是否已经是团队成员
@@ -320,7 +306,7 @@ export class TeamInvitationService {
             acceptedAt: new Date(),
           },
         })
-        return { success: false, error: 'ALREADY_MEMBER' as const }
+        throw new HanaException('USER_ALREADY_TEAM_MEMBER')
       }
 
       // 在事务中创建成员并更新邀请状态
@@ -349,18 +335,14 @@ export class TeamInvitationService {
         `用户 ${userId} 接受了加入团队 ${invitation.teamId} 的邀请`,
       )
 
-      return {
-        success: true,
-        teamId: invitation.teamId,
-        teamSlug: invitation.team.slug,
-      }
+      return invitation
     }
     catch (error) {
       if (error instanceof HanaException) {
         throw error
       }
       this.logger.error(`接受邀请失败: ${error.message}`, error.stack)
-      throw new HanaException('接受邀请失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -371,7 +353,7 @@ export class TeamInvitationService {
     roleName: string
     inviteLink: string
     expiresDays: number
-  }): string {
+  }) {
     const { inviterName, teamName, roleName, inviteLink, expiresDays } = params
 
     return `
