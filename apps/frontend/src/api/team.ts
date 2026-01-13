@@ -81,9 +81,9 @@ export const teamApi = {
     http.delete(`team-invitations/${teamId}/invitations/${invitationId}`).json<void>(),
 
   verifyInvitation: (token: string) =>
-    http.get('invitations/verify', { searchParams: { token } }).json<VerifyInvitationRes>(),
+    http.get('team-invitations/verify', { searchParams: { token } }).json<VerifyInvitationRes>(),
 
   /** 接受邀请 */
   acceptInvitation: (token: string) =>
-    http.post('invitations/accept', { json: { token } }).json<AcceptInvitationRes>(),
+    http.post('team-invitations/accept', { json: { token } }).json<AcceptInvitationRes>(),
 }

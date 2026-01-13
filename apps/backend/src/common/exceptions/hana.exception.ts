@@ -1,7 +1,8 @@
 import type { ErrorCode, ErrorName } from '@apiplayer/shared'
 import { getError } from '@apiplayer/shared'
-import { HttpException, HttpStatus } from '@nestjs/common'
+import { HttpException } from '@nestjs/common'
 import { format } from 'date-fns'
+import { StatusCodes } from 'http-status-codes'
 
 export interface HanaErrorData {
   status: number
@@ -12,16 +13,16 @@ export interface HanaErrorData {
 
 export class HanaException extends HttpException {
   constructor(errorName: ErrorName)
-  constructor(message: string, code: ErrorCode, status: HttpStatus)
+  constructor(message: string, code: ErrorCode, status: StatusCodes)
 
   constructor(
     nameOrMsg: ErrorName | string,
     codeOrUndefined?: ErrorCode,
-    statusOrUndefined?: HttpStatus,
+    statusOrUndefined?: StatusCodes,
   ) {
     let message: string
     let code: ErrorCode
-    let status: HttpStatus
+    let status: StatusCodes
 
     if (codeOrUndefined !== undefined) {
       message = nameOrMsg
