@@ -6,7 +6,7 @@ import { format } from 'date-fns'
 export interface HanaErrorData {
   status: number
   message: string
-  code: number
+  code: number // 自定义的错误码
   timestamp?: string
 }
 

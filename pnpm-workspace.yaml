@@ -100,6 +100,7 @@ catalogs:
     '@antfu/eslint-config': ^6.7.3
     '@types/node': ^25.0.6
     eslint: ^9.39.2
+    http-status-codes: ^2.3.0
     tsdown: ^0.19.0
     tsx: ^4.21.0
     typescript: ^5.9.3

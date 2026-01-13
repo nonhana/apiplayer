@@ -1,6 +1,7 @@
 import {
   CallHandler,
   ExecutionContext,
+  HttpStatus,
   Injectable,
   NestInterceptor,
 } from '@nestjs/common'
@@ -11,7 +12,7 @@ import { RES_MSG } from '@/common/decorators/res-msg.decorator'
 
 export interface Response<T> {
   data?: T
-  code: number
+  status: number
   success: boolean
   message: string
 }
@@ -27,7 +28,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
       map((data) => {
         if (data === null || data === undefined) {
           return {
-            code: 200,
+            status: HttpStatus.OK,
             success: true,
             message: resMsg || 'success',
           }
@@ -35,7 +36,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
 
         return {
           data,
-          code: 200,
+          status: HttpStatus.OK,
           success: true,
           message: resMsg || 'success',
         }
