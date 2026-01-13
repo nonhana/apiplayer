@@ -1,7 +1,7 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
 import { InvitationStatus } from 'prisma/generated/enums'
+import { RoleBriefDto } from '@/common/dto/role.dto'
 import { UserBriefInfoDto } from '@/common/dto/user.dto'
-import { RoleDto } from '@/role/dto/role.dto'
 
 /**
  * 团队邀请响应 DTO
@@ -26,8 +26,8 @@ export class InvitationDto {
   inviter: UserBriefInfoDto
 
   @Expose()
-  @Type(() => RoleDto)
-  role: RoleDto
+  @Type(() => RoleBriefDto)
+  role: RoleBriefDto
 
   @Expose()
   expiresAt: Date

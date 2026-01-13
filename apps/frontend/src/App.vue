@@ -12,7 +12,6 @@ const { initRoles, initPublicConfig } = globalStore
 const userStore = useUserStore()
 const { isAuthenticated } = storeToRefs(userStore)
 
-// 应用启动时加载公开配置
 onMounted(() => {
   initPublicConfig()
 })

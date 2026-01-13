@@ -34,7 +34,7 @@ const onSubmit = form.handleSubmit(async (values) => {
       description: '登录成功，欢迎使用。',
     })
 
-    // 如果有 redirect 参数，跳转到该地址
+    // 登录后重定向
     const redirect = route.query.redirect as string | undefined
     if (redirect) {
       router.push(redirect)

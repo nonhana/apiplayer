@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import type { ProjectMember } from '@/types/project'
 import type { RoleItem } from '@/types/role'
-import type { TeamInvitation, TeamMember } from '@/types/team'
+import type { InvitationInfo, TeamMember } from '@/types/team'
 import type { UserBriefInfo } from '@/types/user'
 import { Loader2, Mail, Users } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch, watchEffect } from 'vue'
 import { toast } from 'vue-sonner'
+import z from 'zod'
 import { projectApi } from '@/api/project'
 import { teamApi } from '@/api/team'
 import { Button } from '@/components/ui/button'
@@ -45,7 +46,7 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   (e: 'invited', members: MemberResult[]): void
-  (e: 'invitationSent', invitation: TeamInvitation): void
+  (e: 'invitationSent', invitation: InvitationInfo): void
 }>()
 
 const globalStore = useGlobalStore()
@@ -75,13 +76,12 @@ watchEffect(async () => {
   }
 })
 
-// 直接添加模式的状态
+// 直接添加模式 - 选中的用户
 const selectedUsers = ref<UserBriefInfo[]>([])
 
-// 邮箱邀请模式的状态
+// 邮箱邀请模式 - 邮箱地址
 const inviteEmail = ref('')
 
-// 公共状态
 const selectedRoleId = ref('')
 const nickname = ref('')
 const isSubmitting = ref(false)
@@ -101,12 +101,9 @@ const defaultRoleId = computed(() => {
 })
 
 /** 邮箱格式是否有效 */
-const isEmailValid = computed(() => {
-  if (!inviteEmail.value.trim())
-    return false
-  const emailRegex = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
-  return emailRegex.test(inviteEmail.value.trim())
-})
+const isEmailValid = computed(() =>
+  z.string().email().safeParse(inviteEmail.value.trim()).success,
+)
 
 const canSubmit = computed(() => {
   if (isSubmitting.value)
@@ -120,7 +117,7 @@ const canSubmit = computed(() => {
   return selectedUsers.value.length > 0
 })
 
-// 直接添加模式：邀请团队成员
+// 直接添加模式 - 邀请团队成员
 async function inviteTeamMembersDirect() {
   return await teamApi.inviteTeamMembers(props.teamId!, {
     members: selectedUsers.value.map(user => ({
@@ -131,7 +128,7 @@ async function inviteTeamMembersDirect() {
   })
 }
 
-// 邮箱邀请模式：发送邀请邮件
+// 邮箱邀请模式 - 发送邀请邮件
 async function sendEmailInvitation() {
   return await teamApi.sendInvitation(props.teamId!, {
     email: inviteEmail.value.trim(),
@@ -221,7 +218,6 @@ watch(isOpen, open => !open && resetForm())
       </DialogHeader>
 
       <div class="space-y-4 py-2">
-        <!-- 邮箱邀请模式 -->
         <div v-if="isEmailInviteMode" class="space-y-2">
           <Label class="text-sm font-medium leading-none">
             邮箱地址 <span class="text-destructive">*</span>
@@ -237,7 +233,6 @@ watch(isOpen, open => !open && resetForm())
           </p>
         </div>
 
-        <!-- 直接添加模式 -->
         <div v-else class="space-y-2">
           <Label class="text-sm font-medium leading-none">
             选择用户 <span class="text-destructive">*</span>

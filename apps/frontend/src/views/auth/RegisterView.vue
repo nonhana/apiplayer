@@ -19,11 +19,11 @@ const form = useForm({
   validationSchema: registerFormSchema,
 })
 
-// 如果 URL 中有 email 参数，预填充邮箱
+// 预填充 query 参数
 onMounted(() => {
-  const email = route.query.email as string | undefined
+  const email = route.query.email
   if (email) {
-    form.setFieldValue('email', email)
+    form.setFieldValue('email', email as string)
   }
 })
 
@@ -35,7 +35,6 @@ const onSubmit = form.handleSubmit(async (values) => {
       description: '您现在可以使用新账号登录。',
     })
 
-    // 如果有 redirect 参数，传递给登录页
     const redirect = route.query.redirect as string | undefined
     if (redirect) {
       router.push({

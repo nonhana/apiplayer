@@ -4,12 +4,14 @@
   "private": true,
   "exports": {
     ".": {
-      "types": "./dist/index.d.cts",
-      "require": "./dist/index.cjs"
+      "types": "./dist/esm/index.d.mts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/cjs/index.cjs"
     }
   },
-  "main": "./dist/index.cjs",
-  "types": "./dist/index.d.cts",
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/esm/index.d.mts",
   "files": [
     "dist"
   ],

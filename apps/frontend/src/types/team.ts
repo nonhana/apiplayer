@@ -130,7 +130,7 @@ export interface SendInvitationReq {
 }
 
 /** 邀请信息 */
-export interface TeamInvitation {
+export interface InvitationInfo {
   id: string
   email: string
   nickname?: string
@@ -156,14 +156,14 @@ export interface InvitationBrief {
 }
 
 /** 验证邀请响应 */
-export interface VerifyInvitationResult {
+export interface VerifyInvitationRes {
   valid: boolean
-  invitation: InvitationBrief
   emailRegistered: boolean
+  invitation: InvitationBrief
 }
 
 /** 接受邀请响应 */
-export interface AcceptInvitationResult {
+export interface AcceptInvitationRes {
   success: boolean
   teamId?: string
   teamSlug?: string

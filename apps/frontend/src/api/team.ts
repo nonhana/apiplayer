@@ -1,18 +1,18 @@
 import type {
-  AcceptInvitationResult,
+  AcceptInvitationRes,
   CreateTeamReq,
+  InvitationInfo,
   InviteTeamMembersReq,
   SendInvitationReq,
   TeamBrief,
   TeamDetail,
-  TeamInvitation,
   TeamItem,
   TeamMember,
   TeamMembersResponse,
   TeamsResponse,
   UpdateTeamMemberReq,
   UpdateTeamReq,
-  VerifyInvitationResult,
+  VerifyInvitationRes,
 } from '@/types/team'
 import http from '@/service'
 
@@ -70,20 +70,20 @@ export const teamApi = {
 
   /** 发送团队邀请 */
   sendInvitation: (teamId: string, data: SendInvitationReq) =>
-    http.post(`team-invitations/${teamId}/invitations`, { json: data }).json<TeamInvitation>(),
+    http.post(`team-invitations/${teamId}/invitations`, { json: data }).json<InvitationInfo>(),
 
   /** 获取团队邀请列表 */
   getTeamInvitations: (teamId: string) =>
-    http.get(`team-invitations/${teamId}/invitations`).json<TeamInvitation[]>(),
+    http.get(`team-invitations/${teamId}/invitations`).json<InvitationInfo[]>(),
 
   /** 撤销邀请 */
   cancelInvitation: (teamId: string, invitationId: string) =>
     http.delete(`team-invitations/${teamId}/invitations/${invitationId}`).json<void>(),
 
   verifyInvitation: (token: string) =>
-    http.get('invitations/verify', { searchParams: { token } }).json<VerifyInvitationResult>(),
+    http.get('invitations/verify', { searchParams: { token } }).json<VerifyInvitationRes>(),
 
   /** 接受邀请 */
   acceptInvitation: (token: string) =>
-    http.post('invitations/accept', { json: { token } }).json<AcceptInvitationResult>(),
+    http.post('invitations/accept', { json: { token } }).json<AcceptInvitationRes>(),
 }
