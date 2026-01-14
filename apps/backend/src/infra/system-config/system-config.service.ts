@@ -4,6 +4,7 @@ import { InputJsonValue } from '@prisma/client/runtime/client'
 import { StatusCodes } from 'http-status-codes'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { UpdateConfigsReqDto } from './dto/update-config.dto'
 import {
   SystemConfigKey,
   systemConfigMetadata,
@@ -101,7 +102,7 @@ export class SystemConfigService implements OnModuleInit {
   }
 
   /** 批量更新配置 */
-  async setMany(configs: Partial<Record<SystemConfigKey, unknown>>) {
+  async setMany(configs: UpdateConfigsReqDto) {
     for (const [key, value] of Object.entries(configs)) {
       await this.set(key as SystemConfigKey, value)
     }
