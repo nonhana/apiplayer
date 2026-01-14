@@ -120,12 +120,16 @@ onMounted(() => {
                 </AvatarFallback>
               </Avatar>
               <div class="space-y-2">
-                <ImageCropper @success="handleCropped">
+                <ImageCropper
+                  v-slot="{ disabled }"
+                  :disabled="isUpdating || isUploading || !isAdmin"
+                  @success="handleCropped"
+                >
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    :disabled="isUpdating || isUploading || !isAdmin"
+                    :disabled="disabled"
                   >
                     <Loader2 v-if="isUploading" class="h-4 w-4 mr-2 animate-spin" />
                     <ImagePlus v-else class="h-4 w-4 mr-2" />

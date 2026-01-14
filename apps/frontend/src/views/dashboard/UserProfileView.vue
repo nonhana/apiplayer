@@ -172,12 +172,16 @@ async function handleCropped(result: File) {
               </AvatarFallback>
             </Avatar>
             <div class="space-y-2">
-              <ImageCropper @success="handleCropped">
+              <ImageCropper
+                v-slot="{ disabled }"
+                :disabled="isSavingProfile || isUploading"
+                @success="handleCropped"
+              >
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  :disabled="isSavingProfile || isUploading"
+                  :disabled="disabled"
                 >
                   <Loader2 v-if="isUploading" class="h-4 w-4 mr-2 animate-spin" />
                   <ImagePlus v-else class="h-4 w-4 mr-2" />
