@@ -5,7 +5,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from 'prisma/generated/client'
 import { permissions } from '../src/constants/permission'
 import { roles } from '../src/constants/role'
-import { systemConfigs } from '../src/constants/system-config'
+import { systemConfigMetadata } from '../src/infra/system-config/system-config.types'
 import 'dotenv/config'
 
 const connectionString = `${process.env.DATABASE_URL}`
@@ -62,11 +62,15 @@ async function main() {
 
   // 3. 创建系统配置
   console.log('⚙️ 创建系统配置...')
-  for (const config of systemConfigs) {
+  for (const config of systemConfigMetadata) {
     await prisma.systemConfig.upsert({
       where: { key: config.key },
       update: {},
-      create: config,
+      create: {
+        key: config.key,
+        value: config.defaultValue,
+        description: config.description,
+      },
     })
   }
 
@@ -74,7 +78,7 @@ async function main() {
 📊 数据统计:
 - 权限: ${permissions.length} 个
 - 角色: ${roles.length} 个  
-- 系统配置: ${systemConfigs.length} 个
+- 系统配置: ${systemConfigMetadata.length} 个
 
 🎯 主要角色说明:
 - team:owner      - 团队所有者，拥有所有权限

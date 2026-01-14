@@ -81,6 +81,10 @@ export const errors = {
   PROXY_PROTOCOL_NOT_SUPPORTED: { code: 60003, message: '仅支持 HTTP/HTTPS 协议', status: StatusCodes.BAD_REQUEST },
   PROXY_INVALID_URL_FORMAT: { code: 60004, message: '无效的 URL 格式', status: StatusCodes.BAD_REQUEST },
 
+  // 系统配置错误 70xxx
+  CONFIG_NOT_FOUND: { code: 70001, message: '配置不存在', status: StatusCodes.NOT_FOUND },
+  CONFIG_INVALID: { code: 70002, message: '配置值无效', status: StatusCodes.BAD_REQUEST },
+
   // 通用错误 90xxx
   INVALID_PARAMS: { code: 90001, message: '参数错误', status: StatusCodes.BAD_REQUEST },
   ENV_CONFIG_ERROR: { code: 90002, message: '环境变量配置错误', status: StatusCodes.INTERNAL_SERVER_ERROR },

@@ -1,15 +1,12 @@
 import type { MultipartFile } from '@fastify/multipart'
 import type { FastifyRequest } from 'fastify'
 import type { MailProvider } from '@/infra/email/email.types'
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common'
 import { Schema } from 'json-schema-faker'
 import { JsonValue } from 'type-fest'
-import { Public } from '@/common/decorators/public.decorator'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { UPLOADS_URL_PREFIX } from '@/constants/file-upload'
-import { TeamInviteMode } from '@/constants/system-config'
 import { SendEmailDto } from './dto/send-email.dto'
 import { UtilService } from './util.service'
 
@@ -17,18 +14,10 @@ interface MultipartUploadRequest extends FastifyRequest {
   file: () => Promise<MultipartFile | undefined>
 }
 
-/** 公开配置响应类型 */
-interface PublicConfigResponse {
-  teamInviteMode: TeamInviteMode
-}
-
 @Controller('util')
 @UseGuards(AuthGuard)
 export class UtilController {
-  constructor(
-    private readonly utilService: UtilService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly utilService: UtilService) {}
 
   /** 上传文件 */
   @Post('upload')
@@ -80,15 +69,5 @@ export class UtilController {
   ): Promise<JsonValue> {
     const result = await this.utilService.getSchemaMock(body)
     return result
-  }
-
-  /** 获取公开配置（无需登录） */
-  @Public()
-  @Get('config/public')
-  getPublicConfig(): PublicConfigResponse {
-    const teamInviteMode = this.configService.get<TeamInviteMode>('TEAM_INVITE_MODE') ?? 'direct'
-    return {
-      teamInviteMode,
-    }
   }
 }

@@ -4,19 +4,18 @@ import { ConfigService } from '@nestjs/config'
 import { InvitationStatus } from 'prisma/generated/enums'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { SystemConfigService } from '@/infra/system-config/system-config.service'
 import { RoleService } from '@/role/role.service'
 import { UtilService } from '@/util/util.service'
 import { SendInvitationDto } from './dto'
 import { TeamUtilsService } from './utils.service'
 
 const DEFAULT_FRONTEND_URL = 'http://localhost:5173'
-const DEFAULT_INVITATION_EXPIRES_DAYS = 7
 
 @Injectable()
 export class TeamInvitationService {
   private readonly logger = new Logger(TeamInvitationService.name)
   private readonly frontendUrl: string
-  private readonly invitationExpiresDays: number
 
   constructor(
     private readonly prisma: PrismaService,
@@ -24,9 +23,9 @@ export class TeamInvitationService {
     private readonly roleService: RoleService,
     private readonly utilService: UtilService,
     private readonly configService: ConfigService,
+    private readonly systemConfigService: SystemConfigService,
   ) {
     this.frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? DEFAULT_FRONTEND_URL
-    this.invitationExpiresDays = this.configService.get<number>('INVITATION_EXPIRES_DAYS') ?? DEFAULT_INVITATION_EXPIRES_DAYS
   }
 
   /** 发送团队邀请 */
@@ -67,9 +66,12 @@ export class TeamInvitationService {
       // 生成邀请 token
       const token = randomUUID()
 
+      // 从系统配置读取过期天数
+      const invitationExpiresDays = this.systemConfigService.get<number>('invitation.expires_days')
+
       // 计算过期时间
       const expiresAt = new Date()
-      expiresAt.setDate(expiresAt.getDate() + this.invitationExpiresDays)
+      expiresAt.setDate(expiresAt.getDate() + invitationExpiresDays)
 
       // 创建邀请记录
       const invitation = await this.prisma.teamInvitation.create({
@@ -105,7 +107,7 @@ export class TeamInvitationService {
           teamName: team.name,
           roleName: role.description ?? role.name,
           inviteLink,
-          expiresDays: this.invitationExpiresDays,
+          expiresDays: invitationExpiresDays,
         }),
       })
 
