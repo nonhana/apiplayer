@@ -377,7 +377,7 @@ export class TeamInvitationService {
 
               <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.6; color: #333333;">
                 <strong>${inviterName}</strong> 邀请您加入团队
-                <strong style="color: #2563eb;">「${teamName}」</strong>
+                <strong style="color: #0092d0;">「${teamName}」</strong>
               </p>
 
               <p style="margin: 0 0 32px; font-size: 16px; line-height: 1.6; color: #333333;">
@@ -388,7 +388,7 @@ export class TeamInvitationService {
                 <tr>
                   <td align="center">
                     <a href="${inviteLink}"
-                       style="display: inline-block; padding: 14px 32px; font-size: 16px; font-weight: 500; color: #ffffff; background-color: #2563eb; border-radius: 8px; text-decoration: none; transition: background-color 0.2s;">
+                       style="display: inline-block; padding: 14px 32px; font-size: 16px; font-weight: 500; color: #ffffff; background-color: #0092d0; border-radius: 8px; text-decoration: none; transition: background-color 0.2s;">
                       接受邀请
                     </a>
                   </td>

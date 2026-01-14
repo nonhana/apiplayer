@@ -52,27 +52,27 @@ export class InvitationBriefDto {
   email: string
 
   @Expose()
-  @Transform(({ obj }) => obj.team.name)
+  @Transform(({ obj }) => obj.team.name, { toClassOnly: true })
   teamName: string
 
   @Expose()
-  @Transform(({ obj }) => obj.team.avatar ?? undefined, { toPlainOnly: true })
+  @Transform(({ obj }) => obj.team?.avatar, { toClassOnly: true })
   teamAvatar?: string
 
   @Expose()
-  @Transform(({ obj }) => obj.team.slug)
+  @Transform(({ obj }) => obj.team.slug, { toClassOnly: true })
   teamSlug: string
 
   @Expose()
-  @Transform(({ obj }) => obj.role.name)
+  @Transform(({ obj }) => obj.role.name, { toClassOnly: true })
   roleName: string
 
   @Expose()
-  @Transform(({ obj }) => obj.role.description ?? undefined, { toPlainOnly: true })
+  @Transform(({ obj }) => obj.role?.description, { toClassOnly: true })
   roleDescription?: string
 
   @Expose()
-  @Transform(({ obj }) => obj.inviter.name)
+  @Transform(({ obj }) => obj.inviter.name, { toClassOnly: true })
   inviterName: string
 
   @Expose()
@@ -108,6 +108,6 @@ export class AcceptInvitationResultDto {
   teamId?: string
 
   @Expose()
-  @Transform(({ obj }) => obj.team.slug ?? undefined, { toPlainOnly: true })
+  @Transform(({ obj }) => obj.team?.slug, { toClassOnly: true })
   teamSlug?: string
 }
