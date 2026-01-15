@@ -1,10 +1,8 @@
-import { getErrorCode } from '@apiplayer/shared'
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { InputJsonValue } from '@prisma/client/runtime/client'
-import { StatusCodes } from 'http-status-codes'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { UpdateConfigsReqDto } from './dto/update-config.dto'
+import { UpdateConfigsReqDto } from './dto/update-system-config.dto'
 import {
   SystemConfigKey,
   systemConfigMetadata,
@@ -62,7 +60,7 @@ export class SystemConfigService implements OnModuleInit {
       return defaultValue as T
     }
 
-    throw new HanaException(`未知的配置键: ${key}`, getErrorCode('CONFIG_NOT_FOUND'), StatusCodes.NOT_FOUND)
+    throw new HanaException('CONFIG_NOT_FOUND', { message: `未知的配置键: ${key}` })
   }
 
   /** 更新配置值 */
@@ -70,17 +68,13 @@ export class SystemConfigService implements OnModuleInit {
     // 验证 key 是否合法
     const metadata = systemConfigMetadata.find(c => c.key === key)
     if (!metadata) {
-      throw new HanaException(`未知的配置键: ${key}`, getErrorCode('CONFIG_NOT_FOUND'), StatusCodes.NOT_FOUND)
+      throw new HanaException('CONFIG_NOT_FOUND', { message: `未知的配置键: ${key}` })
     }
 
     // 验证枚举类型的值
     if (metadata.type === 'enum' && metadata.options) {
       if (!metadata.options.includes(value as never)) {
-        throw new HanaException(
-          `配置 ${key} 的值必须是 ${metadata.options.join(', ')}`,
-          getErrorCode('CONFIG_INVALID'),
-          StatusCodes.BAD_REQUEST,
-        )
+        throw new HanaException('CONFIG_INVALID', { message: `配置 ${key} 的值必须是 ${metadata.options.join(', ')}` })
       }
     }
 

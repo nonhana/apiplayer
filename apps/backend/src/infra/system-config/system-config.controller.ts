@@ -1,12 +1,11 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import { RequireSystemAdmin } from '@/common/decorators/permissions.decorator'
 import { Public } from '@/common/decorators/public.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { SystemConfigItemDto } from './dto'
-import { UpdateConfigReqDto, UpdateConfigsReqDto } from './dto/update-config.dto'
+import { SystemConfigItemDto, UpdateConfigReqDto, UpdateConfigsReqDto } from './dto'
 import { SystemConfigService } from './system-config.service'
 import { SystemConfigKey } from './system-config.types'
 
@@ -24,7 +23,7 @@ export class SystemConfigController {
   }
 
   /** 批量更新系统配置值 */
-  @Post()
+  @Patch()
   @RequireSystemAdmin()
   @ResMsg('系统配置批量更新成功')
   async updateSystemConfigByMany(@Body() dto: UpdateConfigsReqDto): Promise<void> {
@@ -34,12 +33,12 @@ export class SystemConfigController {
   /** 获取指定 key 的系统配置值 */
   @Get(':key')
   @Public()
-  getSystemConfigByKey(@Param('key') key: SystemConfigKey) {
+  async getSystemConfigByKey(@Param('key') key: SystemConfigKey): Promise<unknown> {
     return this.systemConfigService.get(key)
   }
 
   /** 更新指定 key 的系统配置值 */
-  @Post(':key')
+  @Patch(':key')
   @RequireSystemAdmin()
   @ResMsg('系统配置更新成功')
   async updateSystemConfigByKey(

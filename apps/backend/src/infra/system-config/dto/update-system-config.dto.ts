@@ -44,5 +44,5 @@ export class UpdateConfigsReqDto {
 
   @IsOptional()
   @IsBoolean({ message: '是否自动递增 API 版本号必须是布尔值' })
-  [SystemConfigKey.VERSION_AUTO_INCREMENT]?: boolean
+  [SystemConfigKey.API_VERSION_AUTO_INC]?: boolean
 }

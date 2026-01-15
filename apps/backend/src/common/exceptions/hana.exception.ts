@@ -1,4 +1,4 @@
-import type { ErrorCode, ErrorName } from '@apiplayer/shared'
+import type { ErrorName } from '@apiplayer/shared'
 import { getError } from '@apiplayer/shared'
 import { HttpException } from '@nestjs/common'
 import { format } from 'date-fns'
@@ -11,38 +11,23 @@ export interface HanaErrorData {
   timestamp?: string
 }
 
+export interface HanaErrorOptions {
+  message?: string
+  status?: StatusCodes
+}
+
 export class HanaException extends HttpException {
-  constructor(errorName: ErrorName)
-  constructor(message: string, code: ErrorCode, status: StatusCodes)
-
-  constructor(
-    nameOrMsg: ErrorName | string,
-    codeOrUndefined?: ErrorCode,
-    statusOrUndefined?: StatusCodes,
-  ) {
-    let message: string
-    let code: ErrorCode
-    let status: StatusCodes
-
-    if (codeOrUndefined !== undefined) {
-      message = nameOrMsg
-      code = codeOrUndefined
-      status = statusOrUndefined!
-    }
-    else {
-      const error = getError(nameOrMsg as ErrorName)
-      message = error.message
-      code = error.code
-      status = error.status
-    }
+  constructor(errorName: ErrorName, options?: HanaErrorOptions) {
+    const { message, status } = options ?? {}
+    const error = getError(errorName)
 
     const errorData: HanaErrorData = {
-      status,
-      message,
-      code,
+      status: status ?? error.status,
+      message: message ?? error.message,
+      code: error.code,
       timestamp: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
     }
 
-    super(errorData, status)
+    super(errorData, status ?? error.status)
   }
 }

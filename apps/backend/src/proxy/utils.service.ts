@@ -1,5 +1,4 @@
 import { Agent } from 'node:https'
-import { getErrorCode } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { AxiosError } from 'axios'
 import { HanaException } from '@/common/exceptions/hana.exception'
@@ -23,17 +22,17 @@ export class ProxyUtilsService {
 
       if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'ETIMEDOUT') {
         this.logger.warn(`代理请求超时: ${method} ${url} (${timeoutMs}ms)`)
-        throw new HanaException(`请求超时，已超过 ${timeoutMs / 1000} 秒`, getErrorCode('PROXY_REQUEST_TIMEOUT'), 400)
+        throw new HanaException('PROXY_REQUEST_TIMEOUT', { message: `请求超时，已超过 ${timeoutMs / 1000} 秒` })
       }
 
       const errorMessage = this.getNetworkErrorMessage(axiosError.code, axiosError.message)
       this.logger.error(`代理请求失败: ${method} ${url} - ${axiosError.code}: ${axiosError.message}`)
-      throw new HanaException(errorMessage, getErrorCode('PROXY_REQUEST_FAILED'), 400)
+      throw new HanaException('PROXY_REQUEST_FAILED', { message: errorMessage })
     }
 
     const message = error instanceof Error ? error.message : '未知错误'
     this.logger.error(`代理请求失败: ${method} ${url}`, error)
-    throw new HanaException(`请求失败: ${message}`, getErrorCode('PROXY_REQUEST_FAILED'), 400)
+    throw new HanaException('PROXY_REQUEST_FAILED', { message: `请求失败: ${message}` })
   }
 
   /** 判断是否为 Axios 错误 */

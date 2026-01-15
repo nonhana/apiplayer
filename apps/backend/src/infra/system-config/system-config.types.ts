@@ -8,14 +8,22 @@ export enum ConfigValueType {
 
 /** 配置键名 */
 export enum SystemConfigKey {
+  /** 是否允许用户注册 */
   REGISTER_ENABLED = 'register.enabled',
+  /** 注册时是否需要邮箱验证 */
   REGISTER_EMAIL_VERIFY = 'register.email_verify',
+  /** 团队最大成员数量 */
   TEAM_MAX_MEMBERS = 'team.max_members',
+  /** 团队邀请模式 */
   INVITE_MODE = 'invite.mode',
+  /** 邀请链接过期天数 */
   INVITE_EXPIRES_DAYS = 'invite.expires_days',
+  /** 单个项目最大 API 数量 */
   PROJECT_MAX_APIS = 'project.max_apis',
+  /** 单个 API 最大版本数量 */
   API_MAX_VERSIONS = 'api.max_versions',
-  VERSION_AUTO_INCREMENT = 'version.auto_increment',
+  /** 是否自动递增 API 版本号 */
+  API_VERSION_AUTO_INC = 'api.version.auto_inc',
 }
 
 /** 配置项元数据定义 */
@@ -84,10 +92,10 @@ export const systemConfigMetadata = [
     description: '单个 API 最大版本数量',
   },
   {
-    key: SystemConfigKey.VERSION_AUTO_INCREMENT,
+    key: SystemConfigKey.API_VERSION_AUTO_INC,
     defaultValue: true,
     type: ConfigValueType.BOOLEAN,
-    description: '是否自动递增版本号',
+    description: '是否自动递增 API 版本号',
   },
 ] as const satisfies readonly ConfigMetadata[]
 
