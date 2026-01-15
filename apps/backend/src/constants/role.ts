@@ -154,15 +154,16 @@ export const roles = [
 
 export type RoleType = (typeof roles)[number]['name']
 
-export enum RoleName {
-  TEAM_OWNER = 'team:owner',
-  TEAM_ADMIN = 'team:admin',
-  TEAM_MEMBER = 'team:member',
-  TEAM_GUEST = 'team:guest',
-  PROJECT_ADMIN = 'project:admin',
-  PROJECT_EDITOR = 'project:editor',
-  PROJECT_VIEWER = 'project:viewer',
-}
+export const RoleName = {
+  TEAM_OWNER: 'team:owner',
+  TEAM_ADMIN: 'team:admin',
+  TEAM_MEMBER: 'team:member',
+  TEAM_GUEST: 'team:guest',
+  PROJECT_ADMIN: 'project:admin',
+  PROJECT_EDITOR: 'project:editor',
+  PROJECT_VIEWER: 'project:viewer',
+} as const
+export type RoleName = (typeof RoleName)[keyof typeof RoleName]
 
 export const ROLE_CATEGORIES = ['TEAM', 'PROJECT', 'SYSTEM'] as const
 

@@ -1,12 +1,12 @@
+import {
+  SystemConfigKey,
+  systemConfigMetadata,
+} from '@apiplayer/shared'
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { InputJsonValue } from '@prisma/client/runtime/client'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { UpdateConfigsReqDto } from './dto/update-system-config.dto'
-import {
-  SystemConfigKey,
-  systemConfigMetadata,
-} from './system-config.types'
 
 @Injectable()
 export class SystemConfigService implements OnModuleInit {
@@ -49,7 +49,7 @@ export class SystemConfigService implements OnModuleInit {
     }
   }
 
-  /** 获取配置值 */
+  /** 获取特定配置值 */
   get<T>(key: SystemConfigKey): T {
     if (this.cache.has(key)) {
       return this.cache.get(key) as T
@@ -61,6 +61,11 @@ export class SystemConfigService implements OnModuleInit {
     }
 
     throw new HanaException('CONFIG_NOT_FOUND', { message: `未知的配置键: ${key}` })
+  }
+
+  /** 获取所有配置 Record */
+  getAll() {
+    return Object.fromEntries(this.cache.entries()) as Record<SystemConfigKey, unknown>
   }
 
   /** 更新配置值 */
@@ -102,7 +107,7 @@ export class SystemConfigService implements OnModuleInit {
     }
   }
 
-  /** 获取所有配置 */
+  /** 获取所有配置完整数据列表 */
   getAllWithMetadata() {
     return systemConfigMetadata.map((metadata) => {
       return {

@@ -19,9 +19,11 @@
   "devDependencies": {
     "@antfu/eslint-config": "catalog:public",
     "@types/node": "catalog:public",
+    "baseline-browser-mapping": "catalog:public",
     "eslint": "catalog:public",
     "tsdown": "catalog:public",
     "tsx": "catalog:public",
+    "type-fest": "catalog:public",
     "typescript": "catalog:public"
   }
 }

@@ -1,6 +1,6 @@
+import type { JsonValue } from 'type-fest'
+import { ConfigValueType, SystemConfigKey } from '@apiplayer/shared'
 import { Exclude, Expose } from 'class-transformer'
-import { JsonValue } from 'type-fest'
-import { ConfigValueType, SystemConfigKey } from '../system-config.types'
 
 @Exclude()
 export class SystemConfigItemDto {

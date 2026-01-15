@@ -50,7 +50,6 @@
     "reflect-metadata": "catalog:backend",
     "resend": "catalog:backend",
     "rxjs": "catalog:backend",
-    "type-fest": "catalog:backend",
     "winston": "catalog:backend",
     "winston-daily-rotate-file": "catalog:backend"
   },

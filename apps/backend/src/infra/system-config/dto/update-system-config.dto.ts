@@ -1,7 +1,7 @@
+import type { InputJsonValue } from 'prisma/generated/internal/prismaNamespace'
+import { SystemConfigKey, TeamInviteMode } from '@apiplayer/shared'
 import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, Min } from 'class-validator'
-import { InputJsonValue } from 'prisma/generated/internal/prismaNamespace'
 import { IsJsonValue } from '@/common/validator/is-json'
-import { SystemConfigKey, TeamInviteMode } from '../system-config.types'
 
 export class UpdateConfigReqDto {
   @IsNotEmpty({ message: '配置值不能为空' })

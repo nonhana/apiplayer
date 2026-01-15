@@ -7,7 +7,7 @@ import { useUserStore } from '@/stores/useUserStore'
 import 'vue-sonner/style.css'
 
 const globalStore = useGlobalStore()
-const { initRoles, initPublicConfig } = globalStore
+const { initRoles, initSystemConfig: initPublicConfig } = globalStore
 
 const userStore = useUserStore()
 const { isAuthenticated } = storeToRefs(userStore)

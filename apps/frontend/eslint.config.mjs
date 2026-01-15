@@ -7,4 +7,7 @@ export default antfu({
   jsonc: true,
   markdown: true,
   yaml: true,
+  rules: {
+    'ts/no-redeclare': 'off',
+  },
 })

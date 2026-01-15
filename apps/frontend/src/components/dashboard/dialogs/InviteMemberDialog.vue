@@ -3,6 +3,7 @@ import type { ProjectMember } from '@/types/project'
 import type { RoleItem } from '@/types/role'
 import type { InvitationInfo, TeamMember } from '@/types/team'
 import type { UserBriefInfo } from '@/types/user'
+import { SystemConfigKey, TeamInviteMode } from '@apiplayer/shared'
 import { Loader2, Mail, Users } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch, watchEffect } from 'vue'
@@ -50,14 +51,16 @@ const emits = defineEmits<{
 }>()
 
 const globalStore = useGlobalStore()
-const { teamRoles, projectRoles, teamInviteMode } = storeToRefs(globalStore)
+const { teamRoles, projectRoles, systemConfig } = storeToRefs(globalStore)
 
 const isOpen = defineModel<boolean>('open', { required: true })
 
 const isTeamMode = computed(() => props.type === 'team')
 
 /** 是否使用邮箱邀请模式（仅在团队模式下适用） */
-const isEmailInviteMode = computed(() => isTeamMode.value && teamInviteMode.value === 'email')
+const isEmailInviteMode = computed(() =>
+  isTeamMode.value && systemConfig.value?.[SystemConfigKey.INVITE_MODE] === TeamInviteMode.EMAIL,
+)
 
 const teamMemberOptions = ref<UserBriefInfo[]>([])
 

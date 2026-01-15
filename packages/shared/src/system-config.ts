@@ -1,30 +1,39 @@
-/** 配置值类型 */
-export enum ConfigValueType {
-  BOOLEAN = 'boolean',
-  NUMBER = 'number',
-  STRING = 'string',
-  ENUM = 'enum',
-}
-
 /** 配置键名 */
-export enum SystemConfigKey {
+export const SystemConfigKey = {
   /** 是否允许用户注册 */
-  REGISTER_ENABLED = 'register.enabled',
+  REGISTER_ENABLED: 'register.enabled',
   /** 注册时是否需要邮箱验证 */
-  REGISTER_EMAIL_VERIFY = 'register.email_verify',
+  REGISTER_EMAIL_VERIFY: 'register.email_verify',
   /** 团队最大成员数量 */
-  TEAM_MAX_MEMBERS = 'team.max_members',
+  TEAM_MAX_MEMBERS: 'team.max_members',
   /** 团队邀请模式 */
-  INVITE_MODE = 'invite.mode',
+  INVITE_MODE: 'invite.mode',
   /** 邀请链接过期天数 */
-  INVITE_EXPIRES_DAYS = 'invite.expires_days',
+  INVITE_EXPIRES_DAYS: 'invite.expires_days',
   /** 单个项目最大 API 数量 */
-  PROJECT_MAX_APIS = 'project.max_apis',
+  PROJECT_MAX_APIS: 'project.max_apis',
   /** 单个 API 最大版本数量 */
-  API_MAX_VERSIONS = 'api.max_versions',
+  API_MAX_VERSIONS: 'api.max_versions',
   /** 是否自动递增 API 版本号 */
-  API_VERSION_AUTO_INC = 'api.version.auto_inc',
-}
+  API_VERSION_AUTO_INC: 'api.version.auto_inc',
+} as const
+export type SystemConfigKey = (typeof SystemConfigKey)[keyof typeof SystemConfigKey]
+
+/** 配置值类型 */
+export const ConfigValueType = {
+  BOOLEAN: 'boolean',
+  NUMBER: 'number',
+  STRING: 'string',
+  ENUM: 'enum',
+} as const
+export type ConfigValueType = (typeof ConfigValueType)[keyof typeof ConfigValueType]
+
+/** 团队邀请模式 */
+export const TeamInviteMode = {
+  DIRECT: 'direct',
+  EMAIL: 'email',
+} as const
+export type TeamInviteMode = (typeof TeamInviteMode)[keyof typeof TeamInviteMode]
 
 /** 配置项元数据定义 */
 export interface ConfigMetadata<T = unknown> {
@@ -38,12 +47,6 @@ export interface ConfigMetadata<T = unknown> {
   description: string
   /** 枚举类型的可选值 */
   options?: readonly T[]
-}
-
-/** 团队邀请模式 */
-export enum TeamInviteMode {
-  DIRECT = 'direct',
-  EMAIL = 'email',
 }
 
 /** 系统配置元数据定义 */
