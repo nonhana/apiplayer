@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import {
   Dialog,
   DialogContent,
@@ -16,21 +16,30 @@ import {
 } from '@/components/ui/tabs'
 import { SETTINGS_MENU_ITEMS } from './constants'
 
-/** 弹窗开关状态，由父组件控制 */
+const props = withDefaults(defineProps<{
+  initialTab?: string
+}>(), {
+  initialTab: '',
+})
+
 const isOpen = defineModel<boolean>('open', { required: true })
 
-/** 当前选中的菜单项 */
-const activeTab = ref(SETTINGS_MENU_ITEMS[0]?.value ?? '')
+const activeTab = ref(props.initialTab || (SETTINGS_MENU_ITEMS[0]?.value ?? ''))
+
+watch(isOpen, (open) => {
+  if (open && props.initialTab) {
+    activeTab.value = props.initialTab
+  }
+})
 </script>
 
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-4/5 h-[480px] p-0 gap-0 overflow-hidden">
+    <DialogContent class="sm:max-w-4/5 h-200 p-0 gap-0">
       <Tabs
         v-model="activeTab"
         orientation="vertical"
       >
-        <!-- 左侧导航菜单 -->
         <aside class="w-48 border-r border-border bg-muted/30 flex flex-col">
           <DialogHeader class="px-4 py-3 border-b border-border">
             <DialogTitle class="text-base">
@@ -56,7 +65,6 @@ const activeTab = ref(SETTINGS_MENU_ITEMS[0]?.value ?? '')
           </ScrollArea>
         </aside>
 
-        <!-- 右侧配置面板 -->
         <main class="flex-1 flex flex-col overflow-hidden">
           <ScrollArea class="flex-1 p-6">
             <TabsContent

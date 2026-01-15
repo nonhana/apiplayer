@@ -28,12 +28,15 @@ const { user, isAuthenticated } = storeToRefs(userStore)
 const { logout } = userStore
 
 const isSettingsDialogOpen = ref(false)
+const settingsInitialTab = ref('')
 
 const displayName = computed(() => user?.value?.name || user?.value?.username || '未登录用户')
 const displayEmail = computed(() => user?.value?.email || '')
 
-function goProfile() {
-  router.push({ name: 'UserProfile' })
+/** 打开设置弹窗并跳转到指定标签 */
+function openSettings(tab = '') {
+  settingsInitialTab.value = tab
+  isSettingsDialogOpen.value = true
 }
 
 function goDashboard() {
@@ -50,7 +53,7 @@ function goDashboard() {
     </div>
 
     <div class="ml-auto flex items-center gap-4">
-      <Button variant="ghost" size="icon" @click="isSettingsDialogOpen = true">
+      <Button variant="ghost" size="icon" @click="openSettings()">
         <Settings class="h-4 w-4" />
       </Button>
       <Button
@@ -82,7 +85,7 @@ function goDashboard() {
           <DropdownMenuItem @click="goDashboard">
             工作台
           </DropdownMenuItem>
-          <DropdownMenuItem @click="goProfile">
+          <DropdownMenuItem @click="openSettings('profile')">
             个人资料
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -96,5 +99,5 @@ function goDashboard() {
       </DropdownMenu>
     </div>
   </header>
-  <SettingsDialog v-model:open="isSettingsDialogOpen" />
+  <SettingsDialog v-model:open="isSettingsDialogOpen" :initial-tab="settingsInitialTab" />
 </template>

@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ModeToggle from '@/components/common/ModeToggle.vue'
+import SettingsDialog from '@/components/settings/SettingsDialog.vue'
 import {
   Avatar,
   AvatarFallback,
@@ -44,13 +45,17 @@ const { setCurEnvId } = projectStore
 const displayName = computed(() => userStore.user?.name || userStore.user?.username || '未登录')
 
 const isSettingsSheetOpen = ref(false)
+const isSettingsDialogOpen = ref(false)
+const settingsInitialTab = ref('')
 
 function goBack() {
   router.push({ name: 'Dashboard' })
 }
 
-function goProfile() {
-  router.push({ name: 'UserProfile' })
+/** 打开设置弹窗并跳转到指定标签 */
+function openSettings(tab = '') {
+  settingsInitialTab.value = tab
+  isSettingsDialogOpen.value = true
 }
 
 function handleLogout() {
@@ -148,7 +153,7 @@ function handleLogout() {
           <DropdownMenuItem @click="goBack">
             返回工作台
           </DropdownMenuItem>
-          <DropdownMenuItem @click="goProfile">
+          <DropdownMenuItem @click="openSettings('profile')">
             个人资料
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -167,5 +172,6 @@ function handleLogout() {
       v-model:open="isSettingsSheetOpen"
       :project="projectDetail"
     />
+    <SettingsDialog v-model:open="isSettingsDialogOpen" :initial-tab="settingsInitialTab" />
   </header>
 </template>

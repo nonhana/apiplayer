@@ -29,12 +29,15 @@ const teamStore = useTeamStore()
 
 const isCreateTeamDialogOpen = ref(false)
 const isSettingsDialogOpen = ref(false)
+const settingsInitialTab = ref('')
 
 const displayName = computed(() => userStore.user?.name || userStore.user?.username || '未登录用户')
 const displayEmail = computed(() => userStore.user?.email || '')
 
-function goProfile() {
-  router.push({ name: 'UserProfile' })
+/** 打开设置弹窗并跳转到指定标签 */
+function openSettings(tab = '') {
+  settingsInitialTab.value = tab
+  isSettingsDialogOpen.value = true
 }
 
 function goDashboard() {
@@ -67,7 +70,7 @@ onMounted(() => {
     </div>
 
     <div class="ml-auto flex items-center gap-4">
-      <Button variant="ghost" size="icon" @click="isSettingsDialogOpen = true">
+      <Button variant="ghost" size="icon" @click="openSettings()">
         <Settings class="h-4 w-4" />
       </Button>
       <Button
@@ -99,7 +102,7 @@ onMounted(() => {
           <DropdownMenuItem @click="goDashboard">
             工作台
           </DropdownMenuItem>
-          <DropdownMenuItem @click="goProfile">
+          <DropdownMenuItem @click="openSettings('profile')">
             个人资料
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -114,5 +117,5 @@ onMounted(() => {
     </div>
   </header>
   <CreateTeamDialog v-model:open="isCreateTeamDialogOpen" />
-  <SettingsDialog v-model:open="isSettingsDialogOpen" />
+  <SettingsDialog v-model:open="isSettingsDialogOpen" :initial-tab="settingsInitialTab" />
 </template>
