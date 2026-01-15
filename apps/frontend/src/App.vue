@@ -1,29 +1,32 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { onMounted, watch } from 'vue'
+import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { Toaster } from '@/components/ui/sonner'
 import { useGlobalStore } from '@/stores/useGlobalStore'
-import { useUserStore } from '@/stores/useUserStore'
+import EmptyLayout from './layouts/EmptyLayout.vue'
+import MainLayout from './layouts/MainLayout.vue'
 import 'vue-sonner/style.css'
 
-const globalStore = useGlobalStore()
-const { initRoles, initSystemConfig: initPublicConfig } = globalStore
+const layouts = {
+  main: MainLayout,
+  empty: EmptyLayout,
+}
 
-const userStore = useUserStore()
-const { isAuthenticated } = storeToRefs(userStore)
+const route = useRoute()
+
+const Layout = computed(() => layouts[route.meta.layout as keyof typeof layouts])
+
+const globalStore = useGlobalStore()
+const { initSystemConfig: initPublicConfig } = globalStore
 
 onMounted(() => {
   initPublicConfig()
 })
-
-watch(isAuthenticated, (newV) => {
-  if (newV) {
-    initRoles()
-  }
-})
 </script>
 
 <template>
-  <router-view />
+  <Layout>
+    <router-view />
+  </Layout>
   <Toaster />
 </template>

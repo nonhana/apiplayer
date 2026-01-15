@@ -2,9 +2,6 @@
 import { Loader2 } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { toast } from 'vue-sonner'
-import { authApi } from '@/api/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -13,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { useUserStore } from '@/stores/useUserStore'
 import { loginFormSchema } from '@/validators/login'
 
-const router = useRouter()
 const userStore = useUserStore()
 const isLoading = ref(false)
 
@@ -21,34 +17,10 @@ const form = useForm({
   validationSchema: loginFormSchema,
 })
 
-const route = useRoute()
-
 const onSubmit = form.handleSubmit(async (values) => {
   isLoading.value = true
-  try {
-    const { token, user } = await authApi.login(values)
-    userStore.setToken(token)
-    userStore.setUser(user)
-
-    toast.success('欢迎回来！', {
-      description: '登录成功，欢迎使用。',
-    })
-
-    // 登录后重定向
-    const redirect = route.query.redirect as string | undefined
-    if (redirect) {
-      router.push(redirect)
-    }
-    else {
-      router.push('/dashboard')
-    }
-  }
-  catch (error) {
-    console.error('登录失败', error)
-  }
-  finally {
-    isLoading.value = false
-  }
+  await userStore.login(values)
+  isLoading.value = false
 })
 </script>
 

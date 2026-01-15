@@ -8,10 +8,12 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'Home',
     component: () => import('@/views/home/HomeView.vue'),
+    meta: { layout: 'empty' },
   },
   {
     path: '/auth',
     component: () => import('@/layouts/AuthLayout.vue'),
+    meta: { layout: 'empty' },
     children: [
       {
         path: '',
@@ -33,26 +35,18 @@ const routes: RouteRecordRaw[] = [
     path: '/invite/accept',
     name: 'AcceptInvite',
     component: () => import('@/views/invite/AcceptInviteView.vue'),
+    meta: { layout: 'empty' },
   },
   {
     path: '/dashboard',
-    component: () => import('@/layouts/DashboardLayout.vue'),
-    children: [
-      {
-        path: '',
-        name: 'Dashboard',
-        component: () => import('@/views/dashboard/ProjectListView.vue'),
-      },
-      {
-        path: 'profile',
-        name: 'UserProfile',
-        component: () => import('@/views/dashboard/UserProfileView.vue'),
-      },
-    ],
+    name: 'Dashboard',
+    component: () => import('@/views/dashboard/DashboardView.vue'),
+    meta: { layout: 'main' },
   },
   {
     path: '/project/:projectId',
     component: () => import('@/layouts/WorkbenchLayout.vue'),
+    meta: { layout: 'main' },
     children: [
       {
         path: '',
@@ -70,6 +64,7 @@ const routes: RouteRecordRaw[] = [
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/not-found/NotFoundView.vue'),
+    meta: { layout: 'empty' },
   },
 ]
 

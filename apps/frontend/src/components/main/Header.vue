@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Settings } from 'lucide-vue-next'
-import { computed, onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import SettingsDialog from '@/components/settings/SettingsDialog.vue'
 import {
@@ -18,20 +19,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { getAbbreviation } from '@/lib/utils'
-import { useTeamStore } from '@/stores/useTeamStore'
 import { useUserStore } from '@/stores/useUserStore'
-import CreateTeamDialog from './dialogs/CreateTeamDialog.vue'
-import TeamSwitcher from './TeamSwitcher.vue'
 
 const router = useRouter()
-const userStore = useUserStore()
-const teamStore = useTeamStore()
 
-const isCreateTeamDialogOpen = ref(false)
+const userStore = useUserStore()
+const { user, isAuthenticated } = storeToRefs(userStore)
+const { logout } = userStore
+
 const isSettingsDialogOpen = ref(false)
 
-const displayName = computed(() => userStore.user?.name || userStore.user?.username || '未登录用户')
-const displayEmail = computed(() => userStore.user?.email || '')
+const displayName = computed(() => user?.value?.name || user?.value?.username || '未登录用户')
+const displayEmail = computed(() => user?.value?.email || '')
 
 function goProfile() {
   router.push({ name: 'UserProfile' })
@@ -40,18 +39,6 @@ function goProfile() {
 function goDashboard() {
   router.push({ name: 'Dashboard' })
 }
-
-function handleLogout() {
-  teamStore.reset()
-  userStore.logout()
-  router.push('/auth/login')
-}
-
-onMounted(() => {
-  if (teamStore.teams.length === 0 && userStore.isAuthenticated) {
-    teamStore.fetchTeams()
-  }
-})
 </script>
 
 <template>
@@ -60,10 +47,6 @@ onMounted(() => {
       <div class="flex items-center gap-2 cursor-pointer" @click="goDashboard">
         <span class="font-bold text-lg tracking-tight">ApiPlayer</span>
       </div>
-
-      <div class="h-6 w-px bg-border hidden sm:block" />
-
-      <TeamSwitcher @create-team="isCreateTeamDialogOpen = true" />
     </div>
 
     <div class="ml-auto flex items-center gap-4">
@@ -71,7 +54,7 @@ onMounted(() => {
         <Settings class="h-4 w-4" />
       </Button>
       <Button
-        v-if="!userStore.isAuthenticated"
+        v-if="!isAuthenticated"
         variant="outline"
         @click="router.push('/auth/login')"
       >
@@ -80,7 +63,7 @@ onMounted(() => {
       <DropdownMenu v-else>
         <DropdownMenuTrigger as-child class="cursor-pointer">
           <Avatar class="h-8 w-8 border">
-            <AvatarImage v-if="userStore.user?.avatar" :src="userStore.user.avatar" />
+            <AvatarImage v-if="user?.avatar" :src="user?.avatar" />
             <AvatarFallback class="text-xs font-semibold">
               {{ getAbbreviation(displayName, 'U') }}
             </AvatarFallback>
@@ -105,7 +88,7 @@ onMounted(() => {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             class="text-destructive focus:text-destructive"
-            @click="handleLogout"
+            @click="logout"
           >
             退出登录
           </DropdownMenuItem>
@@ -113,6 +96,5 @@ onMounted(() => {
       </DropdownMenu>
     </div>
   </header>
-  <CreateTeamDialog v-model:open="isCreateTeamDialogOpen" />
   <SettingsDialog v-model:open="isSettingsDialogOpen" />
 </template>
