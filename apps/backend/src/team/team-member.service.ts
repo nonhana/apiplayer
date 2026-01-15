@@ -5,7 +5,7 @@ import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { RoleService } from '@/role/role.service'
 import { UserService } from '@/user/user.service'
-import { InviteMembersReqDto, UpdateMemberReqDto } from './dto'
+import { InviteMembersReqDto, UpdateTeamMemberReqDto } from './dto'
 import { TeamUtilsService } from './utils.service'
 
 @Injectable()
@@ -181,7 +181,7 @@ export class TeamMemberService {
     }
   }
 
-  async updateTeamMemberRole(dto: UpdateMemberReqDto, teamId: string, memberId: string, operatorId: string) {
+  async updateTeamMemberRole(dto: UpdateTeamMemberReqDto, teamId: string, memberId: string, operatorId: string) {
     const { roleId, nickname } = dto
 
     try {

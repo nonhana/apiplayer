@@ -5,6 +5,7 @@ import { InvitationStatus } from 'prisma/generated/enums'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SystemConfigService } from '@/infra/system-config/system-config.service'
+import { SystemConfigKey } from '@/infra/system-config/system-config.types'
 import { RoleService } from '@/role/role.service'
 import { UtilService } from '@/util/util.service'
 import { SendInvitationDto } from './dto'
@@ -67,7 +68,7 @@ export class TeamInvitationService {
       const token = randomUUID()
 
       // 从系统配置读取过期天数
-      const invitationExpiresDays = this.systemConfigService.get<number>('invitation.expires_days')
+      const invitationExpiresDays = this.systemConfigService.get<number>(SystemConfigKey.INVITE_EXPIRES_DAYS)
 
       // 计算过期时间
       const expiresAt = new Date()

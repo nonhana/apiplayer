@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator'
 
-export class UpdateMemberReqDto {
+export class UpdateTeamMemberReqDto {
   @IsNotEmpty({ message: '角色 ID 不能为空' })
   @IsString({ message: '角色 ID 必须是字符串' })
   roleId: string
