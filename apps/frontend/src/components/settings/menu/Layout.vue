@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { ScrollArea } from '@/components/ui/scroll-area'
+
 defineProps<{
   title: string
   description: string
@@ -6,7 +8,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="h-full relative flex flex-col gap-6">
     <div class="h-12 flex flex-col justify-between">
       <h3 class="text-lg font-medium">
         {{ title }}
@@ -15,8 +17,11 @@ defineProps<{
         {{ description }}
       </p>
     </div>
-    <div class="h-170 overflow-y-auto">
+    <ScrollArea class="h-170">
       <slot />
-    </div>
+    </ScrollArea>
+    <footer class="absolute bottom-0 right-0">
+      <slot name="footer" />
+    </footer>
   </div>
 </template>

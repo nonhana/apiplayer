@@ -33,7 +33,6 @@ async function handleCropped(result: File) {
 <template>
   <Layout title="个人资料" description="管理你的基本信息和头像，这些信息会显示在团队成员和项目中">
     <form class="space-y-6" @submit="onSubmit">
-      <!-- 头像设置 -->
       <Item label="头像">
         <div class="flex items-center gap-4">
           <Avatar class="h-16 w-16 border">
@@ -66,7 +65,6 @@ async function handleCropped(result: File) {
         </div>
       </Item>
 
-      <!-- 显示名称 -->
       <FormField v-slot="{ componentField }" name="name">
         <FormItem>
           <FormLabel>显示名称</FormLabel>
@@ -80,7 +78,6 @@ async function handleCropped(result: File) {
         </FormItem>
       </FormField>
 
-      <!-- 用户名 -->
       <FormField v-slot="{ componentField }" name="username">
         <FormItem>
           <FormLabel>用户名</FormLabel>
@@ -94,7 +91,6 @@ async function handleCropped(result: File) {
         </FormItem>
       </FormField>
 
-      <!-- 个人简介 -->
       <FormField v-slot="{ componentField }" name="bio">
         <FormItem>
           <FormLabel>个人简介</FormLabel>
@@ -109,13 +105,10 @@ async function handleCropped(result: File) {
         </FormItem>
       </FormField>
 
-      <!-- 保存按钮 -->
-      <div class="pt-2">
-        <Button type="submit" :disabled="isSavingProfile">
-          <Loader2 v-if="isSavingProfile" class="mr-2 h-4 w-4 animate-spin" />
-          保存基本信息
-        </Button>
-      </div>
+      <Button type="submit" :disabled="isSavingProfile">
+        <Loader2 v-if="isSavingProfile" class="mr-2 h-4 w-4 animate-spin" />
+        保存基本信息
+      </Button>
     </form>
   </Layout>
 </template>

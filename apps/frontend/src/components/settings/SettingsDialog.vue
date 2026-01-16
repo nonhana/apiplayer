@@ -65,17 +65,15 @@ watch(isOpen, (open) => {
           </ScrollArea>
         </aside>
 
-        <main class="flex-1 flex flex-col overflow-hidden">
-          <ScrollArea class="flex-1 p-6">
-            <TabsContent
-              v-for="item in SETTINGS_MENU_ITEMS"
-              :key="item.value"
-              :value="item.value"
-              class="mt-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-            >
-              <component :is="item.component" />
-            </TabsContent>
-          </ScrollArea>
+        <main class="flex-1 p-6">
+          <TabsContent
+            v-for="item in SETTINGS_MENU_ITEMS"
+            :key="item.value"
+            :value="item.value"
+            class="h-full"
+          >
+            <component :is="item.component" />
+          </TabsContent>
         </main>
       </Tabs>
     </DialogContent>

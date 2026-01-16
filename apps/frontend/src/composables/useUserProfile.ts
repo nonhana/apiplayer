@@ -4,44 +4,39 @@ import { computed, onMounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { userApi } from '@/api/user'
 import { utilApi } from '@/api/util'
+import dayjs from '@/lib/dayjs'
 import { useUserStore } from '@/stores/useUserStore'
 import { userProfileFormSchema } from '@/validators/user-profile'
 
-/**
- * 用户资料管理 composable
- * 封装用户资料的加载、编辑、保存等逻辑
- */
-export function useUserProfile() {
+let cachedState: ReturnType<typeof createUserProfileState> | null = null
+
+function createUserProfileState() {
   const userStore = useUserStore()
 
-  // 用户完整资料
   const profile = ref<UserFullInfo | null>(null)
 
-  // 加载状态
-  const isLoadingProfile = ref(false)
-  const isSavingProfile = ref(false)
-  const isSendingCode = ref(false)
-  const isUploadingAvatar = ref(false)
+  const isLoadingProfile = ref(false) // 加载用户资料
+  const isSavingProfile = ref(false) // 保存用户资料
+  const isSendingCode = ref(false) // 发送验证码
+  const isUploadingAvatar = ref(false) // 上传头像
+  const hasLoadedProfile = ref(false)
+  let loadPromise: Promise<void> | null = null
 
-  // 表单实例
   const form = useForm({
     validationSchema: userProfileFormSchema,
   })
 
-  // 计算属性：展示用的信息
   const displayEmail = computed(() => profile.value?.email ?? '')
   const displayCreatedAt = computed(() =>
     profile.value?.createdAt
-      ? new Date(profile.value.createdAt).toLocaleString()
+      ? dayjs(profile.value.createdAt).format('YYYY-MM-DD HH:mm:ss')
       : '',
   )
   const displayLastLoginAt = computed(() =>
     profile.value?.lastLoginAt
-      ? new Date(profile.value.lastLoginAt).toLocaleString()
+      ? dayjs(profile.value.lastLoginAt).format('YYYY-MM-DD HH:mm:ss')
       : '首次登录',
   )
-
-  // 头像预览 URL，优先从表单中取
   const avatarPreviewUrl = computed(() => {
     const formAvatar = form.values.avatar
     if (formAvatar && formAvatar !== '')
@@ -49,38 +44,51 @@ export function useUserProfile() {
     return profile.value?.avatar ?? ''
   })
 
-  /** 加载用户资料 */
-  async function loadProfile() {
-    try {
-      isLoadingProfile.value = true
-      const res = await userApi.getProfile()
-      profile.value = res
-      userStore.setUser(res)
+  async function loadProfile(options: { force?: boolean } = {}) {
+    const { force = false } = options
+    if (hasLoadedProfile.value && !force)
+      return
+    if (loadPromise && !force) {
+      await loadPromise
+      return
+    }
 
-      // 初始化表单值
-      form.setValues({
-        name: res.name,
-        username: res.username,
-        avatar: res.avatar ?? '',
-        bio: res.bio ?? '',
-        newEmail: '',
-        newPassword: '',
-        confirmNewPassword: '',
-        verificationCode: '',
-      })
-    }
-    catch (error) {
-      console.error('加载用户信息失败', error)
-    }
-    finally {
-      isLoadingProfile.value = false
-    }
+    const task = (async () => {
+      isLoadingProfile.value = true
+      try {
+        const res = await userApi.getProfile()
+        profile.value = res
+        userStore.setUser(res)
+
+        form.setValues({
+          name: res.name,
+          username: res.username,
+          avatar: res.avatar ?? '',
+          bio: res.bio ?? '',
+          newEmail: '',
+          newPassword: '',
+          confirmNewPassword: '',
+          verificationCode: '',
+        })
+
+        hasLoadedProfile.value = true
+      }
+      catch (error) {
+        console.error('加载用户信息失败', error)
+      }
+      finally {
+        isLoadingProfile.value = false
+      }
+    })()
+
+    loadPromise = task
+    await task
+    loadPromise = null
   }
 
-  /** 发送安全验证码 */
   async function sendVerificationCode() {
+    isSendingCode.value = true
     try {
-      isSendingCode.value = true
       await userApi.sendProfileVerificationCode()
       toast.success('验证码已发送', {
         description: '请在 5 分钟内前往邮箱查收验证码。',
@@ -94,32 +102,21 @@ export function useUserProfile() {
     }
   }
 
-  /** 保存用户资料 */
-  async function saveProfile(values: Record<string, unknown>) {
-    const payload: UpdateUserProfileReq = {
-      name: values.name as string,
-      username: values.username as string,
-      avatar: (values.avatar as string) || undefined,
-      bio: (values.bio as string) || undefined,
-      newEmail: (values.newEmail as string) || undefined,
-      newPassword: (values.newPassword as string) || undefined,
-      confirmNewPassword: (values.confirmNewPassword as string) || undefined,
-      verificationCode: (values.verificationCode as string) || undefined,
-    }
-
+  async function saveProfile(values: UpdateUserProfileReq) {
     isSavingProfile.value = true
     try {
-      const updated = await userApi.updateProfile(payload)
+      const updated = await userApi.updateProfile(values)
       profile.value = updated
       userStore.setUser(updated)
 
       toast.success('个人资料已更新')
 
-      // 清空敏感字段
       form.setFieldValue('newEmail', '')
       form.setFieldValue('newPassword', '')
       form.setFieldValue('confirmNewPassword', '')
       form.setFieldValue('verificationCode', '')
+
+      hasLoadedProfile.value = true
 
       return true
     }
@@ -132,7 +129,6 @@ export function useUserProfile() {
     }
   }
 
-  /** 处理头像裁剪上传 */
   async function uploadAvatar(file: File) {
     isUploadingAvatar.value = true
     try {
@@ -150,7 +146,6 @@ export function useUserProfile() {
     }
   }
 
-  // 组件挂载时自动加载
   onMounted(() => {
     loadProfile()
   })
@@ -162,6 +157,7 @@ export function useUserProfile() {
     isSavingProfile,
     isSendingCode,
     isUploadingAvatar,
+    hasLoadedProfile,
 
     // 表单
     form,
@@ -172,10 +168,16 @@ export function useUserProfile() {
     displayLastLoginAt,
     avatarPreviewUrl,
 
-    // 方法
+    // 操作
     loadProfile,
     sendVerificationCode,
     saveProfile,
     uploadAvatar,
   }
+}
+
+export function useUserProfile() {
+  if (!cachedState)
+    cachedState = createUserProfileState()
+  return cachedState
 }
