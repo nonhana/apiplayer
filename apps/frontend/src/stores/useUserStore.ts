@@ -1,5 +1,5 @@
 import type { LoginReq } from '@/types/auth'
-import type { UserBriefInfo, UserDetailInfo, UserFullInfo } from '@/types/user'
+import type { UserDetailInfo } from '@/types/user'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -15,8 +15,8 @@ export const useUserStore = defineStore('user', () => {
   const router = useRouter()
   const route = useRoute()
 
-  const token = ref<string>('')
-  const user = ref<UserBriefInfo | UserDetailInfo | UserFullInfo | null>(null)
+  const token = ref('')
+  const user = ref<UserDetailInfo | null>(null)
   const isAuthenticated = ref(false)
 
   function setToken(newToken: string) {
@@ -24,7 +24,7 @@ export const useUserStore = defineStore('user', () => {
     isAuthenticated.value = !!newToken
   }
 
-  function setUser(newUser: UserBriefInfo | UserDetailInfo | UserFullInfo | null) {
+  function setUser(newUser: UserDetailInfo | null) {
     user.value = newUser
   }
 

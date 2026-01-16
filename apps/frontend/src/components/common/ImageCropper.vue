@@ -106,7 +106,7 @@ async function handleConfirm() {
     @change="onFileSelect"
   >
 
-  <div @click="triggerSelect">
+  <div class="w-fit" @click="triggerSelect">
     <slot :disabled="disabled" />
   </div>
 

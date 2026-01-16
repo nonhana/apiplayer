@@ -5,7 +5,7 @@ import { FastifyReply, FastifyRequest } from 'fastify'
 import { Public } from '@/common/decorators/public.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
-import { UserBriefInfoDto, UserDetailInfoDto, UserSessionDto } from '@/common/dto/user.dto'
+import { UserDetailInfoDto, UserSessionDto } from '@/common/dto/user.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PasswordConfirmationPipe } from '@/common/pipes/password-confirmation.pipe'
 import { REMEMBER_ME_COOKIE_MAX_AGE } from '@/constants/cookie'
@@ -57,9 +57,9 @@ export class AuthController {
   @Public()
   @Post('register')
   @ResMsg('注册成功')
-  async register(@Body(PasswordConfirmationPipe) registerDto: RegisterReqDto): Promise<UserBriefInfoDto> {
+  async register(@Body(PasswordConfirmationPipe) registerDto: RegisterReqDto): Promise<UserDetailInfoDto> {
     const newUser = await this.authService.register(registerDto)
-    return plainToInstance(UserBriefInfoDto, newUser)
+    return plainToInstance(UserDetailInfoDto, newUser)
   }
 
   /** 检查邮箱或用户名可用性 */

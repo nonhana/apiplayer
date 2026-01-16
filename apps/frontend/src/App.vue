@@ -14,13 +14,13 @@ const layouts = {
 
 const route = useRoute()
 
-const Layout = computed(() => layouts[route.meta.layout as keyof typeof layouts])
+const Layout = computed(() => layouts[(route.meta.layout as keyof typeof layouts) ?? 'main'])
 
 const globalStore = useGlobalStore()
-const { initSystemConfig: initPublicConfig } = globalStore
+const { initSystemConfig } = globalStore
 
 onMounted(() => {
-  initPublicConfig()
+  initSystemConfig()
 })
 </script>
 

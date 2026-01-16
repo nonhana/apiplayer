@@ -9,14 +9,11 @@ export interface UserBriefInfo {
 }
 
 export interface UserDetailInfo extends UserBriefInfo {
-  isActive: boolean
+  bio?: string
   lastLoginAt?: string
   createdAt: string
-}
-
-export interface UserFullInfo extends UserDetailInfo {
-  bio?: string
   updatedAt: string
+  isActive: boolean
 }
 
 export interface UpdateUserProfileReq {

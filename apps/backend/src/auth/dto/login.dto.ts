@@ -1,6 +1,6 @@
 import { Exclude, Expose, Type } from 'class-transformer'
 import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator'
-import { UserBriefInfoDto } from '@/common/dto/user.dto'
+import { UserDetailInfoDto } from '@/common/dto/user.dto'
 
 export class LoginReqDto {
   @IsEmail({}, { message: '请输入有效的邮箱地址' })
@@ -22,6 +22,6 @@ export class LoginResDto {
   token: string
 
   @Expose()
-  @Type(() => UserBriefInfoDto)
-  user: UserBriefInfoDto
+  @Type(() => UserDetailInfoDto)
+  user: UserDetailInfoDto
 }

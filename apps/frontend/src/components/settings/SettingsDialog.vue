@@ -35,12 +35,9 @@ watch(isOpen, (open) => {
 
 <template>
   <Dialog v-model:open="isOpen">
-    <DialogContent class="sm:max-w-4/5 h-200 p-0 gap-0">
-      <Tabs
-        v-model="activeTab"
-        orientation="vertical"
-      >
-        <aside class="w-48 border-r border-border bg-muted/30 flex flex-col">
+    <DialogContent class="sm:max-w-4/5 h-4/5 p-0 gap-0 overflow-hidden">
+      <Tabs v-model="activeTab" orientation="vertical" class="flex h-full w-full min-h-0">
+        <aside class="w-1/5 border-r border-border bg-muted/30 flex flex-col">
           <DialogHeader class="px-4 py-3 border-b border-border">
             <DialogTitle class="text-base">
               设置
@@ -64,17 +61,14 @@ watch(isOpen, (open) => {
             </TabsList>
           </ScrollArea>
         </aside>
-
-        <main class="flex-1 p-6">
-          <TabsContent
-            v-for="item in SETTINGS_MENU_ITEMS"
-            :key="item.value"
-            :value="item.value"
-            class="h-full"
-          >
-            <component :is="item.component" />
-          </TabsContent>
-        </main>
+        <TabsContent
+          v-for="item in SETTINGS_MENU_ITEMS"
+          :key="item.value"
+          :value="item.value"
+          class="flex-1 min-h-0 p-6"
+        >
+          <component :is="item.component" />
+        </TabsContent>
       </Tabs>
     </DialogContent>
   </Dialog>

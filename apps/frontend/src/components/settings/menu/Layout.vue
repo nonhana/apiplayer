@@ -8,19 +8,21 @@ defineProps<{
 </script>
 
 <template>
-  <div class="h-full relative flex flex-col gap-6">
-    <div class="h-12 flex flex-col justify-between">
+  <div class="h-full min-h-0 flex flex-col gap-6">
+    <header class="space-y-2">
       <h3 class="text-lg font-medium">
         {{ title }}
       </h3>
       <p class="text-sm text-muted-foreground">
         {{ description }}
       </p>
-    </div>
-    <ScrollArea class="h-170">
-      <slot />
+    </header>
+    <ScrollArea class="flex-1 min-h-0">
+      <div class="space-y-6 p-3">
+        <slot />
+      </div>
     </ScrollArea>
-    <footer class="absolute bottom-0 right-0">
+    <footer v-if="$slots.footer">
       <slot name="footer" />
     </footer>
   </div>
