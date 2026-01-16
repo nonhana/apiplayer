@@ -56,7 +56,7 @@ watch(
 <template>
   <aside class="w-64 shrink-0 border-r bg-muted/30">
     <div class="flex h-full flex-col">
-      <div class="px-4 py-4 border-b">
+      <div class="px-4 py-4 border-b space-y-1">
         <div class="text-sm font-semibold">
           我的团队
         </div>
