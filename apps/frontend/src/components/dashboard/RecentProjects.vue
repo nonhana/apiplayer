@@ -2,9 +2,7 @@
 import type { RecentProjectItem } from '@/types/project'
 import { Clock } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { projectApi } from '@/api/project'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Card,
   CardContent,
@@ -14,27 +12,12 @@ import {
 } from '@/components/ui/card'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import dayjs from '@/lib/dayjs'
-import { getAbbreviation } from '@/lib/utils'
-
-const router = useRouter()
+import RecentProjectCard from './RecentProjectCard.vue'
 
 const recentProjects = ref<RecentProjectItem[]>([])
 const isLoading = ref(true)
 
-const getLastVisitedAt = (date: string) => dayjs(date).fromNow()
-
 const hasRecentProjects = computed(() => recentProjects.value.length > 0)
-
-function handleEnterProject(projectId: string) {
-  router.push({ name: 'Workbench', params: { projectId } })
-}
 
 async function fetchRecentProjects() {
   isLoading.value = true
@@ -79,16 +62,16 @@ defineExpose({
           <div
             v-for="i in 4"
             :key="i"
-            class="shrink-0 w-50 p-3 rounded-lg border bg-card"
+            class="w-50 h-22 flex flex-col justify-between p-3 rounded-lg border bg-card"
           >
-            <div class="flex items-center gap-2 mb-2">
+            <div class="flex items-center gap-2">
               <Skeleton class="h-8 w-8 rounded-md" />
-              <div class="flex-1 space-y-1">
-                <Skeleton class="h-4 w-24" />
-                <Skeleton class="h-3 w-16" />
+              <div class="space-y-1">
+                <Skeleton class="h-5 w-24" />
+                <Skeleton class="h-4 w-16" />
               </div>
             </div>
-            <Skeleton class="h-3 w-full" />
+            <Skeleton class="h-4 w-full" />
           </div>
         </div>
         <ScrollBar orientation="horizontal" />
@@ -96,40 +79,11 @@ defineExpose({
 
       <ScrollArea v-else class="w-full">
         <div class="flex gap-3 pb-2">
-          <TooltipProvider v-for="project in recentProjects" :key="project.id">
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <button
-                  class="shrink-0 w-50 p-3 rounded-lg border bg-card text-left transition-all hover:shadow-sm hover:border-primary/20 hover:bg-accent/50"
-                  @click="handleEnterProject(project.id)"
-                >
-                  <div class="flex items-center gap-2 mb-2">
-                    <Avatar class="h-8 w-8 rounded-md border shadow-sm">
-                      <AvatarImage v-if="project.icon" :src="project.icon" />
-                      <AvatarFallback class="rounded-md text-xs font-bold bg-linear-to-br from-primary/20 to-primary/5 text-primary">
-                        {{ getAbbreviation(project.name, 'P') }}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-1">
-                        <span class="text-sm font-medium truncate">{{ project.name }}</span>
-                      </div>
-                      <p class="text-xs text-muted-foreground truncate">
-                        {{ project.team.name }}
-                      </p>
-                    </div>
-                  </div>
-                  <p class="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock class="h-3 w-3" />
-                    {{ getLastVisitedAt(project.lastVisitedAt) }}
-                  </p>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent v-if="project.description" side="bottom" class="max-w-75">
-                {{ project.description }}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <RecentProjectCard
+            v-for="project in recentProjects"
+            :key="project.id"
+            :project="project"
+          />
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>

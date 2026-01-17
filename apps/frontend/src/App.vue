@@ -14,7 +14,7 @@ const layouts = {
 
 const route = useRoute()
 
-const Layout = computed(() => layouts[(route.meta.layout as keyof typeof layouts) ?? 'main'])
+const Layout = computed(() => layouts[route.meta.layout as keyof typeof layouts])
 
 const globalStore = useGlobalStore()
 const { initSystemConfig } = globalStore
@@ -25,8 +25,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <Layout>
+  <component :is="Layout" v-if="Layout">
     <router-view />
-  </Layout>
+  </component>
   <Toaster />
 </template>
