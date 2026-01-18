@@ -45,11 +45,11 @@ function goDashboard() {
 </script>
 
 <template>
-  <header class="h-14 border-b border-border flex items-center px-6 sticky top-0 bg-background/95 backdrop-blur z-50">
+  <header class="h-12 border-b border-border flex items-center px-6 sticky top-0 bg-background/95 backdrop-blur z-50">
     <div class="flex items-center gap-4">
       <div class="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity select-none" @click="goDashboard">
-        <img src="/logo.svg" alt="ApiPlayer" class="w-8 h-8">
-        <span class="font-bold text-lg tracking-tight">ApiPlayer</span>
+        <img src="/logo.svg" alt="ApiPlayer" class="w-6 h-6">
+        <span class="font-bold tracking-tight">ApiPlayer</span>
       </div>
     </div>
 
