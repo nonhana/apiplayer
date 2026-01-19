@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
+import { computed, ref, watch } from 'vue'
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,8 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs'
-import { SETTINGS_MENU_ITEMS } from './constants'
+import { useUserStore } from '@/stores/useUserStore'
+import { getSettingsMenuItems } from './constants'
 
 const props = withDefaults(defineProps<{
   initialTab?: string
@@ -24,7 +26,16 @@ const props = withDefaults(defineProps<{
 
 const isOpen = defineModel<boolean>('open', { required: true })
 
-const activeTab = ref(props.initialTab || (SETTINGS_MENU_ITEMS[0]?.value ?? ''))
+const userStore = useUserStore()
+const { user } = storeToRefs(userStore)
+
+/** 当前用户是否为系统管理员 */
+const isAdmin = computed(() => user.value?.isAdmin ?? false)
+
+/** 根据用户权限获取可见的设置菜单项 */
+const menuItems = computed(() => getSettingsMenuItems(isAdmin.value))
+
+const activeTab = ref(props.initialTab || (menuItems.value[0]?.value ?? ''))
 
 watch(isOpen, (open) => {
   if (open && props.initialTab) {
@@ -49,7 +60,7 @@ watch(isOpen, (open) => {
           <ScrollArea class="flex-1">
             <TabsList class="flex flex-col h-auto w-full bg-transparent p-2 gap-1">
               <TabsTrigger
-                v-for="item in SETTINGS_MENU_ITEMS"
+                v-for="item in menuItems"
                 :key="item.value"
                 :value="item.value"
                 :disabled="item.disabled"
@@ -62,7 +73,7 @@ watch(isOpen, (open) => {
           </ScrollArea>
         </aside>
         <TabsContent
-          v-for="item in SETTINGS_MENU_ITEMS"
+          v-for="item in menuItems"
           :key="item.value"
           :value="item.value"
           class="flex-1 min-h-0 p-6"

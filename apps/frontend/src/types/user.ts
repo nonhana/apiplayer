@@ -14,6 +14,7 @@ export interface UserDetailInfo extends UserBriefInfo {
   createdAt: string
   updatedAt: string
   isActive: boolean
+  isAdmin: boolean
 }
 
 export interface UpdateUserProfileReq {

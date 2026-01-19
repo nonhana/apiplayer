@@ -37,6 +37,9 @@ export class UserDetailInfoDto extends UserBriefInfoDto {
 
   @Expose()
   isActive: boolean
+
+  @Expose()
+  isAdmin: boolean
 }
 
 @Exclude()
