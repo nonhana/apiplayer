@@ -38,15 +38,11 @@ export class UpdateConfigsReqDto {
   @IsInt({ message: '单个项目最大 API 数量必须是整数' })
   @Min(1, { message: '单个项目最大 API 数量不能小于 1' })
   @Max(10000, { message: '单个项目最大 API 数量不能大于 10000' })
-  [SystemConfigKey.PROJECT_MAX_APIS]: number
+  [SystemConfigKey.PROJECT_MAX_APIS]?: number
 
   @IsOptional()
-  @IsInt({ message: '单个 API 最大版本数量必须是整数' })
-  @Min(1, { message: '单个 API 最大版本数量不能小于 1' })
-  @Max(100, { message: '单个 API 最大版本数量不能大于 100' })
-  [SystemConfigKey.API_MAX_VERSIONS]?: number
-
-  @IsOptional()
-  @IsBoolean({ message: '是否自动递增 API 版本号必须是布尔值' })
-  [SystemConfigKey.API_VERSION_AUTO_INC]?: boolean
+  @IsInt({ message: '单个 API 最大修订记录数量必须是整数' })
+  @Min(1, { message: '单个 API 最大修订记录数量不能小于 1' })
+  @Max(100, { message: '单个 API 最大修订记录数量不能大于 100' })
+  [SystemConfigKey.API_MAX_REVISIONS]?: number
 }

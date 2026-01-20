@@ -1,7 +1,9 @@
+import { SystemConfigKey } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { SystemConfigService } from '@/infra/system-config/system-config.service'
 import { ProjectUtilsService } from '@/project/utils.service'
 import { UtilService } from '@/util/util.service'
 import {
@@ -23,6 +25,7 @@ export class ApiService {
     private readonly projectUtilsService: ProjectUtilsService,
     private readonly apiUtilsService: ApiUtilsService,
     private readonly utilService: UtilService,
+    private readonly systemConfigService: SystemConfigService,
   ) {}
 
   /** 创建 API */
@@ -30,6 +33,15 @@ export class ApiService {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.apiUtilsService.checkApiGroupExists(projectId, dto.groupId)
+
+      // SYSTEM: 检查项目 API 数量是否达到上限
+      const projectMaxApis = this.systemConfigService.get<number>(SystemConfigKey.PROJECT_MAX_APIS)
+      const projectApis = await this.prisma.aPI.count({
+        where: { projectId, recordStatus: 'ACTIVE' },
+      })
+      if (projectApis >= projectMaxApis) {
+        throw new HanaException('PROJECT_API_LIMIT_EXCEEDED')
+      }
 
       const created = await this.prisma.$transaction(async (tx) => {
         const api = await tx.aPI.create({

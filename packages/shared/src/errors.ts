@@ -76,6 +76,7 @@ export const errors = {
   API_VERSION_NOT_FOUND: { code: 50003, message: 'API 版本不存在', status: StatusCodes.NOT_FOUND },
   API_PATH_METHOD_CONFLICT: { code: 50004, message: '同一路径与方法的 API 已存在', status: StatusCodes.CONFLICT },
   API_VERSION_EXISTS: { code: 50005, message: '版本号已存在', status: StatusCodes.CONFLICT },
+  PROJECT_API_LIMIT_EXCEEDED: { code: 50006, message: '项目 API 数量已达上限', status: StatusCodes.FORBIDDEN },
 
   // 代理相关 60xxx
   PROXY_REQUEST_TIMEOUT: { code: 60001, message: '请求超时', status: StatusCodes.BAD_REQUEST },

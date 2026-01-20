@@ -12,10 +12,8 @@ export const SystemConfigKey = {
   INVITE_EXPIRES_DAYS: 'invite_expires_days',
   /** 单个项目最大 API 数量 */
   PROJECT_MAX_APIS: 'project_max_apis',
-  /** 单个 API 最大版本数量 */
-  API_MAX_VERSIONS: 'api_max_versions',
-  /** 是否自动递增 API 版本号 */
-  API_VERSION_AUTO_INC: 'api_version_auto_inc',
+  /** 单个 API 最大修订记录数量 */
+  API_MAX_REVISIONS: 'api_max_revisions',
 } as const
 export type SystemConfigKey = (typeof SystemConfigKey)[keyof typeof SystemConfigKey]
 
@@ -89,16 +87,10 @@ export const systemConfigMetadata = [
     description: '单个项目最大 API 数量',
   },
   {
-    key: SystemConfigKey.API_MAX_VERSIONS,
-    defaultValue: 300,
+    key: SystemConfigKey.API_MAX_REVISIONS,
+    defaultValue: 100,
     type: ConfigValueType.NUMBER,
-    description: '单个 API 最大版本数量',
-  },
-  {
-    key: SystemConfigKey.API_VERSION_AUTO_INC,
-    defaultValue: true,
-    type: ConfigValueType.BOOLEAN,
-    description: '是否自动递增 API 版本号',
+    description: '单个 API 最大修订记录数量',
   },
 ] as const satisfies readonly ConfigMetadata[]
 

@@ -1,8 +1,10 @@
+import { SystemConfigKey } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { TeamMemberWhereInput } from 'prisma/generated/models'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { SystemConfigService } from '@/infra/system-config/system-config.service'
 import { RoleService } from '@/role/role.service'
 import { UserService } from '@/user/user.service'
 import { InviteMembersReqDto, UpdateTeamMemberReqDto } from './dto'
@@ -17,6 +19,7 @@ export class TeamMemberService {
     private readonly teamUtilsService: TeamUtilsService,
     private readonly userService: UserService,
     private readonly roleService: RoleService,
+    private readonly systemConfigService: SystemConfigService,
   ) {}
 
   async inviteTeamMembers(dto: InviteMembersReqDto, teamId: string, inviterId: string) {
@@ -24,6 +27,15 @@ export class TeamMemberService {
 
     try {
       await this.teamUtilsService.getTeamById(teamId)
+
+      // SYSTEM: 检查团队成员数量是否达到上限
+      const teamMaxMembers = this.systemConfigService.get<number>(SystemConfigKey.TEAM_MAX_MEMBERS)
+      const teamMembers = await this.prisma.teamMember.count({
+        where: { teamId },
+      })
+      if (teamMembers >= teamMaxMembers) {
+        throw new HanaException('TEAM_MEMBER_LIMIT_EXCEEDED')
+      }
 
       // 批量获取所有要邀请的用户
       const users = await Promise.all(
