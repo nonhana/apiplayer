@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { CookieModule } from '@/cookie/cookie.module'
+import { EmailCodeModule } from '@/email-code/email-code.module'
 import { PrismaModule } from '@/infra/prisma/prisma.module'
 import { SystemConfigModule } from '@/infra/system-config/system-config.module'
 import { SessionModule } from '@/session/session.module'
@@ -13,6 +14,7 @@ import { AuthService } from './auth.service'
     PrismaModule,
     CookieModule,
     SystemConfigModule,
+    EmailCodeModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, AuthGuard],

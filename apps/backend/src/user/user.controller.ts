@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Query, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Patch, Query, UseGuards } from '@nestjs/common'
 import { plainToInstance } from 'class-transformer'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { UserDetailInfoDto } from '@/common/dto/user.dto'
@@ -27,14 +27,6 @@ export class UserController {
   ): Promise<UserDetailInfoDto> {
     const result = await this.userService.updateUserProfile(dto, userId)
     return plainToInstance(UserDetailInfoDto, result)
-  }
-
-  /** 发送用于敏感信息修改的邮箱验证码 */
-  @Post('profile/verification-code')
-  async sendProfileVerificationCode(
-    @ReqUser('id') userId: string,
-  ): Promise<void> {
-    await this.userService.sendProfileVerificationCode(userId)
   }
 
   /** 分页搜索用户 */

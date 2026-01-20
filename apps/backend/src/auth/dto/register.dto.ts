@@ -1,9 +1,14 @@
-import { IsEmail, IsNotEmpty, IsString, Length, Matches, MinLength } from 'class-validator'
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, Matches, MinLength } from 'class-validator'
 
 export class RegisterReqDto {
   @IsEmail({}, { message: '请输入有效的邮箱地址' })
   @IsNotEmpty({ message: '邮箱不能为空' })
   email: string
+
+  @IsOptional()
+  @IsString({ message: '验证码必须是字符串' })
+  @Length(6, 6, { message: '验证码长度必须是 6 位数字' })
+  verificationCode?: string
 
   @IsString({ message: '用户名必须是字符串' })
   @Length(3, 20, { message: '用户名长度必须在3-20位之间' })

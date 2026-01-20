@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import { useForm } from 'vee-validate'
 import { computed, onUnmounted, ref } from 'vue'
 import { toast } from 'vue-sonner'
+import { emailCodeApi } from '@/api/email-code'
 import { userApi } from '@/api/user'
 import { Button } from '@/components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -69,9 +70,16 @@ async function sendEmailCode() {
   if (isSendingCode.value || sendingCodeDisabled.value) {
     return
   }
+
+  const newEmail = form.values.newEmail
+  if (!newEmail) {
+    toast.error('请填写新邮箱')
+    return
+  }
+
   isSendingCode.value = true
   try {
-    await userApi.sendEmailCode()
+    await emailCodeApi.sendEmailCode(newEmail)
     startSendCodeTimer()
     toast.success('验证码已发送', {
       description: '请在 5 分钟内前往邮箱查收验证码。',

@@ -4,6 +4,7 @@ import type { JsonValue } from 'type-fest'
 import type { MailProvider } from '@/infra/email/email.types'
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common'
 import { Schema } from 'json-schema-faker'
+import { Public } from '@/common/decorators/public.decorator'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { UPLOADS_URL_PREFIX } from '@/constants/file-upload'
@@ -46,6 +47,7 @@ export class UtilController {
 
   /** 发送邮件 */
   @Post('email/send')
+  @Public()
   async sendEmail(
     @Body() body: SendEmailDto,
   ): Promise<{ id?: string, provider: MailProvider }> {
@@ -64,6 +66,7 @@ export class UtilController {
 
   /** 生成 Schema mock 数据 */
   @Post('schema-mock')
+  @Public()
   async getSchemaMock(
     @Body() body: Schema,
   ): Promise<JsonValue> {

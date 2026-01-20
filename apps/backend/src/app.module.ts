@@ -7,6 +7,7 @@ import { AllExceptionFilter } from './common/filters/all-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
 import { WinstonLogger } from './common/logger/winston-logger.service'
 import { CookieModule } from './cookie/cookie.module'
+import { EmailCodeModule } from './email-code/email-code.module'
 import { EnvConfigModule } from './infra/env-config/env-config.module'
 import { PrismaModule } from './infra/prisma/prisma.module'
 import { RedisModule } from './infra/redis/redis.module'
@@ -38,6 +39,7 @@ import { UtilModule } from './util/util.module'
     ApiModule,
     UtilModule,
     ProxyModule,
+    EmailCodeModule,
   ],
   controllers: [AppController],
   providers: [

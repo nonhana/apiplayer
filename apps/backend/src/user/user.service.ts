@@ -1,36 +1,21 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
-import Redis from 'ioredis'
+import { Injectable, Logger } from '@nestjs/common'
 import { UserUpdateInput, UserWhereInput } from 'prisma/generated/models'
 import { AuthService } from '@/auth/auth.service'
 import { HanaException } from '@/common/exceptions/hana.exception'
+import { EmailCodeService } from '@/email-code/email-code.service'
 import { PrismaService } from '@/infra/prisma/prisma.service'
-import { REDIS_CLIENT } from '@/infra/redis/redis.module'
-import { UtilService } from '@/util/util.service'
 import { SearchUsersReqDto } from './dto/search-users.dto'
 import { UpdateUserProfileReqDto } from './dto/update-profile.dto'
 
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name)
-  private readonly verificationCodeTTL = 5 * 60 // 5 分钟，单位：秒
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly authService: AuthService,
-    private readonly utilService: UtilService,
-    @Inject(REDIS_CLIENT) private readonly redisClient: Redis,
+    private readonly emailCodeService: EmailCodeService,
   ) {}
-
-  /** 生成用于安全操作的邮箱验证码 */
-  private generateVerificationCode(): string {
-    const code = Math.floor(100000 + Math.random() * 900000)
-    return code.toString()
-  }
-
-  /** 获取用户验证码在 Redis 中的 key */
-  private getVerificationCodeKey(userId: string): string {
-    return `user:profile:verification:${userId}`
-  }
 
   /** 获取用户详细资料 */
   async getUserProfile(userId: string) {
@@ -49,46 +34,6 @@ export class UserService {
       if (error instanceof HanaException) {
         throw error
       }
-      throw new HanaException('INTERNAL_SERVER_ERROR')
-    }
-  }
-
-  /** 发送用于修改邮箱 / 密码等敏感信息的邮箱验证码 */
-  async sendProfileVerificationCode(userId: string) {
-    try {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-      })
-
-      if (!user) {
-        throw new HanaException('USER_NOT_FOUND')
-      }
-
-      if (!user.isActive) {
-        throw new HanaException('ACCOUNT_DISABLED')
-      }
-
-      const code = this.generateVerificationCode()
-      const key = this.getVerificationCodeKey(userId)
-
-      // 将验证码写入 Redis，并设置过期时间
-      await this.redisClient.setex(key, this.verificationCodeTTL, code)
-
-      // 通过统一的邮件发送服务发送验证码
-      await this.utilService.sendMail({
-        to: user.email,
-        subject: '【Apiplayer】账号安全验证码',
-        text: `你的验证码是 ${code} ，5 分钟内有效。如非本人操作，请忽略本邮件。`,
-        html: `<p>你的验证码是 <strong>${code}</strong> ，5 分钟内有效。</p><p>如果不是你本人操作，请尽快检查账号安全。</p>`,
-      })
-
-      this.logger.log(`为用户 ${user.id} 发送了邮箱验证码`)
-    }
-    catch (error) {
-      if (error instanceof HanaException) {
-        throw error
-      }
-      this.logger.error('发送邮箱验证码失败:', error)
       throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
@@ -126,16 +71,7 @@ export class UserService {
         if (!verificationCode) {
           throw new HanaException('INVALID_VERIFICATION_CODE')
         }
-
-        const key = this.getVerificationCodeKey(userId)
-        const storedCode = await this.redisClient.get(key)
-
-        if (!storedCode || storedCode !== verificationCode) {
-          throw new HanaException('INVALID_VERIFICATION_CODE')
-        }
-
-        // 校验通过后立即失效，防止重复使用
-        await this.redisClient.del(key)
+        await this.emailCodeService.verifyEmailCode(user.email, verificationCode)
       }
 
       const updateData: UserUpdateInput = {}

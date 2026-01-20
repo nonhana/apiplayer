@@ -4,6 +4,7 @@ import { compare, hash } from 'bcrypt'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { DEFAULT_COOKIE_MAX_AGE, REMEMBER_ME_COOKIE_MAX_AGE } from '@/constants/cookie'
 import { RoleName } from '@/constants/role'
+import { EmailCodeService } from '@/email-code/email-code.service'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SystemConfigService } from '@/infra/system-config/system-config.service'
 import { SessionService } from '@/session/session.service'
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly sessionService: SessionService,
     private readonly systemConfigService: SystemConfigService,
+    private readonly emailCodeService: EmailCodeService,
   ) {}
 
   /** 对密码进行哈希处理 */
@@ -209,14 +211,25 @@ export class AuthService {
 
   /** 用户注册 */
   async register(dto: RegisterReqDto) {
-    const registerEnabled = this.systemConfigService.get<boolean>(SystemConfigKey.REGISTER_ENABLED)
-    if (!registerEnabled) {
-      throw new HanaException('REGISTER_DISABLED')
-    }
-
-    const { email, username, name, password, confirmPassword } = dto
+    const { email, verificationCode, username, name, password, confirmPassword } = dto
 
     try {
+      // 系统配置校验
+    // 1. 是否允许注册
+      const registerEnabled = this.systemConfigService.get<boolean>(SystemConfigKey.REGISTER_ENABLED)
+      if (!registerEnabled) {
+        throw new HanaException('REGISTER_DISABLED')
+      }
+
+      // 2. 是否需要邮箱验证
+      const registerEmailVerify = this.systemConfigService.get<boolean>(SystemConfigKey.REGISTER_EMAIL_VERIFY)
+      if (registerEmailVerify) {
+        if (!verificationCode) {
+          throw new HanaException('REGISTER_EMAIL_VERIFY_REQUIRED')
+        }
+        await this.emailCodeService.verifyEmailCode(email, verificationCode)
+      }
+
       // 验证密码确认
       if (password !== confirmPassword) {
         throw new HanaException('PASSWORD_MISMATCH')

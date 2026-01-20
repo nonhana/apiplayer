@@ -8,6 +8,9 @@ export const registerFormSchema = toTypedSchema(z.object({
   email: z.string({ required_error: '请填写邮箱' })
     .min(1, '请填写邮箱')
     .email('请输入有效的邮箱地址'),
+  verificationCode: z.string()
+    .length(6, '验证码需为 6 位数字')
+    .optional(),
   username: z.string({ required_error: '请填写用户名' })
     .min(3, '用户名需至少 3 个字符')
     .max(20, '用户名不能超过 20 个字符')
