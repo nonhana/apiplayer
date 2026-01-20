@@ -80,28 +80,31 @@ router.beforeEach((to, _, next) => {
   const globalStore = useGlobalStore()
 
   const isPublicRoute = PUBLIC_ROUTES.includes(to.name as string)
-  const goToDashboard = AUTH_REDIRECT_ROUTES.includes(to.name as string)
+  const shouldRedirectToDashboard = AUTH_REDIRECT_ROUTES.includes(to.name as string)
 
-  if (userStore.isAuthenticated && goToDashboard) {
-    next({ name: 'Dashboard' })
-  }
-  else if (isPublicRoute) {
-    next()
-  }
-  else if (userStore.isAuthenticated) {
-    next()
-  }
-  else {
-    next({ name: 'Login' })
+  // 1. 已认证用户访问登录/注册等页面 → 重定向到 Dashboard
+  if (userStore.isAuthenticated && shouldRedirectToDashboard) {
+    return next({ name: 'Dashboard' })
   }
 
+  // 2. 注册页面但注册功能已关闭 → 重定向到登录
   if (to.name === 'Register' && !globalStore.systemConfig.register_enabled) {
-    next({ name: 'Login' })
     toast.error('注册功能已关闭', { description: '请联系管理员注册新账号' })
+    return next({ name: 'Login' })
   }
-  else {
-    next()
+
+  // 3. 公开路由 → 直接放行
+  if (isPublicRoute) {
+    return next()
   }
+
+  // 4. 已认证用户 → 放行
+  if (userStore.isAuthenticated) {
+    return next()
+  }
+
+  // 5. 未认证用户访问受保护路由 → 重定向到登录
+  return next({ name: 'Login' })
 })
 
 export default router
