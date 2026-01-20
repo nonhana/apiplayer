@@ -86,7 +86,7 @@ defineExpose({
           <div class="flex items-center gap-2 text-xs">
             <span class="text-muted-foreground">当前:</span>
             <span class="font-mono font-semibold text-primary">
-              v{{ currentVersion.version }}
+              {{ currentVersion.version }}
             </span>
           </div>
         </div>
@@ -103,7 +103,7 @@ defineExpose({
                 versionStatusDotColors[version.status],
               )"
             />
-            <span class="font-mono text-xs">v{{ version.version }}</span>
+            <span class="font-mono text-xs">{{ version.version }}</span>
             <span class="text-xs text-muted-foreground">
               {{ versionStatusLabels[version.status] }}
             </span>

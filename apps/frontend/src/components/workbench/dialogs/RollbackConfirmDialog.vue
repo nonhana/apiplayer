@@ -71,7 +71,7 @@ watch(isOpen, (open) => {
           >
             <div class="flex items-center gap-2">
               <span class="font-mono font-semibold text-foreground">
-                v{{ version.version }}
+                {{ version.version }}
               </span>
               <Badge
                 variant="outline"

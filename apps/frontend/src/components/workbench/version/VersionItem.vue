@@ -92,7 +92,7 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
     <div class="flex-1 min-w-0 space-y-2">
       <div class="flex items-center gap-2">
         <span class="font-mono font-semibold text-sm">
-          v{{ version.version }}
+          {{ version.version }}
         </span>
         <Badge
           variant="outline"

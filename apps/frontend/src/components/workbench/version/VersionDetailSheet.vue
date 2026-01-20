@@ -135,7 +135,7 @@ watch(isOpen, (open) => {
           <div class="flex-1">
             <SheetTitle class="flex items-center gap-2">
               <span v-if="versionDetail" class="font-mono">
-                v{{ versionDetail.version }}
+                {{ versionDetail.version }}
               </span>
               <span v-else>版本详情</span>
 

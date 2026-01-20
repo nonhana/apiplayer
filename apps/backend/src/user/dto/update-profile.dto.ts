@@ -19,7 +19,7 @@ export class UpdateUserProfileReqDto {
 
   /** 头像地址 */
   @IsOptional()
-  @IsUrl({}, { message: '头像地址必须是有效的 URL' })
+  @IsUrl({ require_tld: false }, { message: '头像地址必须是有效的 URL' })
   avatar?: string
 
   /** 个性签名 / 个人简介 */
