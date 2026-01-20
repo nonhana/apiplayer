@@ -72,7 +72,12 @@ const onSubmit = form.handleSubmit(async (values) => {
     <form id="system-config-form" class="space-y-6" @submit="onSubmit">
       <template v-for="(item, index) in systemConfigArr" :key="item.key">
         <Item :label="item.description">
-          <FormField v-slot="{ componentField, value }" type="checkbox" :name="item.key">
+          <FormField
+            v-slot="{ componentField, value }"
+            :name="item.key"
+            :type="item.type === 'boolean' ? 'checkbox' : undefined"
+            :unchecked-value="item.type === 'boolean' ? false : undefined"
+          >
             <FormItem>
               <div class="flex items-center justify-between">
                 <FormLabel class="text-xs text-muted-foreground font-mono">

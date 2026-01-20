@@ -1,6 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
+import { toast } from 'vue-sonner'
 import { AUTH_REDIRECT_ROUTES, PUBLIC_ROUTES } from '@/constants'
+import { useGlobalStore } from '@/stores/useGlobalStore'
 import { useUserStore } from '@/stores/useUserStore'
 
 const routes: RouteRecordRaw[] = [
@@ -75,6 +77,8 @@ const router = createRouter({
 
 router.beforeEach((to, _, next) => {
   const userStore = useUserStore()
+  const globalStore = useGlobalStore()
+
   const isPublicRoute = PUBLIC_ROUTES.includes(to.name as string)
   const goToDashboard = AUTH_REDIRECT_ROUTES.includes(to.name as string)
 
@@ -89,6 +93,14 @@ router.beforeEach((to, _, next) => {
   }
   else {
     next({ name: 'Login' })
+  }
+
+  if (to.name === 'Register' && !globalStore.systemConfig.register_enabled) {
+    next({ name: 'Login' })
+    toast.error('注册功能已关闭', { description: '请联系管理员注册新账号' })
+  }
+  else {
+    next()
   }
 })
 

@@ -50,7 +50,7 @@ export class SystemConfigController {
 
   /** 获取所有配置详细信息列表 */
   @Get('all-with-metadata')
-  @RequireSystemAdmin()
+  @Public()
   async getConfigsDetail(): Promise<SystemConfigItemDto[]> {
     const result = this.systemConfigService.getAllWithMetadata()
     return plainToInstance(SystemConfigItemDto, result)

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Loader2 } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
 import { Button } from '@/components/ui/button'
@@ -7,10 +8,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from '@/components/ui/checkbox'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { useGlobalStore } from '@/stores/useGlobalStore'
 import { useUserStore } from '@/stores/useUserStore'
 import { loginFormSchema } from '@/validators/login'
 
 const userStore = useUserStore()
+
+const globalStore = useGlobalStore()
+const { systemConfig } = storeToRefs(globalStore)
+
 const isLoading = ref(false)
 
 const form = useForm({
@@ -80,7 +86,7 @@ const onSubmit = form.handleSubmit(async (values) => {
         </Button>
       </form>
     </CardContent>
-    <CardFooter class="flex justify-center">
+    <CardFooter v-if="systemConfig.register_enabled" class="flex justify-center">
       <div class="text-sm text-muted-foreground">
         还没有账号？
         <router-link to="/auth/register" class="text-primary hover:underline">

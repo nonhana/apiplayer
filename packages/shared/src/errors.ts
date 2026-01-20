@@ -23,6 +23,7 @@ export const errors = {
   PASSWORD_MISMATCH: { code: 10011, message: '两次密码输入不一致', status: StatusCodes.BAD_REQUEST },
   SESSION_EXPIRED: { code: 10012, message: 'Session已过期或无效', status: StatusCodes.UNAUTHORIZED },
   SESSION_FORBIDDEN: { code: 10013, message: '无权限操作此Session', status: StatusCodes.FORBIDDEN },
+  REGISTER_DISABLED: { code: 10014, message: '注册功能已关闭', status: StatusCodes.FORBIDDEN },
 
   // 权限相关 20xxx
   INSUFFICIENT_PERMISSIONS: { code: 20001, message: '权限不足', status: StatusCodes.FORBIDDEN },

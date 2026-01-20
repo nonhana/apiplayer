@@ -2,7 +2,7 @@
 import type { ProjectVisibility } from '@/constants'
 import type { ProjectItem } from '@/types/project'
 import { FolderKanban, Inbox, Plus, RefreshCw, Search } from 'lucide-vue-next'
-import { computed, onMounted, ref, useTemplateRef, watch } from 'vue'
+import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import { projectApi } from '@/api/project'
 import CreateTeamDialog from '@/components/dashboard/dialogs/CreateTeamDialog.vue'
 import DeleteProjectDialog from '@/components/dashboard/dialogs/DeleteProjectDialog.vue'
@@ -133,13 +133,6 @@ function handleProjectDeleted(projectId: string) {
   projectToDelete.value = null
   recentProjectsRef.value?.refresh()
 }
-
-watch(
-  () => teamStore.curTeamId,
-  () => {
-    fetchProjects()
-  },
-)
 
 onMounted(() => {
   fetchProjects()

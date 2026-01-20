@@ -1,9 +1,11 @@
+import { SystemConfigKey } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { compare, hash } from 'bcrypt'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { DEFAULT_COOKIE_MAX_AGE, REMEMBER_ME_COOKIE_MAX_AGE } from '@/constants/cookie'
 import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { SystemConfigService } from '@/infra/system-config/system-config.service'
 import { SessionService } from '@/session/session.service'
 import { CheckAvailabilityReqDto, LoginReqDto, RegisterReqDto } from './dto'
 
@@ -15,6 +17,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sessionService: SessionService,
+    private readonly systemConfigService: SystemConfigService,
   ) {}
 
   /** 对密码进行哈希处理 */
@@ -206,6 +209,11 @@ export class AuthService {
 
   /** 用户注册 */
   async register(dto: RegisterReqDto) {
+    const registerEnabled = this.systemConfigService.get<boolean>(SystemConfigKey.REGISTER_ENABLED)
+    if (!registerEnabled) {
+      throw new HanaException('REGISTER_DISABLED')
+    }
+
     const { email, username, name, password, confirmPassword } = dto
 
     try {
