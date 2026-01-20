@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import type { ConfigDetailItem } from '@/types/system-config'
+import type { SystemConfigKey } from '@apiplayer/shared'
 import { AlertTriangle, Loader2, RotateCcw } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { useForm } from 'vee-validate'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { systemConfigApi } from '@/api/system-config'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -20,47 +20,24 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { useGlobalStore } from '@/stores/useGlobalStore'
+import { systemConfigFormSchema } from '@/validators/system'
 import Item from './Item.vue'
 import Layout from './Layout.vue'
 
 const globalStore = useGlobalStore()
-const { systemConfig } = storeToRefs(globalStore)
+const { systemConfig, systemConfigArr } = storeToRefs(globalStore)
+const { initSystemConfig } = globalStore
 
-const isLoading = ref(true)
 const isSaving = ref(false)
-const loadError = ref<string | null>(null)
 
-const configItems = ref<ConfigDetailItem[]>([])
-
-const form = useForm({})
-
-/** 加载系统配置 */
-async function loadConfigs() {
-  isLoading.value = true
-  loadError.value = null
-  try {
-    const data = await systemConfigApi.getConfigsDetail()
-    configItems.value = data
-
-    // 初始化表单值
-    const initialValues: Record<string, unknown> = {}
-    for (const item of data) {
-      initialValues[item.key] = item.value
-    }
-    form.resetForm({ values: initialValues })
-  }
-  catch (error) {
-    console.error('加载系统配置失败', error)
-    loadError.value = '加载系统配置失败，请稍后重试'
-  }
-  finally {
-    isLoading.value = false
-  }
-}
+const form = useForm({
+  validationSchema: systemConfigFormSchema,
+  initialValues: { ...systemConfig.value },
+})
 
 /** 重置为默认值 */
-function handleResetToDefault(key: string, defaultValue: unknown) {
-  form.setFieldValue(key, defaultValue)
+function handleResetToDefault(key: SystemConfigKey, defaultValue: any) {
+  form.setFieldValue<any>(key, defaultValue)
 }
 
 /** 提交保存 */
@@ -71,7 +48,7 @@ const onSubmit = form.handleSubmit(async (values) => {
     toast.success('系统配置已保存')
 
     // 重新加载以确保数据同步
-    await loadConfigs()
+    await initSystemConfig()
   }
   catch (error) {
     console.error('保存系统配置失败', error)
@@ -79,10 +56,6 @@ const onSubmit = form.handleSubmit(async (values) => {
   finally {
     isSaving.value = false
   }
-})
-
-onMounted(() => {
-  loadConfigs()
 })
 </script>
 
@@ -95,27 +68,11 @@ onMounted(() => {
       </AlertDescription>
     </Alert>
 
-    <!-- 加载状态 -->
-    <div v-if="isLoading" class="flex items-center justify-center py-12">
-      <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
-    </div>
-
-    <!-- 加载错误 -->
-    <div v-else-if="loadError" class="text-center py-12">
-      <p class="text-destructive mb-4">
-        {{ loadError }}
-      </p>
-      <Button variant="outline" @click="loadConfigs">
-        <RotateCcw class="h-4 w-4 mr-2" />
-        重试
-      </Button>
-    </div>
-
     <!-- 配置表单 -->
-    <form v-else id="system-config-form" class="space-y-6" @submit="onSubmit">
-      <template v-for="(item, index) in configItems" :key="item.key">
+    <form id="system-config-form" class="space-y-6" @submit="onSubmit">
+      <template v-for="(item, index) in systemConfigArr" :key="item.key">
         <Item :label="item.description">
-          <FormField v-slot="{ componentField, value }" :name="item.key">
+          <FormField v-slot="{ componentField, value }" type="checkbox" :name="item.key">
             <FormItem>
               <div class="flex items-center justify-between">
                 <FormLabel class="text-xs text-muted-foreground font-mono">
@@ -136,10 +93,7 @@ onMounted(() => {
               <FormControl>
                 <!-- 布尔类型：开关 -->
                 <div v-if="item.type === 'boolean'" class="flex items-center gap-3">
-                  <Switch
-                    :model-value="Boolean(value)"
-                    @update:model-value="form.setFieldValue(item.key, $event)"
-                  />
+                  <Switch v-bind="componentField" />
                   <span class="text-sm text-muted-foreground">
                     {{ value ? '已启用' : '已禁用' }}
                   </span>
@@ -168,8 +122,7 @@ onMounted(() => {
                 <Input
                   v-else-if="item.type === 'number'"
                   type="number"
-                  :model-value="Number(value)"
-                  @update:model-value="form.setFieldValue(item.key, Number($event))"
+                  v-bind="componentField"
                 />
 
                 <!-- 字符串类型：文本输入 -->
@@ -185,7 +138,7 @@ onMounted(() => {
             </FormItem>
           </FormField>
         </Item>
-        <Separator v-if="index < configItems.length - 1" />
+        <Separator v-if="index < systemConfigArr.length - 1" />
       </template>
     </form>
 
@@ -193,7 +146,7 @@ onMounted(() => {
       <Button
         form="system-config-form"
         type="submit"
-        :disabled="isSaving || isLoading"
+        :disabled="isSaving"
       >
         <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
         保存系统设置

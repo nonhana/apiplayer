@@ -1,21 +1,21 @@
 /** 配置键名 */
 export const SystemConfigKey = {
   /** 是否允许用户注册 */
-  REGISTER_ENABLED: 'register.enabled',
+  REGISTER_ENABLED: 'register_enabled',
   /** 注册时是否需要邮箱验证 */
-  REGISTER_EMAIL_VERIFY: 'register.email_verify',
+  REGISTER_EMAIL_VERIFY: 'register_email_verify',
   /** 团队最大成员数量 */
-  TEAM_MAX_MEMBERS: 'team.max_members',
+  TEAM_MAX_MEMBERS: 'team_max_members',
   /** 团队邀请模式 */
-  INVITE_MODE: 'invite.mode',
+  INVITE_MODE: 'invite_mode',
   /** 邀请链接过期天数 */
-  INVITE_EXPIRES_DAYS: 'invite.expires_days',
+  INVITE_EXPIRES_DAYS: 'invite_expires_days',
   /** 单个项目最大 API 数量 */
-  PROJECT_MAX_APIS: 'project.max_apis',
+  PROJECT_MAX_APIS: 'project_max_apis',
   /** 单个 API 最大版本数量 */
-  API_MAX_VERSIONS: 'api.max_versions',
+  API_MAX_VERSIONS: 'api_max_versions',
   /** 是否自动递增 API 版本号 */
-  API_VERSION_AUTO_INC: 'api.version.auto_inc',
+  API_VERSION_AUTO_INC: 'api_version_auto_inc',
 } as const
 export type SystemConfigKey = (typeof SystemConfigKey)[keyof typeof SystemConfigKey]
 
@@ -84,13 +84,13 @@ export const systemConfigMetadata = [
   },
   {
     key: SystemConfigKey.PROJECT_MAX_APIS,
-    defaultValue: 1000,
+    defaultValue: 500,
     type: ConfigValueType.NUMBER,
     description: '单个项目最大 API 数量',
   },
   {
     key: SystemConfigKey.API_MAX_VERSIONS,
-    defaultValue: 100,
+    defaultValue: 300,
     type: ConfigValueType.NUMBER,
     description: '单个 API 最大版本数量',
   },
