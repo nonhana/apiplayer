@@ -7,7 +7,10 @@ export class ApiVersionBriefDto {
   id: string
 
   @Expose()
-  version: string
+  revision: number
+
+  @Expose()
+  version?: string
 
   @Expose()
   status: VersionStatus

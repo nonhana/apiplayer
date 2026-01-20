@@ -284,6 +284,7 @@ export type APIScalarFieldEnum = (typeof APIScalarFieldEnum)[keyof typeof APISca
 
 export const APIVersionScalarFieldEnum = {
   id: 'id',
+  revision: 'revision',
   version: 'version',
   status: 'status',
   summary: 'summary',

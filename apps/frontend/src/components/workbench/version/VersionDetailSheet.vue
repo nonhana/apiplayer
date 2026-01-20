@@ -39,6 +39,7 @@ const props = defineProps<{
   apiId: string
   versionId: string | null
   isCurrent?: boolean
+  canPublish?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -66,7 +67,14 @@ const publishedTimeFormatted = computed(() => {
   return dayjs(versionDetail.value.publishedAt).format('YYYY-MM-DD HH:mm:ss')
 })
 
-const canPublish = computed(() => versionDetail.value?.status === 'DRAFT')
+const versionLabel = computed(() => {
+  if (!versionDetail.value)
+    return ''
+  return versionDetail.value.version ?? `#${versionDetail.value.revision}`
+})
+const showPublishBtn = computed(() =>
+  versionDetail.value?.status === 'DRAFT' && props.canPublish,
+)
 const canArchive = computed(() => versionDetail.value?.status !== 'ARCHIVED')
 const canRollback = computed(() => versionDetail.value?.status === 'ARCHIVED')
 
@@ -135,7 +143,7 @@ watch(isOpen, (open) => {
           <div class="flex-1">
             <SheetTitle class="flex items-center gap-2">
               <span v-if="versionDetail" class="font-mono">
-                {{ versionDetail.version }}
+                {{ versionLabel }}
               </span>
               <span v-else>版本详情</span>
 
@@ -346,7 +354,7 @@ watch(isOpen, (open) => {
         </Button>
 
         <Button
-          v-if="canPublish"
+          v-if="showPublishBtn"
           @click="emits('publish')"
         >
           <Rocket class="h-4 w-4 mr-2" />

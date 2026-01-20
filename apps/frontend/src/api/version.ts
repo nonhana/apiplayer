@@ -3,6 +3,7 @@ import type {
   ApiVersionDetail,
   ApiVersionsResponse,
   CreateVersionReq,
+  PublishVersionReq,
 } from '@/types/version'
 import http from '@/service'
 
@@ -20,9 +21,9 @@ export const versionApi = {
   createDraftVersion: (projectId: string, apiId: string, data: CreateVersionReq) =>
     http.post(`api/${projectId}/apis/${apiId}/versions`, { json: data }).json<ApiVersionDetail>(),
 
-  /** 发布版本 */
-  publishVersion: (projectId: string, apiId: string, versionId: string) =>
-    http.post(`api/${projectId}/apis/${apiId}/versions/${versionId}/publish`).json<void>(),
+  /** 发布版本（需要填写版本号） */
+  publishVersion: (projectId: string, apiId: string, versionId: string, data: PublishVersionReq) =>
+    http.post(`api/${projectId}/apis/${apiId}/versions/${versionId}/publish`, { json: data }).json<void>(),
 
   /** 归档版本 */
   archiveVersion: (projectId: string, apiId: string, versionId: string) =>

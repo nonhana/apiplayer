@@ -20,12 +20,23 @@ export type APIVersionModel = runtime.Types.Result.DefaultSelection<Prisma.$APIV
 
 export type AggregateAPIVersion = {
   _count: APIVersionCountAggregateOutputType | null
+  _avg: APIVersionAvgAggregateOutputType | null
+  _sum: APIVersionSumAggregateOutputType | null
   _min: APIVersionMinAggregateOutputType | null
   _max: APIVersionMaxAggregateOutputType | null
 }
 
+export type APIVersionAvgAggregateOutputType = {
+  revision: number | null
+}
+
+export type APIVersionSumAggregateOutputType = {
+  revision: number | null
+}
+
 export type APIVersionMinAggregateOutputType = {
   id: string | null
+  revision: number | null
   version: string | null
   status: $Enums.VersionStatus | null
   summary: string | null
@@ -39,6 +50,7 @@ export type APIVersionMinAggregateOutputType = {
 
 export type APIVersionMaxAggregateOutputType = {
   id: string | null
+  revision: number | null
   version: string | null
   status: $Enums.VersionStatus | null
   summary: string | null
@@ -52,6 +64,7 @@ export type APIVersionMaxAggregateOutputType = {
 
 export type APIVersionCountAggregateOutputType = {
   id: number
+  revision: number
   version: number
   status: number
   summary: number
@@ -66,8 +79,17 @@ export type APIVersionCountAggregateOutputType = {
 }
 
 
+export type APIVersionAvgAggregateInputType = {
+  revision?: true
+}
+
+export type APIVersionSumAggregateInputType = {
+  revision?: true
+}
+
 export type APIVersionMinAggregateInputType = {
   id?: true
+  revision?: true
   version?: true
   status?: true
   summary?: true
@@ -81,6 +103,7 @@ export type APIVersionMinAggregateInputType = {
 
 export type APIVersionMaxAggregateInputType = {
   id?: true
+  revision?: true
   version?: true
   status?: true
   summary?: true
@@ -94,6 +117,7 @@ export type APIVersionMaxAggregateInputType = {
 
 export type APIVersionCountAggregateInputType = {
   id?: true
+  revision?: true
   version?: true
   status?: true
   summary?: true
@@ -145,6 +169,18 @@ export type APIVersionAggregateArgs<ExtArgs extends runtime.Types.Extensions.Int
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: APIVersionAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: APIVersionSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: APIVersionMinAggregateInputType
@@ -175,13 +211,16 @@ export type APIVersionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   _count?: APIVersionCountAggregateInputType | true
+  _avg?: APIVersionAvgAggregateInputType
+  _sum?: APIVersionSumAggregateInputType
   _min?: APIVersionMinAggregateInputType
   _max?: APIVersionMaxAggregateInputType
 }
 
 export type APIVersionGroupByOutputType = {
   id: string
-  version: string
+  revision: number
+  version: string | null
   status: $Enums.VersionStatus
   summary: string | null
   changelog: string | null
@@ -192,6 +231,8 @@ export type APIVersionGroupByOutputType = {
   apiId: string
   projectId: string
   _count: APIVersionCountAggregateOutputType | null
+  _avg: APIVersionAvgAggregateOutputType | null
+  _sum: APIVersionSumAggregateOutputType | null
   _min: APIVersionMinAggregateOutputType | null
   _max: APIVersionMaxAggregateOutputType | null
 }
@@ -216,7 +257,8 @@ export type APIVersionWhereInput = {
   OR?: Prisma.APIVersionWhereInput[]
   NOT?: Prisma.APIVersionWhereInput | Prisma.APIVersionWhereInput[]
   id?: Prisma.StringFilter<"APIVersion"> | string
-  version?: Prisma.StringFilter<"APIVersion"> | string
+  revision?: Prisma.IntFilter<"APIVersion"> | number
+  version?: Prisma.StringNullableFilter<"APIVersion"> | string | null
   status?: Prisma.EnumVersionStatusFilter<"APIVersion"> | $Enums.VersionStatus
   summary?: Prisma.StringNullableFilter<"APIVersion"> | string | null
   changelog?: Prisma.StringNullableFilter<"APIVersion"> | string | null
@@ -235,7 +277,8 @@ export type APIVersionWhereInput = {
 
 export type APIVersionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  version?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
+  version?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   summary?: Prisma.SortOrderInput | Prisma.SortOrder
   changelog?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -254,11 +297,13 @@ export type APIVersionOrderByWithRelationInput = {
 
 export type APIVersionWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  apiId_revision?: Prisma.APIVersionApiIdRevisionCompoundUniqueInput
   apiId_version?: Prisma.APIVersionApiIdVersionCompoundUniqueInput
   AND?: Prisma.APIVersionWhereInput | Prisma.APIVersionWhereInput[]
   OR?: Prisma.APIVersionWhereInput[]
   NOT?: Prisma.APIVersionWhereInput | Prisma.APIVersionWhereInput[]
-  version?: Prisma.StringFilter<"APIVersion"> | string
+  revision?: Prisma.IntFilter<"APIVersion"> | number
+  version?: Prisma.StringNullableFilter<"APIVersion"> | string | null
   status?: Prisma.EnumVersionStatusFilter<"APIVersion"> | $Enums.VersionStatus
   summary?: Prisma.StringNullableFilter<"APIVersion"> | string | null
   changelog?: Prisma.StringNullableFilter<"APIVersion"> | string | null
@@ -273,11 +318,12 @@ export type APIVersionWhereUniqueInput = Prisma.AtLeast<{
   editor?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   currentOfAPI?: Prisma.XOR<Prisma.APINullableScalarRelationFilter, Prisma.APIWhereInput> | null
   snapshot?: Prisma.XOR<Prisma.APISnapshotNullableScalarRelationFilter, Prisma.APISnapshotWhereInput> | null
-}, "id" | "apiId_version">
+}, "id" | "apiId_revision" | "apiId_version">
 
 export type APIVersionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  version?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
+  version?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   summary?: Prisma.SortOrderInput | Prisma.SortOrder
   changelog?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -288,8 +334,10 @@ export type APIVersionOrderByWithAggregationInput = {
   apiId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   _count?: Prisma.APIVersionCountOrderByAggregateInput
+  _avg?: Prisma.APIVersionAvgOrderByAggregateInput
   _max?: Prisma.APIVersionMaxOrderByAggregateInput
   _min?: Prisma.APIVersionMinOrderByAggregateInput
+  _sum?: Prisma.APIVersionSumOrderByAggregateInput
 }
 
 export type APIVersionScalarWhereWithAggregatesInput = {
@@ -297,7 +345,8 @@ export type APIVersionScalarWhereWithAggregatesInput = {
   OR?: Prisma.APIVersionScalarWhereWithAggregatesInput[]
   NOT?: Prisma.APIVersionScalarWhereWithAggregatesInput | Prisma.APIVersionScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"APIVersion"> | string
-  version?: Prisma.StringWithAggregatesFilter<"APIVersion"> | string
+  revision?: Prisma.IntWithAggregatesFilter<"APIVersion"> | number
+  version?: Prisma.StringNullableWithAggregatesFilter<"APIVersion"> | string | null
   status?: Prisma.EnumVersionStatusWithAggregatesFilter<"APIVersion"> | $Enums.VersionStatus
   summary?: Prisma.StringNullableWithAggregatesFilter<"APIVersion"> | string | null
   changelog?: Prisma.StringNullableWithAggregatesFilter<"APIVersion"> | string | null
@@ -311,7 +360,8 @@ export type APIVersionScalarWhereWithAggregatesInput = {
 
 export type APIVersionCreateInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -327,7 +377,8 @@ export type APIVersionCreateInput = {
 
 export type APIVersionUncheckedCreateInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -343,7 +394,8 @@ export type APIVersionUncheckedCreateInput = {
 
 export type APIVersionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -359,7 +411,8 @@ export type APIVersionUpdateInput = {
 
 export type APIVersionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -375,7 +428,8 @@ export type APIVersionUncheckedUpdateInput = {
 
 export type APIVersionCreateManyInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -389,7 +443,8 @@ export type APIVersionCreateManyInput = {
 
 export type APIVersionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -400,7 +455,8 @@ export type APIVersionUpdateManyMutationInput = {
 
 export type APIVersionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -435,6 +491,11 @@ export type EnumVersionChangeTypeNullableListFilter<$PrismaModel = never> = {
   isEmpty?: boolean
 }
 
+export type APIVersionApiIdRevisionCompoundUniqueInput = {
+  apiId: string
+  revision: number
+}
+
 export type APIVersionApiIdVersionCompoundUniqueInput = {
   apiId: string
   version: string
@@ -442,6 +503,7 @@ export type APIVersionApiIdVersionCompoundUniqueInput = {
 
 export type APIVersionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
   version?: Prisma.SortOrder
   status?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -454,8 +516,13 @@ export type APIVersionCountOrderByAggregateInput = {
   projectId?: Prisma.SortOrder
 }
 
+export type APIVersionAvgOrderByAggregateInput = {
+  revision?: Prisma.SortOrder
+}
+
 export type APIVersionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
   version?: Prisma.SortOrder
   status?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -469,6 +536,7 @@ export type APIVersionMaxOrderByAggregateInput = {
 
 export type APIVersionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  revision?: Prisma.SortOrder
   version?: Prisma.SortOrder
   status?: Prisma.SortOrder
   summary?: Prisma.SortOrder
@@ -478,6 +546,10 @@ export type APIVersionMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   apiId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
+}
+
+export type APIVersionSumOrderByAggregateInput = {
+  revision?: Prisma.SortOrder
 }
 
 export type APIVersionScalarRelationFilter = {
@@ -656,7 +728,8 @@ export type APIVersionUpdateOneRequiredWithoutSnapshotNestedInput = {
 
 export type APIVersionCreateWithoutEditorInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -671,7 +744,8 @@ export type APIVersionCreateWithoutEditorInput = {
 
 export type APIVersionUncheckedCreateWithoutEditorInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -715,7 +789,8 @@ export type APIVersionScalarWhereInput = {
   OR?: Prisma.APIVersionScalarWhereInput[]
   NOT?: Prisma.APIVersionScalarWhereInput | Prisma.APIVersionScalarWhereInput[]
   id?: Prisma.StringFilter<"APIVersion"> | string
-  version?: Prisma.StringFilter<"APIVersion"> | string
+  revision?: Prisma.IntFilter<"APIVersion"> | number
+  version?: Prisma.StringNullableFilter<"APIVersion"> | string | null
   status?: Prisma.EnumVersionStatusFilter<"APIVersion"> | $Enums.VersionStatus
   summary?: Prisma.StringNullableFilter<"APIVersion"> | string | null
   changelog?: Prisma.StringNullableFilter<"APIVersion"> | string | null
@@ -729,7 +804,8 @@ export type APIVersionScalarWhereInput = {
 
 export type APIVersionCreateWithoutProjectInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -744,7 +820,8 @@ export type APIVersionCreateWithoutProjectInput = {
 
 export type APIVersionUncheckedCreateWithoutProjectInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -785,7 +862,8 @@ export type APIVersionUpdateManyWithWhereWithoutProjectInput = {
 
 export type APIVersionCreateWithoutApiInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -800,7 +878,8 @@ export type APIVersionCreateWithoutApiInput = {
 
 export type APIVersionUncheckedCreateWithoutApiInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -825,7 +904,8 @@ export type APIVersionCreateManyApiInputEnvelope = {
 
 export type APIVersionCreateWithoutCurrentOfAPIInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -840,7 +920,8 @@ export type APIVersionCreateWithoutCurrentOfAPIInput = {
 
 export type APIVersionUncheckedCreateWithoutCurrentOfAPIInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -887,7 +968,8 @@ export type APIVersionUpdateToOneWithWhereWithoutCurrentOfAPIInput = {
 
 export type APIVersionUpdateWithoutCurrentOfAPIInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -902,7 +984,8 @@ export type APIVersionUpdateWithoutCurrentOfAPIInput = {
 
 export type APIVersionUncheckedUpdateWithoutCurrentOfAPIInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -917,7 +1000,8 @@ export type APIVersionUncheckedUpdateWithoutCurrentOfAPIInput = {
 
 export type APIVersionCreateWithoutSnapshotInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -932,7 +1016,8 @@ export type APIVersionCreateWithoutSnapshotInput = {
 
 export type APIVersionUncheckedCreateWithoutSnapshotInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -963,7 +1048,8 @@ export type APIVersionUpdateToOneWithWhereWithoutSnapshotInput = {
 
 export type APIVersionUpdateWithoutSnapshotInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -978,7 +1064,8 @@ export type APIVersionUpdateWithoutSnapshotInput = {
 
 export type APIVersionUncheckedUpdateWithoutSnapshotInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -993,7 +1080,8 @@ export type APIVersionUncheckedUpdateWithoutSnapshotInput = {
 
 export type APIVersionCreateManyEditorInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -1006,7 +1094,8 @@ export type APIVersionCreateManyEditorInput = {
 
 export type APIVersionUpdateWithoutEditorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1021,7 +1110,8 @@ export type APIVersionUpdateWithoutEditorInput = {
 
 export type APIVersionUncheckedUpdateWithoutEditorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1036,7 +1126,8 @@ export type APIVersionUncheckedUpdateWithoutEditorInput = {
 
 export type APIVersionUncheckedUpdateManyWithoutEditorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1049,7 +1140,8 @@ export type APIVersionUncheckedUpdateManyWithoutEditorInput = {
 
 export type APIVersionCreateManyProjectInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -1062,7 +1154,8 @@ export type APIVersionCreateManyProjectInput = {
 
 export type APIVersionUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1077,7 +1170,8 @@ export type APIVersionUpdateWithoutProjectInput = {
 
 export type APIVersionUncheckedUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1092,7 +1186,8 @@ export type APIVersionUncheckedUpdateWithoutProjectInput = {
 
 export type APIVersionUncheckedUpdateManyWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1105,7 +1200,8 @@ export type APIVersionUncheckedUpdateManyWithoutProjectInput = {
 
 export type APIVersionCreateManyApiInput = {
   id?: string
-  version: string
+  revision: number
+  version?: string | null
   status?: $Enums.VersionStatus
   summary?: string | null
   changelog?: string | null
@@ -1118,7 +1214,8 @@ export type APIVersionCreateManyApiInput = {
 
 export type APIVersionUpdateWithoutApiInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1133,7 +1230,8 @@ export type APIVersionUpdateWithoutApiInput = {
 
 export type APIVersionUncheckedUpdateWithoutApiInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1148,7 +1246,8 @@ export type APIVersionUncheckedUpdateWithoutApiInput = {
 
 export type APIVersionUncheckedUpdateManyWithoutApiInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  version?: Prisma.StringFieldUpdateOperationsInput | string
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  version?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumVersionStatusFieldUpdateOperationsInput | $Enums.VersionStatus
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   changelog?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1163,6 +1262,7 @@ export type APIVersionUncheckedUpdateManyWithoutApiInput = {
 
 export type APIVersionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  revision?: boolean
   version?: boolean
   status?: boolean
   summary?: boolean
@@ -1182,6 +1282,7 @@ export type APIVersionSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
 
 export type APIVersionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  revision?: boolean
   version?: boolean
   status?: boolean
   summary?: boolean
@@ -1199,6 +1300,7 @@ export type APIVersionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
 
 export type APIVersionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  revision?: boolean
   version?: boolean
   status?: boolean
   summary?: boolean
@@ -1216,6 +1318,7 @@ export type APIVersionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
 
 export type APIVersionSelectScalar = {
   id?: boolean
+  revision?: boolean
   version?: boolean
   status?: boolean
   summary?: boolean
@@ -1228,7 +1331,7 @@ export type APIVersionSelectScalar = {
   projectId?: boolean
 }
 
-export type APIVersionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "version" | "status" | "summary" | "changelog" | "changes" | "editorId" | "publishedAt" | "createdAt" | "apiId" | "projectId", ExtArgs["result"]["aPIVersion"]>
+export type APIVersionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "revision" | "version" | "status" | "summary" | "changelog" | "changes" | "editorId" | "publishedAt" | "createdAt" | "apiId" | "projectId", ExtArgs["result"]["aPIVersion"]>
 export type APIVersionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   api?: boolean | Prisma.APIDefaultArgs<ExtArgs>
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
@@ -1258,7 +1361,8 @@ export type $APIVersionPayload<ExtArgs extends runtime.Types.Extensions.Internal
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    version: string
+    revision: number
+    version: string | null
     status: $Enums.VersionStatus
     summary: string | null
     changelog: string | null
@@ -1697,6 +1801,7 @@ export interface Prisma__APIVersionClient<T, Null = never, ExtArgs extends runti
  */
 export interface APIVersionFieldRefs {
   readonly id: Prisma.FieldRef<"APIVersion", 'String'>
+  readonly revision: Prisma.FieldRef<"APIVersion", 'Int'>
   readonly version: Prisma.FieldRef<"APIVersion", 'String'>
   readonly status: Prisma.FieldRef<"APIVersion", 'VersionStatus'>
   readonly summary: Prisma.FieldRef<"APIVersion", 'String'>

@@ -10,6 +10,7 @@ import {
   ApiVersionDetailDto,
   ApiVersionsDto,
   CreateVersionReqDto,
+  PublishVersionReqDto,
 } from './dto'
 import { VersionService } from './version.service'
 
@@ -65,15 +66,16 @@ export class VersionController {
   /** 发布版本 */
   @Post(':projectId/apis/:apiId/versions/:versionId/publish')
   @RequireProjectMember()
-  @ProjectPermissions(['api:write'])
+  @ProjectPermissions(['api:publish'])
   @ResMsg('版本发布成功')
   async publishVersion(
     @Param('projectId') projectId: string,
     @Param('apiId') apiId: string,
     @Param('versionId') versionId: string,
+    @Body() dto: PublishVersionReqDto,
     @ReqUser('id') userId: string,
   ): Promise<void> {
-    await this.versionService.publishVersion(apiId, versionId, projectId, userId)
+    await this.versionService.publishVersion(dto, apiId, versionId, projectId, userId)
   }
 
   /** 归档指定版本 */

@@ -63,7 +63,8 @@ export class ApiService {
           data: {
             apiId: api.id,
             projectId,
-            version: dto.version ?? 'v1.0.0',
+            revision: 1, // 首个版本，revision 从 1 开始
+            version: null, // 用户发布时填写版本号
             status: 'DRAFT',
             summary: dto.summary,
             editorId: userId,
@@ -248,27 +249,29 @@ export class ApiService {
           })
         }
 
-        // 计算下一个版本号
-        const prevVersion = api.currentVersion?.version
-        const curVersion
-          = dto.versionInfo?.version ?? this.apiUtilsService.genNextVersion(prevVersion)
+        // 获取当前 API 的最大 revision 号
+        const maxRevisionResult = await tx.aPIVersion.aggregate({
+          where: { apiId: api.id },
+          _max: { revision: true },
+        })
+        const nextRevision = (maxRevisionResult._max.revision ?? 0) + 1
 
         const changes: VersionChangeType[] = dto.versionInfo?.changes?.length
           ? dto.versionInfo.changes
           : [VersionChangeType.BASIC_INFO]
 
-        // 新建版本（CURRENT）
+        // 新建版本（DRAFT，用户需要手动发布才能设置版本号）
         const version = await tx.aPIVersion.create({
           data: {
             apiId: api.id,
             projectId,
-            version: curVersion,
-            status: 'CURRENT',
+            revision: nextRevision,
+            version: null, // 用户发布时填写版本号
+            status: 'DRAFT',
             editorId: userId,
             changes,
             summary: dto.versionInfo?.summary,
             changelog: dto.versionInfo?.changelog,
-            publishedAt: new Date(),
           },
         })
 
@@ -320,18 +323,26 @@ export class ApiService {
           },
         })
 
-        // 切换 currentVersionId
-        await tx.aPI.update({
-          where: { id: apiId },
-          data: { currentVersionId: version.id, updatedAt: new Date() },
-        })
+        // DRAFT 版本不切换 currentVersionId，需要用户手动发布后才生效
 
-        // 归档旧 version
-        if (api.currentVersion?.id) {
-          await tx.aPIVersion.update({
-            where: { id: api.currentVersion.id },
-            data: { status: 'ARCHIVED' },
+        // 清理超出限制的旧版本
+        const maxRevisions = this.systemConfigService.get<number>(SystemConfigKey.API_MAX_REVISIONS)
+        const totalVersions = await tx.aPIVersion.count({ where: { apiId: api.id } })
+
+        if (totalVersions > maxRevisions) {
+          const toDeleteCount = totalVersions - maxRevisions
+          const oldestVersions = await tx.aPIVersion.findMany({
+            where: { apiId: api.id, status: 'ARCHIVED' },
+            orderBy: { revision: 'asc' },
+            take: toDeleteCount,
+            select: { id: true },
           })
+
+          if (oldestVersions.length > 0) {
+            await tx.aPIVersion.deleteMany({
+              where: { id: { in: oldestVersions.map(v => v.id) } },
+            })
+          }
         }
 
         await this.apiUtilsService.createOperationLog(
@@ -443,7 +454,8 @@ export class ApiService {
           data: {
             apiId: clonedApi.id,
             projectId,
-            version: 'v1.0.0',
+            revision: 1, // 克隆的 API 首个版本
+            version: null, // 用户发布时填写版本号
             status: 'DRAFT',
             summary: source.currentVersion?.summary,
             editorId: userId,

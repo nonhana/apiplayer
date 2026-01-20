@@ -41,6 +41,7 @@ const props = defineProps<{
   isCurrent?: boolean
   showCompare?: boolean
   isComparing?: boolean
+  canPublish?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -61,7 +62,8 @@ const publishedTime = computed(() =>
 
 const statusDotColor = computed(() => versionStatusDotColors[props.version.status])
 
-const canPublish = computed(() => props.version.status === 'DRAFT')
+const versionLabel = computed(() => props.version.version ?? `#${props.version.revision}`)
+const showPublishBtn = computed(() => props.version.status === 'DRAFT' && props.canPublish)
 const canArchive = computed(() => props.version.status !== 'ARCHIVED')
 const canRollback = computed(() => props.version.status === 'ARCHIVED')
 
@@ -92,7 +94,7 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
     <div class="flex-1 min-w-0 space-y-2">
       <div class="flex items-center gap-2">
         <span class="font-mono font-semibold text-sm">
-          {{ version.version }}
+          {{ versionLabel }}
         </span>
         <Badge
           variant="outline"
@@ -193,7 +195,7 @@ const hasMoreChanges = computed(() => props.version.changes.length > 3)
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
-            v-if="canPublish"
+            v-if="showPublishBtn"
             @click="emits('publish')"
           >
             <Rocket class="h-4 w-4 mr-2" />
