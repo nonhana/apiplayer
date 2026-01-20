@@ -8,7 +8,7 @@ import { toast } from 'vue-sonner'
 import { systemConfigApi } from '@/api/system-config'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form'
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -135,6 +135,7 @@ const onSubmit = form.handleSubmit(async (values) => {
               <FormDescription class="text-xs">
                 默认值：{{ item.defaultValue }}
               </FormDescription>
+              <FormMessage />
             </FormItem>
           </FormField>
         </Item>
