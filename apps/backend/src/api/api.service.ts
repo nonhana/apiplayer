@@ -323,7 +323,11 @@ export class ApiService {
           },
         })
 
-        // DRAFT 版本不切换 currentVersionId，需要用户手动发布后才生效
+        // 切换 currentVersionId 到最新版本
+        await tx.aPI.update({
+          where: { id: apiId },
+          data: { currentVersionId: version.id },
+        })
 
         // 清理超出限制的旧版本
         const maxRevisions = this.systemConfigService.get<number>(SystemConfigKey.API_MAX_REVISIONS)

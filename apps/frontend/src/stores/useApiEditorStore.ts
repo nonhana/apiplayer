@@ -1,7 +1,8 @@
 import type { ApiBaseInfoForm, ApiReqData, LocalApiRequestBody, LocalApiResItem } from '@/components/workbench/api-editor/editor/types'
 import type { ApiDetail, ApiParam, ParamCategory, UpdateApiReq } from '@/types/api'
 import type { LocalSchemaNode } from '@/types/json-schema'
-import { cloneDeep } from 'lodash-es'
+import type { VersionChangeType } from '@/types/version'
+import { cloneDeep, isEqual } from 'lodash-es'
 import { nanoid } from 'nanoid'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
@@ -48,6 +49,9 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
 
   /** 编辑器数据 */
   const data = ref<ApiEditorData>(createEmptyEditorData())
+
+  /** 原始数据快照，用于计算变更类型 */
+  const originalData = ref<ApiEditorData | null>(null)
 
   /** 是否有未保存的修改 */
   const isDirty = ref(false)
@@ -119,6 +123,9 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     // 响应列表
     data.value.responses = toLocalResList(api.responses ?? [])
 
+    // 保存原始数据快照，用于后续计算变更类型
+    originalData.value = cloneDeep(data.value)
+
     // 重置脏状态
     isDirty.value = false
   }
@@ -127,6 +134,7 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   function reset() {
     currentApiId.value = null
     data.value = createEmptyEditorData()
+    originalData.value = null
     isDirty.value = false
     isSaving.value = false
   }
@@ -368,6 +376,39 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
 
   // ========== 保存逻辑 ==========
 
+  /** 计算变更类型 */
+  function computeChanges(): VersionChangeType[] {
+    // 如果没有原始数据，返回默认值
+    if (!originalData.value) {
+      return ['BASIC_INFO']
+    }
+
+    const changes: VersionChangeType[] = []
+
+    // 对比基本信息
+    if (!isEqual(originalData.value.basicInfo, data.value.basicInfo)) {
+      changes.push('BASIC_INFO')
+    }
+
+    // 对比请求参数（pathParams, queryParams, requestHeaders）
+    if (!isEqual(originalData.value.paramsData, data.value.paramsData)) {
+      changes.push('REQUEST_PARAM')
+    }
+
+    // 对比请求体
+    if (!isEqual(originalData.value.requestBody, data.value.requestBody)) {
+      changes.push('REQUEST_BODY')
+    }
+
+    // 对比响应
+    if (!isEqual(originalData.value.responses, data.value.responses)) {
+      changes.push('RESPONSE')
+    }
+
+    // 如果没有任何变更，返回默认值
+    return changes.length > 0 ? changes : ['BASIC_INFO']
+  }
+
   /** 构建更新请求 */
   function buildUpdateRequest(): UpdateApiReq {
     const req: UpdateApiReq = {}
@@ -396,6 +437,11 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
       queryParams: data.value.paramsData.queryParams,
       requestBody: reqBody,
       responses: reqResList,
+    }
+
+    // 版本信息：普通保存只记录变更信息
+    req.versionInfo = {
+      changes: computeChanges(),
     }
 
     return req
@@ -443,6 +489,9 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
       tabStore.updateTabTitle(currentApiId.value, data.value.basicInfo.name)
 
       toast.success('保存成功')
+
+      // 更新原始数据快照，用于下次变更计算
+      originalData.value = cloneDeep(data.value)
 
       // 重置脏状态
       isDirty.value = false
