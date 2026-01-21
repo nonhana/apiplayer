@@ -376,6 +376,19 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
 
   // ========== 保存逻辑 ==========
 
+  /** 检查是否有真正的变更 */
+  function hasRealChanges(): boolean {
+    if (!originalData.value)
+      return true // 没有原始数据，视为有变更
+
+    return (
+      !isEqual(originalData.value.basicInfo, data.value.basicInfo)
+      || !isEqual(originalData.value.paramsData, data.value.paramsData)
+      || !isEqual(originalData.value.requestBody, data.value.requestBody)
+      || !isEqual(originalData.value.responses, data.value.responses)
+    )
+  }
+
   /** 计算变更类型 */
   function computeChanges(): VersionChangeType[] {
     // 如果没有原始数据，返回默认值
@@ -472,6 +485,13 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     if (!validation.valid) {
       toast.error(validation.message ?? '验证失败')
       return false
+    }
+
+    // 检查是否有真正的变更
+    if (!hasRealChanges()) {
+      toast.info('没有检测到变更，无需保存')
+      isDirty.value = false
+      return true
     }
 
     isSaving.value = true

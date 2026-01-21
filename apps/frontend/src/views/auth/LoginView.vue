@@ -70,7 +70,7 @@ const onSubmit = form.handleSubmit(async (values) => {
         <FormField v-slot="{ value, handleChange }" name="rememberMe">
           <FormItem class="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
             <FormControl>
-              <Checkbox :checked="value" @update:checked="handleChange" />
+              <Checkbox :model-value="value" @update:model-value="handleChange" />
             </FormControl>
             <div class="space-y-1 leading-none">
               <FormLabel>
