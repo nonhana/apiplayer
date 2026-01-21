@@ -175,6 +175,11 @@ export const useTabStore = defineStore('tab', () => {
     }
   }
 
+  /** 清除标签页的脏状态 */
+  function clearTabsDirty() {
+    tabs.value.forEach(t => t.dirty = false)
+  }
+
   /** 更新标签页数据 */
   function updateTabData(id: string, data: unknown) {
     const tab = tabs.value.find(t => t.id === id)
@@ -221,6 +226,7 @@ export const useTabStore = defineStore('tab', () => {
     setActiveTab,
     updateTabTitle,
     setTabDirty,
+    clearTabsDirty,
     updateTabData,
     hasTab,
     getTab,

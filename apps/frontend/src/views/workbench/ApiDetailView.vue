@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRouteParams } from '@vueuse/router'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ApiEditor from '@/components/workbench/api-editor/ApiEditor.vue'
@@ -10,6 +10,13 @@ import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useTabStore } from '@/stores/useTabStore'
 
 const tabStore = useTabStore()
+const { clearTabsDirty } = tabStore
+
+// 挂载时清除标签页的脏状态
+onMounted(() => {
+  clearTabsDirty()
+})
+
 const apiTreeStore = useApiTreeStore()
 
 const router = useRouter()
