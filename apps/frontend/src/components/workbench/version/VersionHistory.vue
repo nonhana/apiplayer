@@ -13,6 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { usePermission } from '@/composables/usePermission'
 import PublishVersionDialog from '../dialogs/PublishVersionDialog.vue'
 import RollbackConfirmDialog from '../dialogs/RollbackConfirmDialog.vue'
@@ -318,22 +325,50 @@ defineExpose({
         </div>
       </div>
 
-      <div v-else class="p-4 space-y-2">
-        <VersionItem
-          v-for="version in filteredVersions"
-          :key="version.id"
-          :version="version"
-          :is-selected="selectedVersionId === version.id"
-          :is-current="version.id === currentVersionId"
-          :show-compare="true"
-          :is-comparing="compareVersionIds.includes(version.id)"
-          :can-publish="canPublishApi"
-          @view="handleViewVersion(version)"
-          @compare="handleCompareVersion(version)"
-          @publish="handleOpenPublishDialog(version)"
-          @archive="handleArchiveVersion(version)"
-          @rollback="handleOpenRollbackDialog(version)"
-        />
+      <div v-else class="p-4">
+        <div class="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow class="bg-muted/50 hover:bg-muted/50">
+                <TableHead class="w-[100px]">
+                  版本
+                </TableHead>
+                <TableHead class="w-[90px]">
+                  状态
+                </TableHead>
+                <TableHead class="w-[200px]">
+                  变更类型
+                </TableHead>
+                <TableHead class="min-w-[120px]">
+                  摘要
+                </TableHead>
+                <TableHead class="w-[100px]">
+                  时间
+                </TableHead>
+                <TableHead class="w-[80px]">
+                  操作
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <VersionItem
+                v-for="version in filteredVersions"
+                :key="version.id"
+                :version="version"
+                :is-selected="selectedVersionId === version.id"
+                :is-current="version.id === currentVersionId"
+                :show-compare="true"
+                :is-comparing="compareVersionIds.includes(version.id)"
+                :can-publish="canPublishApi"
+                @view="handleViewVersion(version)"
+                @compare="handleCompareVersion(version)"
+                @publish="handleOpenPublishDialog(version)"
+                @archive="handleArchiveVersion(version)"
+                @rollback="handleOpenRollbackDialog(version)"
+              />
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </ScrollArea>
 
