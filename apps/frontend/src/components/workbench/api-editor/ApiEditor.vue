@@ -75,7 +75,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col bg-background">
+  <div class="h-full bg-background">
     <div
       v-if="isLoading"
       class="flex-1 flex items-center justify-center"
@@ -99,7 +99,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
     <Tabs
       v-else-if="isLoaded && apiDetail"
       v-model="activeTab"
-      class="flex-1 flex flex-col overflow-hidden"
+      class="flex-1 flex flex-col h-full"
     >
       <div class="border-b px-4 py-2 bg-muted/20">
         <TabsList class="h-10 bg-transparent p-0 gap-1">
@@ -116,7 +116,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
         </TabsList>
       </div>
 
-      <ScrollArea class="h-[calc(100dvh-48px-36px-58px)]">
+      <ScrollArea class="flex-1 overflow-y-auto">
         <TabsContent value="doc">
           <ApiDocView :api="apiDetail" />
         </TabsContent>

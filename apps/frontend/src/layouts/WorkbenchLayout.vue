@@ -31,11 +31,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="flex-1 flex bg-background text-foreground">
+  <div class="h-full flex bg-background text-foreground">
     <WorkbenchSidebar />
     <ApiSidebar />
-    <main class="flex-1 flex flex-col overflow-hidden">
-      <router-view />
-    </main>
+    <router-view />
   </div>
 </template>
