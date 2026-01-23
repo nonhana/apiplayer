@@ -13,6 +13,7 @@ import TeamPlaceholder from '@/components/dashboard/TeamPlaceholder.vue'
 import TeamSidebar from '@/components/dashboard/TeamSidebar.vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
@@ -143,7 +144,7 @@ onMounted(() => {
   <div class="flex h-full">
     <TeamSidebar @create-team="isCreateTeamDialogOpen = true" />
 
-    <div class="space-y-6 p-6 flex flex-col flex-1">
+    <div class="space-y-6 p-6 flex flex-col flex-1 min-w-0">
       <TeamPlaceholder
         v-if="showTeamPlaceholder"
         @create-team="isCreateTeamDialogOpen = true"
@@ -254,15 +255,17 @@ onMounted(() => {
             </Button>
           </div>
 
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 overflow-y-auto">
-            <ProjectCard
-              v-for="project in filteredProjects"
-              :key="project.id"
-              :project="project"
-              @edit="handleEditProject"
-              @delete="handleDeleteProject"
-            />
-          </div>
+          <ScrollArea v-else class="flex-1 min-h-0">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <ProjectCard
+                v-for="project in filteredProjects"
+                :key="project.id"
+                :project="project"
+                @edit="handleEditProject"
+                @delete="handleDeleteProject"
+              />
+            </div>
+          </ScrollArea>
 
           <div v-if="!isLoading && hasProjects" class="text-center py-4">
             <p class="text-sm text-muted-foreground">
