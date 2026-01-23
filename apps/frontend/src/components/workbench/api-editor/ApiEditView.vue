@@ -12,7 +12,6 @@ import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useApiEditorStore } from '@/stores/useApiEditorStore'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
-import { useTabStore } from '@/stores/useTabStore'
 import BasicInfoEditor from './editor/BasicInfoEditor.vue'
 import ParamsEditor from './editor/ParamsEditor.vue'
 import RequestBodyEditor from './editor/RequestBodyEditor.vue'
@@ -35,7 +34,6 @@ const tabItems: TabPageItem<TabType>[] = [
 ]
 
 const apiTreeStore = useApiTreeStore()
-const tabStore = useTabStore()
 
 const apiEditorStore = useApiEditorStore()
 const { isDirty, isSaving, basicInfo } = storeToRefs(apiEditorStore)
@@ -51,10 +49,6 @@ watch(
   },
   { immediate: true },
 )
-
-watch(isDirty, (dirty) => {
-  tabStore.setTabDirty(props.api.id, dirty)
-})
 
 async function handleSave() {
   if (!apiTreeStore.projectId)

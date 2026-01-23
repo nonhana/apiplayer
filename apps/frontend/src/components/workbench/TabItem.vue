@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/context-menu'
 import { methodColors } from '@/constants/api'
 import { cn } from '@/lib/utils'
+import { useApiEditorStore } from '@/stores/useApiEditorStore'
 import { useTabStore } from '@/stores/useTabStore'
 
 /** 插入方向 */
@@ -37,6 +38,7 @@ const emit = defineEmits<{
 }>()
 
 const tabStore = useTabStore()
+const apiEditorStore = useApiEditorStore()
 const apiId = useRouteParams<string>('apiId')
 const router = useRouter()
 
@@ -47,6 +49,13 @@ const isDragOver = ref(false)
 const dragOverSide = ref<DropSide | null>(null)
 
 const isActive = computed(() => props.tab.id === tabStore.activeTabId)
+
+const isDirty = computed(() => {
+  if (props.tab.type === 'api') {
+    return apiEditorStore.hasUnsavedChanges(props.tab.id)
+  }
+  return false
+})
 
 const hasRightTabs = computed(() => {
   const index = tabStore.tabs.findIndex(t => t.id === props.tab.id)
@@ -60,7 +69,14 @@ const hasLeftTabs = computed(() => {
 
 const hasOtherTabs = computed(() => tabStore.tabs.length > 1)
 
-const hasSavedTabs = computed(() => tabStore.tabs.some(t => !t.dirty))
+const hasSavedTabs = computed(() =>
+  tabStore.tabs.some((t) => {
+    if (t.type === 'api') {
+      return !apiEditorStore.hasUnsavedChanges(t.id)
+    }
+    return true // 非 API 类型 Tab 视为已保存
+  }),
+)
 
 async function copyPath() {
   if (props.tab.path) {
@@ -172,7 +188,7 @@ function handleCloseClick(e: MouseEvent) {
         </span>
 
         <span
-          v-if="tab.dirty"
+          v-if="isDirty"
           class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"
         />
 
