@@ -56,14 +56,21 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  function clearAuth() {
+    token.value = ''
+    user.value = null
+    isAuthenticated.value = false
+    teamStore.reset()
+  }
+
   async function logout() {
     try {
       await authApi.logout()
-      token.value = ''
-      user.value = null
-      isAuthenticated.value = false
-      teamStore.reset()
-      router.push('/auth/login')
+      clearAuth()
+      await router.push({
+        name: 'Login',
+        query: { redirect: router.currentRoute.value.fullPath },
+      })
     }
     catch (error) {
       console.error('登出失败', error)
@@ -77,6 +84,7 @@ export const useUserStore = defineStore('user', () => {
     setToken,
     setUser,
     login,
+    clearAuth,
     logout,
   }
 }, {
