@@ -3,7 +3,6 @@ import type { IApiResponse } from './types'
 import { getErrorCode } from '@apiplayer/shared'
 import { StatusCodes } from 'http-status-codes'
 import ky from 'ky'
-import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { useUserStore } from '@/stores/useUserStore'
 import { HanaError } from './error'
@@ -41,17 +40,10 @@ const hooks: Hooks = {
           && resJson.code === getErrorCode('SESSION_EXPIRED')
         ) {
           if (!isReLogin) {
+            toast.error('登录已过期，请重新登录')
             isReLogin = true
             const userStore = useUserStore()
-            userStore.logout()
-            toast.error('登录已过期，请重新登录')
-
-            const router = useRouter()
-            await router.push({
-              name: 'Login',
-              query: { redirect: router.currentRoute.value.fullPath },
-            })
-
+            await userStore.logout()
             setTimeout(() => isReLogin = false, 1000)
           }
           throw new HanaError(message, resJson.status)

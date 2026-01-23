@@ -73,7 +73,6 @@ export class AuthController {
   }
 
   /** 用户登出 */
-  @UseGuards(AuthGuard)
   @Post('logout')
   @ResMsg('登出成功')
   async logout(
@@ -90,7 +89,6 @@ export class AuthController {
   }
 
   /** 登出所有设备 */
-  @UseGuards(AuthGuard)
   @Post('logout-all')
   @ResMsg('已登出所有设备')
   async logoutAllDevices(
