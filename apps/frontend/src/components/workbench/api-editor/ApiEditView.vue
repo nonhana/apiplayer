@@ -66,10 +66,19 @@ async function handleSave() {
 
   success && emits('updated')
 }
+
+// 监测到 Cmd/Ctrl + S 时，触发保存
+function handleKeyDownSave(e: KeyboardEvent) {
+  const isSaveShortcut = (e.ctrlKey || e.metaKey) && e.code === 'KeyS'
+  if (isSaveShortcut) {
+    e.preventDefault()
+    handleSave()
+  }
+}
 </script>
 
 <template>
-  <div class="h-full flex flex-col">
+  <div class="h-full flex flex-col" tabindex="0" @keydown="handleKeyDownSave">
     <div class="flex items-center justify-between px-4 py-3 border-b bg-muted/20">
       <div class="flex items-center gap-3">
         <h2 class="text-sm font-medium text-muted-foreground">
