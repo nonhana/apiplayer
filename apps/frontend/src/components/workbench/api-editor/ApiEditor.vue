@@ -78,7 +78,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
   <div class="h-full bg-background">
     <div
       v-if="isLoading"
-      class="flex-1 flex items-center justify-center"
+      class="flex items-center justify-center h-full"
     >
       <div class="flex flex-col items-center gap-3 text-muted-foreground">
         <Loader2 class="h-8 w-8 animate-spin" />
@@ -99,7 +99,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
     <Tabs
       v-else-if="isLoaded && apiDetail"
       v-model="activeTab"
-      class="flex-1 flex flex-col h-full"
+      class="flex-1 flex flex-col size-full"
     >
       <div class="border-b px-4 py-2 bg-muted/20">
         <TabsList class="h-10 bg-transparent p-0 gap-1">

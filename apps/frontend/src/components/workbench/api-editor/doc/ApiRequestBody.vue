@@ -4,7 +4,7 @@ import { FileJson, FormInput } from 'lucide-vue-next'
 import { computed } from 'vue'
 import JsonSchemaPreviewer from '@/components/json-schema/JsonSchemaPreviewer.vue'
 import { Badge } from '@/components/ui/badge'
-import { BODY_NAME_MAP, requestBodyTypeLabels } from '@/constants/api'
+import { CONTENT_TYPE_MAP, requestBodyTypeLabels } from '@/constants/api'
 import ParamTable from './ParamTable.vue'
 
 const props = defineProps<{
@@ -42,8 +42,8 @@ const isFormType = computed(() =>
         <Badge variant="outline" class="font-mono text-xs">
           {{ typeLabel }}
         </Badge>
-        <Badge v-if="BODY_NAME_MAP[body!.type]" variant="secondary" class="font-mono text-xs">
-          {{ BODY_NAME_MAP[body!.type] }}
+        <Badge v-if="CONTENT_TYPE_MAP[body!.type]" variant="secondary" class="font-mono text-xs">
+          {{ CONTENT_TYPE_MAP[body!.type] }}
         </Badge>
       </div>
     </div>

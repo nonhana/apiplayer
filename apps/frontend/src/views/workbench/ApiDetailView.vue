@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useRouteParams } from '@vueuse/router'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ApiEditor from '@/components/workbench/api-editor/ApiEditor.vue'
@@ -10,12 +10,7 @@ import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useTabStore } from '@/stores/useTabStore'
 
 const tabStore = useTabStore()
-const { clearTabsDirty } = tabStore
-
-// 挂载时清除标签页的脏状态
-onMounted(() => {
-  clearTabsDirty()
-})
+// const { clearTabsDirty } = tabStore
 
 const apiTreeStore = useApiTreeStore()
 
@@ -118,7 +113,7 @@ function handleDragEnd() {
 </script>
 
 <template>
-  <div class="flex-1 flex flex-col h-full">
+  <div class="flex-1 flex flex-col min-w-0">
     <div class="h-9 border-b border-border flex items-center bg-muted/30">
       <ScrollArea orientation="horizontal" class="flex-1">
         <div class="flex items-center h-full">

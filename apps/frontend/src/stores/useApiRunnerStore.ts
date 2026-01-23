@@ -11,6 +11,7 @@ import type {
 import { defineStore, storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { proxyApi } from '@/api/proxy'
+import { CONTENT_TYPE_MAP } from '@/constants/api'
 import { convertToRuntimeParam, createEmptyRuntimeParam, generateCurl } from '@/lib/api-runner'
 import { useProjectStore } from './useProjectStore'
 
@@ -86,6 +87,11 @@ export const useApiRunnerStore = defineStore('apiRunner', () => {
       if (header.enabled && header.name) {
         result[header.name] = header.value
       }
+    }
+
+    // 添加 Content-Type 头
+    if (body.value.type) {
+      result['Content-Type'] = CONTENT_TYPE_MAP[body.value.type]
     }
 
     // 添加认证头
