@@ -154,7 +154,7 @@ function handleCloseClick(e: MouseEvent) {
       <div
         ref="tabRef"
         :class="cn(
-          'group relative flex items-center gap-1.5 px-3 h-9 border-r border-border cursor-pointer transition-colors duration-100 select-none',
+          'group relative flex items-center gap-1.5 px-3 h-9 border-r border-border cursor-pointer select-none',
           'hover:bg-accent/50',
           isActive
             ? 'bg-background border-b-2 border-b-primary'
@@ -196,7 +196,7 @@ function handleCloseClick(e: MouseEvent) {
           type="button"
           :class="cn(
             'h-4 w-4 shrink-0 rounded-sm flex items-center justify-center',
-            'opacity-0 group-hover:opacity-100 transition-opacity ml-1',
+            'opacity-0 group-hover:opacity-100 ml-1',
             'hover:bg-accent',
           )"
           @click="handleCloseClick"

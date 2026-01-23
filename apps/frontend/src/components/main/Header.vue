@@ -83,13 +83,6 @@ function goDashboard() {
             </span>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem @click="goDashboard">
-            工作台
-          </DropdownMenuItem>
-          <DropdownMenuItem @click="openSettings('profile')">
-            个人资料
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem
             class="text-destructive focus:text-destructive"
             @click="logout"

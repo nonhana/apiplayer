@@ -1,6 +1,7 @@
 import type { Component } from 'vue'
 import type { TabPageItem } from '@/types'
-import { Palette, Settings, Shield, User } from 'lucide-vue-next'
+import { Info, Palette, Settings, Shield, User } from 'lucide-vue-next'
+import AboutPanel from './menu/About.vue'
 import AccountPanel from './menu/Account.vue'
 import AppearancePanel from './menu/Appearance.vue'
 import ProfilePanel from './menu/Profile.vue'
@@ -31,6 +32,12 @@ export const COMMON_SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
     label: '外观',
     icon: Palette,
     component: AppearancePanel,
+  },
+  {
+    value: 'about',
+    label: '关于',
+    icon: Info,
+    component: AboutPanel,
   },
 ]
 

@@ -3,7 +3,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 
 defineProps<{
   title: string
-  description: string
+  description?: string
 }>()
 </script>
 
@@ -13,7 +13,7 @@ defineProps<{
       <h3 class="text-lg font-medium">
         {{ title }}
       </h3>
-      <p class="text-sm text-muted-foreground">
+      <p v-if="description" class="text-sm text-muted-foreground">
         {{ description }}
       </p>
     </header>
