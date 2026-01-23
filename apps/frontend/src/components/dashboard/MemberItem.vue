@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ProjectMember } from '@/types/project'
 import type { TeamMember } from '@/types/team'
+import { ROLE_DISPLAY_MAP, ROLE_NAME } from '@apiplayer/shared'
 import { Crown, Trash2 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
@@ -17,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ROLE_DISPLAY_MAP, ROLE_NAME } from '@/constants/roles'
 import { cn, getAbbreviation } from '@/lib/utils'
 import { useGlobalStore } from '@/stores/useGlobalStore'
 import { useUserStore } from '@/stores/useUserStore'

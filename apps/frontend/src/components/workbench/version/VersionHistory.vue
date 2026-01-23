@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ApiVersionBrief, ApiVersionDetail } from '@/types/version'
+import type { ApiVersionBrief, ApiVersionDetail, PublishVersionReq } from '@/types/version'
 import { AlertCircle, GitBranch, Loader2, RefreshCw } from 'lucide-vue-next'
 import { computed, ref, watch, watchEffect } from 'vue'
 import { toast } from 'vue-sonner'
@@ -13,6 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { usePermission } from '@/composables/usePermission'
+import PublishVersionDialog from '../dialogs/PublishVersionDialog.vue'
 import RollbackConfirmDialog from '../dialogs/RollbackConfirmDialog.vue'
 import VersionCompareSheet from './VersionCompareSheet.vue'
 import VersionDetailSheet from './VersionDetailSheet.vue'
@@ -27,6 +36,8 @@ const props = defineProps<{
 const emits = defineEmits<{
   (e: 'versionChanged'): void
 }>()
+
+const { canPublishApi } = usePermission()
 
 const VERSION_OPTIONS = [
   { label: '全部', value: 'ALL' },
@@ -47,8 +58,11 @@ const compareVersionIds = ref<[string | null, string | null]>([null, null])
 const isDetailSheetOpen = ref(false)
 const isCompareSheetOpen = ref(false)
 const rollbackDialogOpen = ref(false)
+const publishDialogOpen = ref(false)
 
 const rollbackTargetVersion = ref<ApiVersionBrief | null>(null)
+const publishTargetVersion = ref<ApiVersionBrief | null>(null)
+const publishDialogRef = ref<InstanceType<typeof PublishVersionDialog> | null>(null)
 
 const filteredVersions = computed(() => {
   if (filterStatus.value === 'ALL') {
@@ -109,17 +123,58 @@ function handleCompareVersion(version: ApiVersionBrief) {
   }
 }
 
-async function handlePublishVersion(version: ApiVersionBrief) {
+function handleOpenPublishDialog(version: ApiVersionBrief) {
+  publishTargetVersion.value = version
+  publishDialogOpen.value = true
+}
+
+async function handleConfirmPublish(data: PublishVersionReq) {
+  if (!publishTargetVersion.value)
+    return
+
   try {
-    await versionApi.publishVersion(props.projectId, props.apiId, version.id)
-    toast.success(`版本 v${version.version} 发布成功`)
+    await versionApi.publishVersion(
+      props.projectId,
+      props.apiId,
+      publishTargetVersion.value.id,
+      data,
+    )
+    toast.success(`版本 ${data.version} 发布成功`)
+    publishDialogOpen.value = false
+    publishTargetVersion.value = null
     await fetchVersions()
     emits('versionChanged')
   }
   catch (error) {
     console.error('Failed to publish version:', error)
   }
+  finally {
+    publishDialogRef.value?.finishSubmit()
+  }
 }
+
+/** 计算建议的下一个版本号 */
+const suggestedNextVersion = computed(() => {
+  // 找到最新的已发布版本
+  const publishedVersions = versions.value
+    .filter(v => v.version && v.status !== 'DRAFT')
+    .sort((a, b) => {
+      // 按版本号排序（简单的字符串比较）
+      return (b.version ?? '').localeCompare(a.version ?? '')
+    })
+
+  const latestVersion = publishedVersions[0]?.version
+  if (!latestVersion)
+    return 'v1.0.0'
+
+  // 简单的 patch 递增
+  const match = /^v(\d+)\.(\d+)\.(\d+)$/.exec(latestVersion)
+  if (!match)
+    return 'v1.0.0'
+
+  const [, major, minor, patch] = match
+  return `v${major}.${minor}.${Number(patch) + 1}`
+})
 
 async function handleArchiveVersion(version: ApiVersionBrief) {
   try {
@@ -270,21 +325,50 @@ defineExpose({
         </div>
       </div>
 
-      <div v-else class="p-4 space-y-2">
-        <VersionItem
-          v-for="version in filteredVersions"
-          :key="version.id"
-          :version="version"
-          :is-selected="selectedVersionId === version.id"
-          :is-current="version.id === currentVersionId"
-          :show-compare="true"
-          :is-comparing="compareVersionIds.includes(version.id)"
-          @view="handleViewVersion(version)"
-          @compare="handleCompareVersion(version)"
-          @publish="handlePublishVersion(version)"
-          @archive="handleArchiveVersion(version)"
-          @rollback="handleOpenRollbackDialog(version)"
-        />
+      <div v-else class="p-4">
+        <div class="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow class="bg-muted/50 hover:bg-muted/50">
+                <TableHead class="w-[100px]">
+                  版本
+                </TableHead>
+                <TableHead class="w-[90px]">
+                  状态
+                </TableHead>
+                <TableHead class="w-[200px]">
+                  变更类型
+                </TableHead>
+                <TableHead class="min-w-[120px]">
+                  摘要
+                </TableHead>
+                <TableHead class="w-[100px]">
+                  时间
+                </TableHead>
+                <TableHead class="w-[80px]">
+                  操作
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <VersionItem
+                v-for="version in filteredVersions"
+                :key="version.id"
+                :version="version"
+                :is-selected="selectedVersionId === version.id"
+                :is-current="version.id === currentVersionId"
+                :show-compare="true"
+                :is-comparing="compareVersionIds.includes(version.id)"
+                :can-publish="canPublishApi"
+                @view="handleViewVersion(version)"
+                @compare="handleCompareVersion(version)"
+                @publish="handleOpenPublishDialog(version)"
+                @archive="handleArchiveVersion(version)"
+                @rollback="handleOpenRollbackDialog(version)"
+              />
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </ScrollArea>
 
@@ -294,8 +378,9 @@ defineExpose({
       :api-id="apiId"
       :version-id="selectedVersionId"
       :is-current="selectedVersionId === currentVersionId"
+      :can-publish="canPublishApi"
       @update:version-data="detailVersionData = $event"
-      @publish="handlePublishVersion(selectedVersion!)"
+      @publish="handleOpenPublishDialog(selectedVersion!)"
       @archive="handleArchiveVersion(selectedVersion!)"
       @rollback="handleOpenRollbackDialog(selectedVersion!)"
     />
@@ -313,6 +398,14 @@ defineExpose({
       v-model:open="rollbackDialogOpen"
       :version="rollbackTargetVersion"
       @confirm="handleConfirmRollback"
+    />
+
+    <PublishVersionDialog
+      ref="publishDialogRef"
+      v-model:open="publishDialogOpen"
+      :version="publishTargetVersion"
+      :suggested-version="suggestedNextVersion"
+      @confirm="handleConfirmPublish"
     />
   </div>
 </template>

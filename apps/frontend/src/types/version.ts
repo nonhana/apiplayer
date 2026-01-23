@@ -15,16 +15,29 @@ export type VersionChangeType
 
 /** API 版本简要信息 */
 export interface ApiVersionBrief {
+  /** 版本 ID */
   id: string
-  version: string
+  /** 修订号，自增 */
+  revision: number
+  /** 版本号，用户发布时填写 */
+  version?: string
+  /** 版本状态 */
   status: VersionStatus
+  /** 版本摘要 */
   summary?: string
+  /** 变更日志 */
   changelog?: string
+  /** 变更类型 */
   changes: VersionChangeType[]
+  /** 编辑者 ID */
   editorId: string
+  /** API ID */
   apiId: string
+  /** 项目 ID */
   projectId: string
+  /** 发布时间 */
   publishedAt?: string
+  /** 创建时间 */
   createdAt: string
   /** 快照中的当前 API 状态 */
   apiStatus?: ApiDetail['status']
@@ -99,9 +112,18 @@ export interface CreateVersionReq {
     mockConfig?: Record<string, unknown>
   }
   versionInfo?: {
-    version?: string
     summary?: string
     changelog?: string
     changes?: VersionChangeType[]
   }
+}
+
+/** 发布版本请求 */
+export interface PublishVersionReq {
+  /** 版本号，格式：vX.X.X */
+  version: string
+  /** 版本摘要（可选） */
+  summary?: string
+  /** 变更日志（可选） */
+  changelog?: string
 }

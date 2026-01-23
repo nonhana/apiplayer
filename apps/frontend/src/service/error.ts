@@ -1,9 +1,9 @@
 export class HanaError extends Error {
-  public code: number
+  public status: number
 
-  constructor(message: string, code: number) {
+  constructor(message: string, status: number) {
     super(message)
     this.name = 'HanaError'
-    this.code = code
+    this.status = status
   }
 }

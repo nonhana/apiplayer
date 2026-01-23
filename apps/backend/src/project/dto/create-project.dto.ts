@@ -24,7 +24,7 @@ export class CreateProjectReqDto {
 
   /** 项目图标 */
   @IsOptional()
-  @IsUrl({}, { message: '项目图标必须是有效的 URL' })
+  @IsUrl({ require_tld: false }, { message: '项目图标必须是有效的 URL' })
   icon?: string
 
   /** 是否公开项目 */

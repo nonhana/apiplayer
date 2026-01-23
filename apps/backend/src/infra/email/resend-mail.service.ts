@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Resend } from 'resend'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import {
   AbstractMailService,
@@ -32,11 +31,7 @@ export class ResendMailService extends AbstractMailService {
     const defaultFrom = this.configService.get<string>('RESEND_FROM_EMAIL')
 
     if (!apiKey || !defaultFrom) {
-      throw new HanaException(
-        'Resend 邮件服务配置不完整，请检查 RESEND_API_KEY 与 RESEND_FROM_EMAIL',
-        ErrorCode.ENV_CONFIG_ERROR,
-        500,
-      )
+      throw new HanaException('ENV_CONFIG_ERROR')
     }
 
     this.config = {
@@ -53,7 +48,7 @@ export class ResendMailService extends AbstractMailService {
     const hasContent = Boolean(input.html) || Boolean(input.text)
 
     if (!hasContent) {
-      throw new HanaException('邮件内容不能为空，请至少提供 text 或 html 之一', ErrorCode.INVALID_PARAMS)
+      throw new HanaException('INVALID_PARAMS')
     }
 
     const response = await this.client.emails.send(
@@ -73,11 +68,7 @@ export class ResendMailService extends AbstractMailService {
     )
 
     if (response.error) {
-      throw new HanaException(
-        `Resend 发送邮件失败: ${response.error.message}`,
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
 
     return {

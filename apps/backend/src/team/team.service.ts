@@ -1,9 +1,8 @@
+import { ROLE_NAME } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { TeamWhereInput } from 'prisma/generated/models'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { RoleService } from '@/role/role.service'
 import { CreateTeamReqDto, UpdateTeamReqDto } from './dto'
@@ -26,7 +25,7 @@ export class TeamService {
       await this.teamUtilsService.checkTeamNameExists(name)
       await this.teamUtilsService.checkTeamSlugExists(slug)
 
-      const ownerRole = await this.roleService.getRole('name', RoleName.TEAM_OWNER)
+      const ownerRole = await this.roleService.getRole('name', ROLE_NAME.TEAM_OWNER)
 
       const result = await this.prisma.$transaction(async (tx) => {
         const team = await tx.team.create({
@@ -59,7 +58,7 @@ export class TeamService {
       }
 
       this.logger.error(`创建团队失败: ${error.message}`, error.stack)
-      throw new HanaException('创建团队失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -94,7 +93,7 @@ export class TeamService {
     }
     catch (error) {
       this.logger.error(`获取用户全部团队列表失败: ${error.message}`, error.stack)
-      throw new HanaException('获取团队列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -161,7 +160,7 @@ export class TeamService {
     }
     catch (error) {
       this.logger.error(`获取用户团队列表失败: ${error.message}`, error.stack)
-      throw new HanaException('获取团队列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -193,11 +192,11 @@ export class TeamService {
       })
 
       if (!team) {
-        throw new HanaException('团队不存在', ErrorCode.TEAM_NOT_FOUND, 404)
+        throw new HanaException('TEAM_NOT_FOUND')
       }
 
       if (!team.isActive) {
-        throw new HanaException('团队已被禁用', ErrorCode.TEAM_DISABLED)
+        throw new HanaException('TEAM_DISABLED')
       }
 
       return team
@@ -207,7 +206,7 @@ export class TeamService {
         throw error
       }
       this.logger.error(`获取团队详情失败: ${error.message}`, error.stack)
-      throw new HanaException('获取团队详情失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -240,7 +239,7 @@ export class TeamService {
       }
 
       this.logger.error(`更新团队信息失败: ${error.message}`, error.stack)
-      throw new HanaException('更新团队信息失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -256,7 +255,7 @@ export class TeamService {
       })
 
       if (projectCount > 0) {
-        throw new HanaException('无法删除包含项目的团队', ErrorCode.CANNOT_DELETE_TEAM_WITH_PROJECTS)
+        throw new HanaException('CANNOT_DELETE_TEAM_WITH_PROJECTS')
       }
 
       // 软删除
@@ -276,7 +275,7 @@ export class TeamService {
         throw error
       }
       this.logger.error(`删除团队失败: ${error.message}`, error.stack)
-      throw new HanaException('删除团队失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

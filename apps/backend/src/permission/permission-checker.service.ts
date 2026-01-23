@@ -1,9 +1,7 @@
+import { PermissionType, RoleType } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PermissionContext } from '@/common/types/permission'
-import { PermissionType } from '@/constants/permission'
-import { RoleType } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 
 @Injectable()
@@ -50,7 +48,7 @@ export class PermissionCheckerService {
       switch (context.type) {
         case 'team':
           if (!context.id) {
-            throw new HanaException('团队上下文需要提供团队ID', ErrorCode.INVALID_PARAMS)
+            throw new HanaException('INVALID_PARAMS')
           }
           const teamPermissions = await this.getTeamPermissions(userId, context.id)
           role = teamPermissions.role
@@ -59,7 +57,7 @@ export class PermissionCheckerService {
 
         case 'project':
           if (!context.id) {
-            throw new HanaException('项目上下文需要提供项目ID', ErrorCode.INVALID_PARAMS)
+            throw new HanaException('INVALID_PARAMS')
           }
           const projectPermissions = await this.getProjectPermissions(userId, context.id)
           role = projectPermissions.role
@@ -67,7 +65,7 @@ export class PermissionCheckerService {
           break
 
         default:
-          throw new HanaException(`不支持的上下文类型: ${context.type}`, ErrorCode.INVALID_PARAMS)
+          throw new HanaException('INVALID_PARAMS')
       }
 
       return {

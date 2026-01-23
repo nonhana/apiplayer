@@ -1,6 +1,6 @@
+import { PermissionType } from '@apiplayer/shared'
 import { Exclude, Expose, Type } from 'class-transformer'
 import { RoleBriefDto } from '@/common/dto/role.dto'
-import { PermissionType } from '@/constants/permission'
 
 @Exclude()
 export class GetPermissionsResDto {

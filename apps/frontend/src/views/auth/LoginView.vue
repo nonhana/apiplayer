@@ -1,54 +1,32 @@
 <script setup lang="ts">
 import { Loader2 } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { useForm } from 'vee-validate'
 import { ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { toast } from 'vue-sonner'
-import { authApi } from '@/api/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { useGlobalStore } from '@/stores/useGlobalStore'
 import { useUserStore } from '@/stores/useUserStore'
 import { loginFormSchema } from '@/validators/login'
 
-const router = useRouter()
 const userStore = useUserStore()
+
+const globalStore = useGlobalStore()
+const { systemConfig } = storeToRefs(globalStore)
+
 const isLoading = ref(false)
 
 const form = useForm({
   validationSchema: loginFormSchema,
 })
 
-const route = useRoute()
-
 const onSubmit = form.handleSubmit(async (values) => {
   isLoading.value = true
-  try {
-    const { token, user } = await authApi.login(values)
-    userStore.setToken(token)
-    userStore.setUser(user)
-
-    toast.success('欢迎回来！', {
-      description: '登录成功，欢迎使用。',
-    })
-
-    // 如果有 redirect 参数，跳转到该地址
-    const redirect = route.query.redirect as string | undefined
-    if (redirect) {
-      router.push(redirect)
-    }
-    else {
-      router.push('/dashboard')
-    }
-  }
-  catch (error) {
-    console.error('登录失败', error)
-  }
-  finally {
-    isLoading.value = false
-  }
+  await userStore.login(values)
+  isLoading.value = false
 })
 </script>
 
@@ -92,7 +70,7 @@ const onSubmit = form.handleSubmit(async (values) => {
         <FormField v-slot="{ value, handleChange }" name="rememberMe">
           <FormItem class="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
             <FormControl>
-              <Checkbox :checked="value" @update:checked="handleChange" />
+              <Checkbox :model-value="value" @update:model-value="handleChange" />
             </FormControl>
             <div class="space-y-1 leading-none">
               <FormLabel>
@@ -108,7 +86,7 @@ const onSubmit = form.handleSubmit(async (values) => {
         </Button>
       </form>
     </CardContent>
-    <CardFooter class="flex justify-center">
+    <CardFooter v-if="systemConfig.register_enabled" class="flex justify-center">
       <div class="text-sm text-muted-foreground">
         还没有账号？
         <router-link to="/auth/register" class="text-primary hover:underline">

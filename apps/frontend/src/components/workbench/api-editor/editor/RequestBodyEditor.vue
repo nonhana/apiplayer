@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
 import {
-  BODY_NAME_MAP,
+  CONTENT_TYPE_MAP,
   FORM_DATA_TYPES,
   PARAM_TYPES,
   REQUEST_BODY_TYPES,
@@ -63,8 +63,8 @@ const isNoneType = computed(() => currentType.value === 'none')
     <div class="space-y-3">
       <div class="flex items-center gap-3 h-6">
         <Label>请求体类型</Label>
-        <Badge v-if="BODY_NAME_MAP[currentType]" variant="outline" class="font-mono text-xs">
-          {{ BODY_NAME_MAP[currentType] }}
+        <Badge v-if="CONTENT_TYPE_MAP[currentType]" variant="outline" class="font-mono text-xs">
+          {{ CONTENT_TYPE_MAP[currentType] }}
         </Badge>
       </div>
 

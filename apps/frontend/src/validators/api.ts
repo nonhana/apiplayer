@@ -100,3 +100,13 @@ export const apiEditorDataSchema = z.object({
   requestBody: localReqBodySchema.nullable(),
   responses: localResListSchema,
 })
+
+/** 发布版本表单验证 */
+export const publishVersionSchema = z.object({
+  version: z.string({ required_error: '请填写版本号' })
+    .min(1, '版本号不能为空')
+    .regex(/^v\d+\.\d+\.\d+$/, '版本号格式必须为 vX.X.X，如 v1.0.0'),
+  summary: z.string().optional(),
+  changelog: z.string().optional(),
+})
+export const publishVersionFormSchema = toTypedSchema(publishVersionSchema)

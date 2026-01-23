@@ -1,8 +1,9 @@
+import { SystemConfigKey } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { SystemConfigService } from '@/infra/system-config/system-config.service'
 import { ProjectUtilsService } from '@/project/utils.service'
 import { UtilService } from '@/util/util.service'
 import {
@@ -24,6 +25,7 @@ export class ApiService {
     private readonly projectUtilsService: ProjectUtilsService,
     private readonly apiUtilsService: ApiUtilsService,
     private readonly utilService: UtilService,
+    private readonly systemConfigService: SystemConfigService,
   ) {}
 
   /** 创建 API */
@@ -31,6 +33,15 @@ export class ApiService {
     try {
       await this.projectUtilsService.getProjectById(projectId)
       await this.apiUtilsService.checkApiGroupExists(projectId, dto.groupId)
+
+      // SYSTEM: 检查项目 API 数量是否达到上限
+      const projectMaxApis = this.systemConfigService.get<number>(SystemConfigKey.PROJECT_MAX_APIS)
+      const projectApis = await this.prisma.aPI.count({
+        where: { projectId, recordStatus: 'ACTIVE' },
+      })
+      if (projectApis >= projectMaxApis) {
+        throw new HanaException('PROJECT_API_LIMIT_EXCEEDED')
+      }
 
       const created = await this.prisma.$transaction(async (tx) => {
         const api = await tx.aPI.create({
@@ -52,7 +63,8 @@ export class ApiService {
           data: {
             apiId: api.id,
             projectId,
-            version: dto.version ?? 'v1.0.0',
+            revision: 1, // 首个版本，revision 从 1 开始
+            version: null, // 用户发布时填写版本号
             status: 'DRAFT',
             summary: dto.summary,
             editorId: userId,
@@ -111,16 +123,9 @@ export class ApiService {
         throw error
       this.logger.error(`创建 API 失败: ${error.message}`, error.stack)
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
-        throw new HanaException(
-          '同一路径与方法的 API 已存在',
-          ErrorCode.API_PATH_METHOD_CONFLICT,
-        )
+        throw new HanaException('API_PATH_METHOD_CONFLICT')
       }
-      throw new HanaException(
-        '创建 API 失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -175,11 +180,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`获取 API 列表失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '获取 API 列表失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -200,7 +201,7 @@ export class ApiService {
       })
 
       if (!api || api.projectId !== projectId || api.recordStatus !== 'ACTIVE') {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       return api
@@ -209,11 +210,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`获取 API 详情失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '获取 API 详情失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -229,7 +226,7 @@ export class ApiService {
         include: { currentVersion: { include: { snapshot: true } } },
       })
       if (!api || api.projectId !== projectId || api.recordStatus !== 'ACTIVE') {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       // 更新流程：
@@ -252,27 +249,29 @@ export class ApiService {
           })
         }
 
-        // 计算下一个版本号
-        const prevVersion = api.currentVersion?.version
-        const curVersion
-          = dto.versionInfo?.version ?? this.apiUtilsService.genNextVersion(prevVersion)
+        // 获取当前 API 的最大 revision 号
+        const maxRevisionResult = await tx.aPIVersion.aggregate({
+          where: { apiId: api.id },
+          _max: { revision: true },
+        })
+        const nextRevision = (maxRevisionResult._max.revision ?? 0) + 1
 
         const changes: VersionChangeType[] = dto.versionInfo?.changes?.length
           ? dto.versionInfo.changes
           : [VersionChangeType.BASIC_INFO]
 
-        // 新建版本（CURRENT）
+        // 新建版本（DRAFT，用户需要手动发布才能设置版本号）
         const version = await tx.aPIVersion.create({
           data: {
             apiId: api.id,
             projectId,
-            version: curVersion,
-            status: 'CURRENT',
+            revision: nextRevision,
+            version: null, // 用户发布时填写版本号
+            status: 'DRAFT',
             editorId: userId,
             changes,
             summary: dto.versionInfo?.summary,
             changelog: dto.versionInfo?.changelog,
-            publishedAt: new Date(),
           },
         })
 
@@ -324,18 +323,30 @@ export class ApiService {
           },
         })
 
-        // 切换 currentVersionId
+        // 切换 currentVersionId 到最新版本
         await tx.aPI.update({
           where: { id: apiId },
-          data: { currentVersionId: version.id, updatedAt: new Date() },
+          data: { currentVersionId: version.id },
         })
 
-        // 归档旧 version
-        if (api.currentVersion?.id) {
-          await tx.aPIVersion.update({
-            where: { id: api.currentVersion.id },
-            data: { status: 'ARCHIVED' },
+        // 清理超出限制的旧版本
+        const maxRevisions = this.systemConfigService.get<number>(SystemConfigKey.API_MAX_REVISIONS)
+        const totalVersions = await tx.aPIVersion.count({ where: { apiId: api.id } })
+
+        if (totalVersions > maxRevisions) {
+          const toDeleteCount = totalVersions - maxRevisions
+          const oldestVersions = await tx.aPIVersion.findMany({
+            where: { apiId: api.id, status: 'ARCHIVED' },
+            orderBy: { revision: 'asc' },
+            take: toDeleteCount,
+            select: { id: true },
           })
+
+          if (oldestVersions.length > 0) {
+            await tx.aPIVersion.deleteMany({
+              where: { id: { in: oldestVersions.map(v => v.id) } },
+            })
+          }
         }
 
         await this.apiUtilsService.createOperationLog(
@@ -365,16 +376,9 @@ export class ApiService {
         throw error
       this.logger.error(`更新 API 失败: ${error.message}`, error.stack)
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
-        throw new HanaException(
-          '同一路径与方法的 API 已存在',
-          ErrorCode.API_PATH_METHOD_CONFLICT,
-        )
+        throw new HanaException('API_PATH_METHOD_CONFLICT')
       }
-      throw new HanaException(
-        '更新 API 失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -385,7 +389,7 @@ export class ApiService {
 
       const api = await this.prisma.aPI.findUnique({ where: { id: apiId } })
       if (!api || api.projectId !== projectId || api.recordStatus !== 'ACTIVE') {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       // 软删除
@@ -408,11 +412,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`删除 API 失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '删除 API 失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -429,7 +429,7 @@ export class ApiService {
         include: { currentVersion: { include: { snapshot: true } } },
       })
       if (!source || source.projectId !== projectId || source.recordStatus !== 'ACTIVE') {
-        throw new HanaException('源 API 不存在', ErrorCode.INVALID_PARAMS, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       // 目标基础信息（若未提供则沿用源 API）
@@ -458,7 +458,8 @@ export class ApiService {
           data: {
             apiId: clonedApi.id,
             projectId,
-            version: 'v1.0.0',
+            revision: 1, // 克隆的 API 首个版本
+            version: null, // 用户发布时填写版本号
             status: 'DRAFT',
             summary: source.currentVersion?.summary,
             editorId: userId,
@@ -518,16 +519,9 @@ export class ApiService {
         throw error
       this.logger.error(`复制 API 失败: ${error.message}`, error.stack)
       if ((error as Prisma.PrismaClientKnownRequestError).code === 'P2002') {
-        throw new HanaException(
-          '同一路径与方法的 API 已存在',
-          ErrorCode.API_PATH_METHOD_CONFLICT,
-        )
+        throw new HanaException('API_PATH_METHOD_CONFLICT')
       }
-      throw new HanaException(
-        '复制 API 失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -550,7 +544,7 @@ export class ApiService {
       const validIds = new Set(apis.map(api => api.id))
       for (const id of ids) {
         if (!validIds.has(id)) {
-          throw new HanaException('包含无效的 API ID', ErrorCode.INVALID_PARAMS, 404)
+          throw new HanaException('INVALID_PARAMS')
         }
       }
 
@@ -571,11 +565,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`更新 API 排序失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '更新 API 排序失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -605,7 +595,7 @@ export class ApiService {
       })
 
       if (!api) {
-        throw new HanaException('API 不存在', ErrorCode.API_NOT_FOUND, 404)
+        throw new HanaException('API_NOT_FOUND')
       }
 
       const whereCondition: Prisma.APIOperationLogWhereInput = {
@@ -665,11 +655,7 @@ export class ApiService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`获取 API 操作日志失败: ${error.message}`, error.stack)
-      throw new HanaException(
-        '获取 API 操作日志失败',
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        500,
-      )
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

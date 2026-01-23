@@ -15,11 +15,13 @@ import {
 } from '@/components/ui/dialog'
 
 const props = withDefaults(defineProps<{
+  disabled?: boolean
   /** 最大文件大小，单位为 MB */
   maxSize?: number
   /** 裁剪长宽比 */
   aspectRatio?: number
 }>(), {
+  disabled: false,
   maxSize: 10,
   aspectRatio: 1 / 1,
 })
@@ -35,6 +37,9 @@ const sourceUrl = ref('')
 const isUploading = ref(false)
 
 function triggerSelect() {
+  if (props.disabled)
+    return
+
   fileInputRef.value?.click()
 }
 
@@ -101,8 +106,8 @@ async function handleConfirm() {
     @change="onFileSelect"
   >
 
-  <div @click="triggerSelect">
-    <slot />
+  <div class="w-fit" @click="triggerSelect">
+    <slot :disabled="disabled" />
   </div>
 
   <Dialog v-model:open="isOpen">

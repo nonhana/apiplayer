@@ -1,12 +1,13 @@
+import { SystemConfigKey } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { TeamMemberWhereInput } from 'prisma/generated/models'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { SystemConfigService } from '@/infra/system-config/system-config.service'
 import { RoleService } from '@/role/role.service'
 import { UserService } from '@/user/user.service'
-import { InviteMembersReqDto, UpdateMemberReqDto } from './dto'
+import { InviteMembersReqDto, UpdateTeamMemberReqDto } from './dto'
 import { TeamUtilsService } from './utils.service'
 
 @Injectable()
@@ -18,6 +19,7 @@ export class TeamMemberService {
     private readonly teamUtilsService: TeamUtilsService,
     private readonly userService: UserService,
     private readonly roleService: RoleService,
+    private readonly systemConfigService: SystemConfigService,
   ) {}
 
   async inviteTeamMembers(dto: InviteMembersReqDto, teamId: string, inviterId: string) {
@@ -25,6 +27,15 @@ export class TeamMemberService {
 
     try {
       await this.teamUtilsService.getTeamById(teamId)
+
+      // SYSTEM: 检查团队成员数量是否达到上限
+      const teamMaxMembers = this.systemConfigService.get<number>(SystemConfigKey.TEAM_MAX_MEMBERS)
+      const teamMembers = await this.prisma.teamMember.count({
+        where: { teamId },
+      })
+      if (teamMembers >= teamMaxMembers) {
+        throw new HanaException('TEAM_MEMBER_LIMIT_EXCEEDED')
+      }
 
       // 批量获取所有要邀请的用户
       const users = await Promise.all(
@@ -54,10 +65,7 @@ export class TeamMemberService {
           })
 
           if (existingMember) {
-            throw new HanaException(
-              `用户 ${user.username} 已经是团队成员`,
-              ErrorCode.USER_ALREADY_TEAM_MEMBER,
-            )
+            throw new HanaException('USER_ALREADY_TEAM_MEMBER')
           }
         }
 
@@ -92,7 +100,7 @@ export class TeamMemberService {
         throw error
       }
       this.logger.error(`邀请团队成员失败: ${error.message}`, error.stack)
-      throw new HanaException('邀请团队成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -117,7 +125,7 @@ export class TeamMemberService {
         throw error
       }
       this.logger.error(`获取团队全部成员失败: ${error.message}`, error.stack)
-      throw new HanaException('获取团队全部成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -181,11 +189,11 @@ export class TeamMemberService {
         throw error
       }
       this.logger.error(`获取团队成员列表失败: ${error.message}`, error.stack)
-      throw new HanaException('获取团队成员列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
-  async updateTeamMemberRole(dto: UpdateMemberReqDto, teamId: string, memberId: string, operatorId: string) {
+  async updateTeamMemberRole(dto: UpdateTeamMemberReqDto, teamId: string, memberId: string, operatorId: string) {
     const { roleId, nickname } = dto
 
     try {
@@ -200,12 +208,12 @@ export class TeamMemberService {
       })
 
       if (!member || member.teamId !== teamId) {
-        throw new HanaException('团队成员不存在', ErrorCode.TEAM_MEMBER_NOT_FOUND, 404)
+        throw new HanaException('TEAM_MEMBER_NOT_FOUND')
       }
 
       // 检查是否尝试修改团队所有者角色
       if (member.role.name === 'team:owner') {
-        throw new HanaException('不能修改团队所有者的角色', ErrorCode.CANNOT_MODIFY_OWNER_ROLE)
+        throw new HanaException('CANNOT_MODIFY_OWNER_ROLE')
       }
 
       await this.roleService.getRole('id', roleId)
@@ -232,7 +240,7 @@ export class TeamMemberService {
         throw error
       }
       this.logger.error(`更新团队成员角色失败: ${error.message}`, error.stack)
-      throw new HanaException('更新团队成员角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -249,12 +257,12 @@ export class TeamMemberService {
       })
 
       if (!member || member.teamId !== teamId) {
-        throw new HanaException('团队成员不存在', ErrorCode.TEAM_MEMBER_NOT_FOUND, 404)
+        throw new HanaException('TEAM_MEMBER_NOT_FOUND')
       }
 
       // 检查是否尝试移除团队所有者
       if (member.role.name === 'team:owner') {
-        throw new HanaException('不能移除团队所有者', ErrorCode.CANNOT_REMOVE_TEAM_OWNER)
+        throw new HanaException('CANNOT_REMOVE_TEAM_OWNER')
       }
 
       // 移除成员
@@ -273,7 +281,7 @@ export class TeamMemberService {
         throw error
       }
       this.logger.error(`移除团队成员失败: ${error.message}`, error.stack)
-      throw new HanaException('移除团队成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

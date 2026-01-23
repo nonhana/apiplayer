@@ -2,7 +2,7 @@ import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedExceptio
 import { Reflector } from '@nestjs/core'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { AuthService } from '@/auth/auth.service'
-import { ErrorCode } from '@/common/exceptions/error-code'
+import { IS_PUBLIC_KEY } from '@/common/decorators/public.decorator'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { CookieService } from '@/cookie/cookie.service'
 
@@ -22,7 +22,7 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // 检查是否为公开路由
-    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ])
@@ -64,10 +64,10 @@ export class AuthGuard implements CanActivate {
     }
     catch (error) {
       if (error instanceof UnauthorizedException) {
-        throw new HanaException(error.message, ErrorCode.SESSION_EXPIRED, 401)
+        throw new HanaException('SESSION_EXPIRED')
       }
       this.logger.error('认证验证失败:', error)
-      throw new HanaException('认证失败，请重新登录', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 

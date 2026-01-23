@@ -1,15 +1,22 @@
-import type { TeamInviteMode } from '@/api/util'
 import type { RoleItem } from '@/types/role'
+import type { ConfigDetailItem, ConfigRecord } from '@/types/system-config'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { roleApi } from '@/api/role'
-import { utilApi } from '@/api/util'
+import { systemConfigApi } from '@/api/system-config'
 
 // 存一些全局数据
 export const useGlobalStore = defineStore('global', () => {
   const teamRoles = ref<RoleItem[]>([])
   const projectRoles = ref<RoleItem[]>([])
-  const teamInviteMode = ref<TeamInviteMode>('direct')
+  const systemConfigArr = ref<ConfigDetailItem[]>([])
+
+  const systemConfig = computed(() =>
+    systemConfigArr.value.reduce<ConfigRecord>((acc, item) => {
+      acc[item.key] = item.value
+      return acc
+    }, {} as ConfigRecord),
+  )
 
   function setTeamRoles(roles: RoleItem[]) {
     teamRoles.value = roles
@@ -36,24 +43,28 @@ export const useGlobalStore = defineStore('global', () => {
     }
   }
 
-  async function initPublicConfig() {
+  async function initSystemConfig() {
     try {
-      const config = await utilApi.getPublicConfig()
-      teamInviteMode.value = config.teamInviteMode
+      systemConfigArr.value = await systemConfigApi.getConfigsDetail()
     }
     catch (error) {
       console.error('获取公开配置失败', error)
-      // 默认使用 direct 模式
-      teamInviteMode.value = 'direct'
+      systemConfigArr.value = []
     }
   }
 
   return {
+    // state
     teamRoles,
     projectRoles,
-    teamInviteMode,
+    systemConfigArr,
+
+    // computed
+    systemConfig,
+
+    // actions
     initRoles,
-    initPublicConfig,
+    initSystemConfig,
   }
 }, {
   persist: {

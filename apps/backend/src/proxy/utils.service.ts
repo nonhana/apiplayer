@@ -22,17 +22,17 @@ export class ProxyUtilsService {
 
       if (axiosError.code === 'ECONNABORTED' || axiosError.code === 'ETIMEDOUT') {
         this.logger.warn(`代理请求超时: ${method} ${url} (${timeoutMs}ms)`)
-        throw new HanaException(`请求超时，已超过 ${timeoutMs / 1000} 秒`, 40001)
+        throw new HanaException('PROXY_REQUEST_TIMEOUT', { message: `请求超时，已超过 ${timeoutMs / 1000} 秒` })
       }
 
       const errorMessage = this.getNetworkErrorMessage(axiosError.code, axiosError.message)
       this.logger.error(`代理请求失败: ${method} ${url} - ${axiosError.code}: ${axiosError.message}`)
-      throw new HanaException(errorMessage, 40002)
+      throw new HanaException('PROXY_REQUEST_FAILED', { message: errorMessage })
     }
 
     const message = error instanceof Error ? error.message : '未知错误'
     this.logger.error(`代理请求失败: ${method} ${url}`, error)
-    throw new HanaException(`请求失败: ${message}`, 40003)
+    throw new HanaException('PROXY_REQUEST_FAILED', { message: `请求失败: ${message}` })
   }
 
   /** 判断是否为 Axios 错误 */
@@ -70,7 +70,7 @@ export class ProxyUtilsService {
       const url = new URL(urlString)
 
       if (!this.ALLOWED_PROTOCOLS.includes(url.protocol)) {
-        throw new HanaException('仅支持 HTTP/HTTPS 协议', 40004)
+        throw new HanaException('PROXY_PROTOCOL_NOT_SUPPORTED')
       }
 
       return urlString
@@ -79,7 +79,7 @@ export class ProxyUtilsService {
       if (error instanceof HanaException) {
         throw error
       }
-      throw new HanaException('无效的 URL 格式', 40005)
+      throw new HanaException('PROXY_INVALID_URL_FORMAT')
     }
   }
 

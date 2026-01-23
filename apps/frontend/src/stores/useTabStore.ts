@@ -1,6 +1,7 @@
 import type { HttpMethod, Tab, TabType } from '@/types/api'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { useApiEditorStore } from './useApiEditorStore'
 
 /** 创建标签页的参数 */
 export interface CreateTabParams {
@@ -28,6 +29,19 @@ export const useTabStore = defineStore('tab', () => {
   /** 是否有标签页 */
   const hasTabs = computed(() => tabs.value.length > 0)
 
+  /** 清理指定 Tab 的编辑器缓存（如果没有未保存修改） */
+  function cleanupEditorCache(tabId: string) {
+    const apiEditorStore = useApiEditorStore()
+    if (!apiEditorStore.hasUnsavedChanges(tabId)) {
+      apiEditorStore.clearCache(tabId)
+    }
+  }
+
+  /** 批量清理编辑器缓存 */
+  function cleanupEditorCaches(tabIds: string[]) {
+    tabIds.forEach(cleanupEditorCache)
+  }
+
   /** 添加标签页 */
   function addTab(params: CreateTabParams) {
     const hasTab = tabs.value.some(t => t.id === params.id)
@@ -42,7 +56,6 @@ export const useTabStore = defineStore('tab', () => {
           type: params.type,
           method: params.method,
           path: params.path,
-          dirty: false,
           pinned: params.pinned ?? false,
           data: params.data,
         },
@@ -57,6 +70,9 @@ export const useTabStore = defineStore('tab', () => {
     const index = tabs.value.findIndex(t => t.id === id)
     if (index === -1)
       return
+
+    // 清理编辑器缓存
+    cleanupEditorCache(id)
 
     // immutable
     tabs.value = tabs.value.filter(t => t.id !== id)
@@ -77,6 +93,8 @@ export const useTabStore = defineStore('tab', () => {
 
   /** 关闭所有标签页 */
   function removeAllTabs() {
+    // 清理所有编辑器缓存
+    cleanupEditorCaches(tabs.value.map(t => t.id))
     tabs.value = []
     activeTabId.value = ''
   }
@@ -85,6 +103,9 @@ export const useTabStore = defineStore('tab', () => {
   function removeOtherTabs(id: string) {
     const target = tabs.value.find(t => t.id === id)
     if (target) {
+      // 清理其他 Tab 的编辑器缓存
+      const otherIds = tabs.value.filter(t => t.id !== id).map(t => t.id)
+      cleanupEditorCaches(otherIds)
       tabs.value = [target]
       activeTabId.value = id
     }
@@ -94,6 +115,9 @@ export const useTabStore = defineStore('tab', () => {
   function removeRightTabs(id: string) {
     const index = tabs.value.findIndex(t => t.id === id)
     if (index !== -1) {
+      // 清理右侧 Tab 的编辑器缓存
+      const rightIds = tabs.value.slice(index + 1).map(t => t.id)
+      cleanupEditorCaches(rightIds)
       tabs.value = tabs.value.slice(0, index + 1)
       // 如果激活的标签被关闭了，切换到当前标签
       if (!tabs.value.find(t => t.id === activeTabId.value)) {
@@ -106,6 +130,9 @@ export const useTabStore = defineStore('tab', () => {
   function removeLeftTabs(id: string) {
     const index = tabs.value.findIndex(t => t.id === id)
     if (index !== -1) {
+      // 清理左侧 Tab 的编辑器缓存
+      const leftIds = tabs.value.slice(0, index).map(t => t.id)
+      cleanupEditorCaches(leftIds)
       tabs.value = tabs.value.slice(index)
       // 如果激活的标签被关闭了，切换到当前标签
       if (!tabs.value.find(t => t.id === activeTabId.value)) {
@@ -116,8 +143,24 @@ export const useTabStore = defineStore('tab', () => {
 
   /** 关闭已保存的标签页（没有未保存修改的） */
   function removeSavedTabs() {
-    const dirtyTabs = tabs.value.filter(t => t.dirty)
+    const apiEditorStore = useApiEditorStore()
+
+    // 判断 Tab 是否有未保存修改
+    const isDirty = (tab: Tab) => {
+      if (tab.type === 'api') {
+        return apiEditorStore.hasUnsavedChanges(tab.id)
+      }
+      return false // 非 API 类型 Tab 视为已保存
+    }
+
+    // 清理已保存 Tab 的编辑器缓存
+    const savedIds = tabs.value.filter(t => !isDirty(t)).map(t => t.id)
+    cleanupEditorCaches(savedIds)
+
+    // 保留有未保存修改的 Tab
+    const dirtyTabs = tabs.value.filter(isDirty)
     tabs.value = dirtyTabs
+
     // 如果当前激活的标签被关了，切换到第一个
     if (!tabs.value.find(t => t.id === activeTabId.value)) {
       activeTabId.value = tabs.value[0]?.id ?? ''
@@ -167,14 +210,6 @@ export const useTabStore = defineStore('tab', () => {
     }
   }
 
-  /** 标记标签页为脏（有未保存修改） */
-  function setTabDirty(id: string, dirty: boolean) {
-    const tab = tabs.value.find(t => t.id === id)
-    if (tab) {
-      tab.dirty = dirty
-    }
-  }
-
   /** 更新标签页数据 */
   function updateTabData(id: string, data: unknown) {
     const tab = tabs.value.find(t => t.id === id)
@@ -220,7 +255,6 @@ export const useTabStore = defineStore('tab', () => {
     moveTab,
     setActiveTab,
     updateTabTitle,
-    setTabDirty,
     updateTabData,
     hasTab,
     getTab,

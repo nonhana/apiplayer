@@ -1,5 +1,7 @@
 import type { Hooks, KyInstance, Options } from 'ky'
 import type { IApiResponse } from './types'
+import { getErrorCode } from '@apiplayer/shared'
+import { StatusCodes } from 'http-status-codes'
 import ky from 'ky'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
@@ -12,7 +14,7 @@ const hooks: Hooks = {
   afterResponse: [
     async (_, __, response) => {
       // 204 No Content 直接放行
-      if (response.status === 204) {
+      if (response.status === StatusCodes.NO_CONTENT) {
         return response
       }
 
@@ -33,8 +35,11 @@ const hooks: Hooks = {
         ? resJson.message[0] ?? '未知错误'
         : resJson.message
 
-      if (resJson.code !== 0 && resJson.code !== 200) {
-        if (resJson.code === 401 && resJson.errorCode === 10012) {
+      if (resJson.status !== StatusCodes.OK) {
+        if (
+          resJson.status === StatusCodes.UNAUTHORIZED
+          && resJson.code === getErrorCode('SESSION_EXPIRED')
+        ) {
           if (!isReLogin) {
             isReLogin = true
             const userStore = useUserStore()
@@ -49,11 +54,11 @@ const hooks: Hooks = {
 
             setTimeout(() => isReLogin = false, 1000)
           }
-          throw new HanaError(message, resJson.code)
+          throw new HanaError(message, resJson.status)
         }
 
         toast.error(message)
-        throw new HanaError(message, resJson.code)
+        throw new HanaError(message, resJson.status)
       }
 
       return new Response(JSON.stringify(resJson.data), response)

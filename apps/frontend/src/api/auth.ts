@@ -7,13 +7,13 @@ import type {
   LogoutAllRes,
   RegisterReq,
 } from '@/types/auth'
-import type { UserBriefInfo, UserDetailInfo, UserSession } from '@/types/user'
+import type { UserDetailInfo, UserSession } from '@/types/user'
 import http from '@/service'
 
 export const authApi = {
   login: (data: LoginReq) => http.post('auth/login', { json: data }).json<LoginRes>(),
 
-  register: (data: RegisterReq) => http.post('auth/register', { json: data }).json<UserBriefInfo>(),
+  register: (data: RegisterReq) => http.post('auth/register', { json: data }).json<UserDetailInfo>(),
 
   checkAvailability: (data: CheckAvailabilityReq) => http.post('auth/check-availability', { json: data }).json<CheckAvailabilityRes>(),
 

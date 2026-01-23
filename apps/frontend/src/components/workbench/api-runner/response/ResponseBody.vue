@@ -27,7 +27,5 @@ const isJson = computed(() => {
 </script>
 
 <template>
-  <div class="m-2">
-    <CodeBlock :code="formattedBody" :lang="isJson ? 'json' : 'plaintext'" />
-  </div>
+  <CodeBlock :code="formattedBody" :lang="isJson ? 'json' : 'plaintext'" />
 </template>

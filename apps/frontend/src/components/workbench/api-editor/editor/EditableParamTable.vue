@@ -181,9 +181,9 @@ const columnCount = computed(() => {
               <TableCell v-if="showRequired" class="text-center">
                 <div class="flex justify-center">
                   <Checkbox
-                    :checked="param.required ?? false"
+                    :model-value="param.required ?? false"
                     :disabled="disabled"
-                    @update:checked="emit('update', index, 'required', $event)"
+                    @update:model-value="emit('update', index, 'required', $event)"
                   />
                 </div>
               </TableCell>

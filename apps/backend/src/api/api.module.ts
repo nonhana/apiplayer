@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import { AuthModule } from '@/auth/auth.module'
 import { PrismaModule } from '@/infra/prisma/prisma.module'
+import { SystemConfigModule } from '@/infra/system-config/system-config.module'
 import { PermissionModule } from '@/permission/permission.module'
 import { ProjectModule } from '@/project/project.module'
 import { UtilModule } from '@/util/util.module'
@@ -13,7 +14,7 @@ import { VersionController } from './version.controller'
 import { VersionService } from './version.service'
 
 @Module({
-  imports: [PrismaModule, AuthModule, PermissionModule, ProjectModule, UtilModule],
+  imports: [PrismaModule, AuthModule, PermissionModule, ProjectModule, UtilModule, SystemConfigModule],
   controllers: [ApiController, GroupController, VersionController],
   providers: [ApiService, ApiUtilsService, GroupService, VersionService],
   exports: [ApiService, ApiUtilsService, GroupService, VersionService],

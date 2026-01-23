@@ -1,7 +1,7 @@
 import { Exclude, Expose, Transform, Type } from 'class-transformer'
 import { InvitationStatus } from 'prisma/generated/enums'
+import { RoleBriefDto } from '@/common/dto/role.dto'
 import { UserBriefInfoDto } from '@/common/dto/user.dto'
-import { RoleDto } from '@/role/dto/role.dto'
 
 /**
  * 团队邀请响应 DTO
@@ -26,8 +26,8 @@ export class InvitationDto {
   inviter: UserBriefInfoDto
 
   @Expose()
-  @Type(() => RoleDto)
-  role: RoleDto
+  @Type(() => RoleBriefDto)
+  role: RoleBriefDto
 
   @Expose()
   expiresAt: Date
@@ -41,7 +41,46 @@ export class InvitationDto {
 }
 
 /**
- * 验证邀请响应 DTO（公开接口使用）
+ * 邀请简要信息 DTO
+ */
+@Exclude()
+export class InvitationBriefDto {
+  @Expose()
+  id: string
+
+  @Expose()
+  email: string
+
+  @Expose()
+  @Transform(({ obj }) => obj.team.name, { toClassOnly: true })
+  teamName: string
+
+  @Expose()
+  @Transform(({ obj }) => obj.team?.avatar, { toClassOnly: true })
+  teamAvatar?: string
+
+  @Expose()
+  @Transform(({ obj }) => obj.team.slug, { toClassOnly: true })
+  teamSlug: string
+
+  @Expose()
+  @Transform(({ obj }) => obj.role.name, { toClassOnly: true })
+  roleName: string
+
+  @Expose()
+  @Transform(({ obj }) => obj.role?.description, { toClassOnly: true })
+  roleDescription?: string
+
+  @Expose()
+  @Transform(({ obj }) => obj.inviter.name, { toClassOnly: true })
+  inviterName: string
+
+  @Expose()
+  expiresAt: Date
+}
+
+/**
+ * 验证邀请响应 DTO
  */
 @Exclude()
 export class VerifyInvitationDto {
@@ -49,34 +88,11 @@ export class VerifyInvitationDto {
   valid: boolean
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
-  invitation?: {
-    id: string
-    email: string
-    teamName: string
-    teamAvatar?: string
-    teamSlug: string
-    roleName: string
-    roleDescription?: string
-    inviterName: string
-    expiresAt: Date
-  }
+  emailRegistered: boolean
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
-  error?: 'INVALID_TOKEN' | 'EXPIRED' | 'ALREADY_ACCEPTED' | 'CANCELLED'
-
-  @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
-  emailRegistered?: boolean
-}
-
-/**
- * 接受邀请请求 DTO
- */
-export class AcceptInvitationDto {
-  @Expose()
-  token: string
+  @Type(() => InvitationBriefDto)
+  invitation: InvitationBriefDto
 }
 
 /**
@@ -92,10 +108,6 @@ export class AcceptInvitationResultDto {
   teamId?: string
 
   @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
+  @Transform(({ obj }) => obj.team?.slug, { toClassOnly: true })
   teamSlug?: string
-
-  @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
-  error?: 'EMAIL_MISMATCH' | 'INVALID_TOKEN' | 'EXPIRED' | 'ALREADY_MEMBER' | 'CANCELLED'
 }

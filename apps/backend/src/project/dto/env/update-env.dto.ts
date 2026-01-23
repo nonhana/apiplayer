@@ -16,7 +16,7 @@ export class UpdateProjectEnvReqDto {
 
   /** 基础 URL */
   @IsOptional()
-  @IsUrl({}, { message: '基础 URL 必须是有效的 URL' })
+  @IsUrl({ require_tld: false }, { message: '基础 URL 必须是有效的 URL' })
   baseUrl?: string
 
   /** 环境变量 */

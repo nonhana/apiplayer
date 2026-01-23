@@ -10,6 +10,8 @@ import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useTabStore } from '@/stores/useTabStore'
 
 const tabStore = useTabStore()
+// const { clearTabsDirty } = tabStore
+
 const apiTreeStore = useApiTreeStore()
 
 const router = useRouter()
@@ -111,8 +113,8 @@ function handleDragEnd() {
 </script>
 
 <template>
-  <main class="flex-1 flex flex-col overflow-hidden min-w-0">
-    <div class="h-9 border-b border-border flex items-center bg-muted/30 overflow-hidden">
+  <div class="flex-1 flex flex-col min-w-0">
+    <div class="h-9 border-b border-border flex items-center bg-muted/30">
       <ScrollArea orientation="horizontal" class="flex-1">
         <div class="flex items-center h-full">
           <TabItem
@@ -128,7 +130,7 @@ function handleDragEnd() {
       </ScrollArea>
     </div>
 
-    <div class="flex-1 overflow-hidden relative">
+    <div class="flex-1 min-h-0">
       <!-- API 找不到时的提示 -->
       <ApiNotFound
         v-if="!isValidApiId && apiLoadingStatus === 'end'"
@@ -142,5 +144,5 @@ function handleDragEnd() {
       <!-- 空状态（无 Tab 时显示 slot 内容） -->
       <slot v-else />
     </div>
-  </main>
+  </div>
 </template>

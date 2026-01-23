@@ -5,11 +5,15 @@ import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig, loadEnv } from 'vite'
 import { compression } from 'vite-plugin-compression2'
 import monacoEditorEsmPlugin from 'vite-plugin-monaco-editor-esm'
+import pkg from './package.json'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, import.meta.dirname)
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    },
     plugins: [
       vue(),
       tailwindcss(),

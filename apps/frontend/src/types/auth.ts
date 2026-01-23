@@ -1,4 +1,4 @@
-import type { UserBriefInfo } from './user'
+import type { UserDetailInfo } from './user'
 
 export interface LoginReq {
   email: string
@@ -8,7 +8,7 @@ export interface LoginReq {
 
 export interface LoginRes {
   token: string
-  user: UserBriefInfo
+  user: UserDetailInfo
 }
 
 export interface RegisterReq {

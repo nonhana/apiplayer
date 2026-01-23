@@ -178,11 +178,11 @@ watch(isOpen, (open) => {
             <SheetDescription v-if="comparison">
               <div class="flex items-center gap-2 mt-1">
                 <span class="font-mono text-sm text-foreground">
-                  v{{ comparison.from.version }}
+                  {{ comparison.from.version }}
                 </span>
                 <ArrowRight class="h-4 w-4" />
                 <span class="font-mono text-sm text-foreground">
-                  v{{ comparison.to.version }}
+                  {{ comparison.to.version }}
                 </span>
               </div>
             </SheetDescription>
@@ -211,7 +211,7 @@ watch(isOpen, (open) => {
               <div class="flex items-center gap-2 mb-2">
                 <Minus class="h-4 w-4 text-rose-600" />
                 <span class="font-mono font-semibold">
-                  v{{ comparison.from.version }}
+                  {{ comparison.from.version }}
                 </span>
                 <Badge
                   variant="outline"
@@ -238,7 +238,7 @@ watch(isOpen, (open) => {
               <div class="flex items-center gap-2 mb-2">
                 <Plus class="h-4 w-4 text-emerald-600" />
                 <span class="font-mono font-semibold">
-                  v{{ comparison.to.version }}
+                  {{ comparison.to.version }}
                 </span>
                 <Badge
                   variant="outline"

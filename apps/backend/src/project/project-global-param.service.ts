@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { GlobalParamWhereInput } from 'prisma/generated/models'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { CreateGlobalParamReqDto, CreateGlobalParamsReqDto, GetGlobalParamsReqDto, UpdateGlobalParamReqDto } from './dto'
@@ -30,7 +29,7 @@ export class ProjectGlobalParamService {
       })
 
       if (existingParam) {
-        throw new HanaException(`参数 "${dto.name}" 在类别 "${dto.category}" 下已存在`, ErrorCode.GLOBAL_PARAM_NAME_EXISTS)
+        throw new HanaException('GLOBAL_PARAM_NAME_EXISTS')
       }
 
       // 创建全局参数
@@ -56,7 +55,7 @@ export class ProjectGlobalParamService {
       }
 
       this.logger.error(`创建全局参数失败: ${error.message}`, error.stack)
-      throw new HanaException('创建全局参数失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -113,7 +112,7 @@ export class ProjectGlobalParamService {
         throw error
       }
       this.logger.error(`获取全局参数列表失败: ${error.message}`, error.stack)
-      throw new HanaException('获取全局参数列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -127,7 +126,7 @@ export class ProjectGlobalParamService {
       })
 
       if (!existingParam || existingParam.projectId !== projectId) {
-        throw new HanaException('对应全局参数不存在', ErrorCode.GLOBAL_PARAM_NOT_FOUND, 404)
+        throw new HanaException('GLOBAL_PARAM_NOT_FOUND')
       }
 
       // 更新参数
@@ -150,7 +149,7 @@ export class ProjectGlobalParamService {
         throw error
       }
       this.logger.error(`更新全局参数失败: ${error.message}`, error.stack)
-      throw new HanaException('更新全局参数失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -164,7 +163,7 @@ export class ProjectGlobalParamService {
       })
 
       if (!existingParam || existingParam.projectId !== projectId) {
-        throw new HanaException('对应全局参数不存在', ErrorCode.GLOBAL_PARAM_NOT_FOUND, 404)
+        throw new HanaException('GLOBAL_PARAM_NOT_FOUND')
       }
 
       // 删除参数
@@ -179,7 +178,7 @@ export class ProjectGlobalParamService {
         throw error
       }
       this.logger.error(`删除全局参数失败: ${error.message}`, error.stack)
-      throw new HanaException('删除全局参数失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -194,7 +193,7 @@ export class ProjectGlobalParamService {
       )
 
       if (duplicateKeys.length > 0) {
-        throw new HanaException('批量创建的参数中存在重复的名称', ErrorCode.INVALID_PARAMS)
+        throw new HanaException('INVALID_PARAMS')
       }
 
       // 检查数据库中是否已存在相同的参数
@@ -209,8 +208,7 @@ export class ProjectGlobalParamService {
       })
 
       if (existingParams.length > 0) {
-        const conflictNames = existingParams.map(p => `${p.category}:${p.name}`).join(', ')
-        throw new HanaException(`以下参数已存在: ${conflictNames}`, ErrorCode.GLOBAL_PARAM_NAME_EXISTS)
+        throw new HanaException('GLOBAL_PARAM_NAME_EXISTS')
       }
 
       const createdParams = await this.prisma.$transaction(
@@ -238,7 +236,7 @@ export class ProjectGlobalParamService {
         throw error
       }
       this.logger.error(`批量创建全局参数失败: ${error.message}`, error.stack)
-      throw new HanaException('批量创建全局参数失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

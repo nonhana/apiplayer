@@ -110,7 +110,7 @@ onMounted(() => {
       @create-group="emits('createGroup')"
     />
 
-    <ScrollArea class="flex-1">
+    <ScrollArea class="flex-1 px-2">
       <div
         v-if="isLoading && !hasData"
         class="flex items-center justify-center py-12"
@@ -143,7 +143,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div v-else class="py-1">
+      <div v-else class="py-2">
         <ApiTreeGroup
           v-for="group in filteredTree"
           :key="group.id"

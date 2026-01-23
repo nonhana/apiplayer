@@ -22,7 +22,8 @@ export class UserBriefInfoDto {
 @Exclude()
 export class UserDetailInfoDto extends UserBriefInfoDto {
   @Expose()
-  isActive: boolean
+  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
+  bio?: string
 
   @Expose()
   @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
@@ -30,16 +31,15 @@ export class UserDetailInfoDto extends UserBriefInfoDto {
 
   @Expose()
   createdAt: Date
-}
-
-@Exclude()
-export class UserFullInfoDto extends UserDetailInfoDto {
-  @Expose()
-  @Transform(({ value }) => (value !== null ? value : undefined), { toPlainOnly: true })
-  bio?: string
 
   @Expose()
   updatedAt: Date
+
+  @Expose()
+  isActive: boolean
+
+  @Expose()
+  isAdmin: boolean
 }
 
 @Exclude()

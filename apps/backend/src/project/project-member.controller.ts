@@ -6,7 +6,7 @@ import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { MemberDto, MembersDto } from '@/common/dto/member.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { GetMembersReqDto, InviteMembersReqDto, UpdateMemberReqDto } from './dto'
+import { GetMembersReqDto, InviteMembersReqDto, UpdateProjectMemberReqDto } from './dto'
 import { ProjectMemberService } from './project-member.service'
 
 @Controller('projects')
@@ -59,7 +59,7 @@ export class ProjectMemberController {
   async updateProjectMemberRole(
     @Param('projectId') projectId: string,
     @Param('memberId') memberId: string,
-    @Body() dto: UpdateMemberReqDto,
+    @Body() dto: UpdateProjectMemberReqDto,
     @ReqUser('id') userId: string,
   ): Promise<MemberDto> {
     const result = await this.projectMemberService.updateProjectMember(dto, projectId, memberId, userId)

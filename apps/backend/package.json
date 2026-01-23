@@ -1,6 +1,6 @@
 {
   "name": "@apiplayer/backend",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
@@ -19,6 +19,7 @@
     "pm2:monit": "pm2 monit"
   },
   "dependencies": {
+    "@apiplayer/shared": "workspace:*",
     "@aws-sdk/client-s3": "catalog:backend",
     "@fastify/cookie": "catalog:backend",
     "@fastify/multipart": "catalog:backend",
@@ -49,7 +50,6 @@
     "reflect-metadata": "catalog:backend",
     "resend": "catalog:backend",
     "rxjs": "catalog:backend",
-    "type-fest": "catalog:backend",
     "winston": "catalog:backend",
     "winston-daily-rotate-file": "catalog:backend"
   },
@@ -66,7 +66,6 @@
     "prisma": "catalog:backend",
     "source-map-support": "catalog:backend",
     "ts-loader": "catalog:backend",
-    "tsconfig-paths": "catalog:backend",
-    "tsdown": "catalog:backend"
+    "tsconfig-paths": "catalog:backend"
   }
 }

@@ -1,5 +1,4 @@
-import { PermissionType } from '@/constants/permission'
-import { RoleType } from '@/constants/role'
+import { PermissionType, RoleType } from '@apiplayer/shared'
 
 export class UserPermissions {
   userId: string

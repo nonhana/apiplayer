@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import dayjs from '@/lib/dayjs'
 import { slugify } from '@/lib/slug'
 import { useTeamStore } from '@/stores/useTeamStore'
 import { projectFormSchema } from '@/validators/project'
@@ -172,7 +173,7 @@ const onSubmit = handleSubmit(async (formValues) => {
       projectItem = {
         ...props.project,
         ...updatedProject,
-        updatedAt: new Date().toISOString(),
+        updatedAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
       }
 
       toast.success('项目更新成功')

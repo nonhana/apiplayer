@@ -411,7 +411,8 @@ model API {
 // API 版本表 - 每个版本的元信息和变更记录
 model APIVersion {
   id          String              @id @default(cuid())
-  version     String // 版本号，如：v1.0.0, v1.1.0
+  revision    Int // 修订号，自增，用于历史追溯
+  version     String? // 版本号，用户发布时填写，如：v1.0.0
   status      VersionStatus       @default(DRAFT)
   summary     String? // 版本摘要
   changelog   String? // 变更日志
@@ -433,6 +434,7 @@ model APIVersion {
   // 当前版本的快照数据
   snapshot APISnapshot?
 
+  @@unique([apiId, revision])
   @@unique([apiId, version])
   @@index([apiId])
   @@index([projectId])

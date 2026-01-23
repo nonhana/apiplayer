@@ -5,6 +5,7 @@ import { useRouteParams, useRouteQuery } from '@vueuse/router'
 import { AlertCircle, FileText, GitBranch, Loader2, Pencil, Play, Settings2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { apiApi } from '@/api/api'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ApiRunnerView from '../api-runner/ApiRunnerView.vue'
 import VersionHistory from '../version/VersionHistory.vue'
@@ -74,10 +75,10 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
 </script>
 
 <template>
-  <div class="h-full flex flex-col bg-background">
+  <div class="h-full bg-background">
     <div
       v-if="isLoading"
-      class="flex-1 flex items-center justify-center"
+      class="flex items-center justify-center h-full"
     >
       <div class="flex flex-col items-center gap-3 text-muted-foreground">
         <Loader2 class="h-8 w-8 animate-spin" />
@@ -98,7 +99,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
     <Tabs
       v-else-if="isLoaded && apiDetail"
       v-model="activeTab"
-      class="flex-1 flex flex-col overflow-hidden"
+      class="flex-1 flex flex-col size-full"
     >
       <div class="border-b px-4 py-2 bg-muted/20">
         <TabsList class="h-10 bg-transparent p-0 gap-1">
@@ -115,30 +116,32 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
         </TabsList>
       </div>
 
-      <TabsContent value="doc" class="flex-1 mt-0 overflow-hidden">
-        <ApiDocView :api="apiDetail" />
-      </TabsContent>
+      <ScrollArea class="flex-1 overflow-y-auto">
+        <TabsContent value="doc">
+          <ApiDocView :api="apiDetail" />
+        </TabsContent>
 
-      <TabsContent value="edit" class="flex-1 mt-0 overflow-hidden">
-        <ApiEditView :api="apiDetail" @updated="refreshApiDetail" />
-      </TabsContent>
+        <TabsContent value="edit">
+          <ApiEditView :api="apiDetail" @updated="refreshApiDetail" />
+        </TabsContent>
 
-      <TabsContent value="run" class="flex-1 mt-0 overflow-hidden">
-        <ApiRunnerView :api="apiDetail" />
-      </TabsContent>
+        <TabsContent value="run">
+          <ApiRunnerView :api="apiDetail" />
+        </TabsContent>
 
-      <TabsContent value="versions" class="flex-1 mt-0 overflow-hidden">
-        <VersionHistory
-          :project-id="projectId"
-          :api-id="apiId"
-          :current-version-id="apiDetail.currentVersionId"
-          @version-changed="refreshApiDetail"
-        />
-      </TabsContent>
+        <TabsContent value="versions">
+          <VersionHistory
+            :project-id="projectId"
+            :api-id="apiId"
+            :current-version-id="apiDetail.currentVersionId"
+            @version-changed="refreshApiDetail"
+          />
+        </TabsContent>
 
-      <TabsContent value="settings" class="flex-1 mt-0 overflow-hidden">
-        <ApiSettingsView :api="apiDetail" />
-      </TabsContent>
+        <TabsContent value="settings">
+          <ApiSettingsView :api="apiDetail" />
+        </TabsContent>
+      </ScrollArea>
     </Tabs>
 
     <div

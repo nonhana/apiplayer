@@ -6,7 +6,7 @@ import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
-import { InviteMembersReqDto, TeamMemberDto, TeamMembersDto, UpdateMemberReqDto } from './dto'
+import { InviteMembersReqDto, TeamMemberDto, TeamMembersDto, UpdateTeamMemberReqDto } from './dto'
 import { TeamMemberService } from './team-member.service'
 
 @Controller('team-members')
@@ -57,7 +57,7 @@ export class TeamMemberController {
   async updateTeamMemberRole(
     @Param('teamId') teamId: string,
     @Param('memberId') memberId: string,
-    @Body() dto: UpdateMemberReqDto,
+    @Body() dto: UpdateTeamMemberReqDto,
     @ReqUser('id') userId: string,
   ): Promise<TeamMemberDto> {
     const updatedMember = await this.teamMemberService.updateTeamMemberRole(dto, teamId, memberId, userId)

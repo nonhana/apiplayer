@@ -2,7 +2,7 @@
 import { useRouteParams } from '@vueuse/router'
 import { onUnmounted, watch } from 'vue'
 import ApiSidebar from '@/components/workbench/ApiSidebar.vue'
-import WorkbenchHeader from '@/components/workbench/WorkbenchHeader.vue'
+import WorkbenchSidebar from '@/components/workbench/WorkbenchSidebar.vue'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useProjectStore } from '@/stores/useProjectStore'
 import { useTabStore } from '@/stores/useTabStore'
@@ -31,11 +31,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="h-screen w-screen flex flex-col bg-background text-foreground">
-    <WorkbenchHeader />
-    <div class="flex flex-1">
-      <ApiSidebar />
-      <router-view />
-    </div>
+  <div class="h-full flex bg-background text-foreground">
+    <WorkbenchSidebar />
+    <ApiSidebar />
+    <router-view />
   </div>
 </template>

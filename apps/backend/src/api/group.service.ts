@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { ProjectUtilsService } from '@/project/utils.service'
@@ -53,7 +52,7 @@ export class GroupService {
       if (dto.parentId) {
         const parent = await this.prisma.aPIGroup.findUnique({ where: { id: dto.parentId } })
         if (!parent || parent.projectId !== projectId || parent.status !== 'ACTIVE') {
-          throw new HanaException('父分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+          throw new HanaException('API_GROUP_NOT_FOUND')
         }
       }
 
@@ -74,7 +73,7 @@ export class GroupService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`创建分组失败: ${error.message}`, error.stack)
-      throw new HanaException('创建分组失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -133,7 +132,7 @@ export class GroupService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`获取分组树失败: ${error.message}`, error.stack)
-      throw new HanaException('获取分组树失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -261,7 +260,7 @@ export class GroupService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`获取分组树（含 API）失败: ${error.message}`, error.stack)
-      throw new HanaException('获取分组树失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -275,7 +274,7 @@ export class GroupService {
       })
 
       if (!existing || existing.projectId !== projectId || existing.status !== 'ACTIVE') {
-        throw new HanaException('分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+        throw new HanaException('API_GROUP_NOT_FOUND')
       }
 
       const updated = await this.prisma.aPIGroup.update({
@@ -294,7 +293,7 @@ export class GroupService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`更新分组失败: ${error.message}`, error.stack)
-      throw new HanaException('更新分组失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -310,14 +309,14 @@ export class GroupService {
       })
 
       if (!group || group.projectId !== projectId || group.status !== 'ACTIVE') {
-        throw new HanaException('分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+        throw new HanaException('API_GROUP_NOT_FOUND')
       }
 
       let parentIdToUpdate: string | undefined | null
 
       if (newParentId !== undefined) {
         if (newParentId === groupId) {
-          throw new HanaException('分组不能移动到自身', ErrorCode.INVALID_PARAMS, 400)
+          throw new HanaException('INVALID_PARAMS')
         }
 
         if (newParentId) {
@@ -326,14 +325,14 @@ export class GroupService {
           })
 
           if (!parent || parent.projectId !== projectId || parent.status !== 'ACTIVE') {
-            throw new HanaException('目标父分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+            throw new HanaException('API_GROUP_NOT_FOUND')
           }
 
           // 校验不会形成环
           let currentParentId: string | null | undefined = parent.parentId
           while (currentParentId) {
             if (currentParentId === groupId) {
-              throw new HanaException('不能将分组移动到其子分组下', ErrorCode.INVALID_PARAMS, 400)
+              throw new HanaException('INVALID_PARAMS')
             }
             const currentParent = await this.prisma.aPIGroup.findUnique({
               where: { id: currentParentId },
@@ -361,7 +360,7 @@ export class GroupService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`移动分组失败: ${error.message}`, error.stack)
-      throw new HanaException('移动分组失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -377,7 +376,7 @@ export class GroupService {
       })
 
       if (!group || group.projectId !== projectId || group.status !== 'ACTIVE') {
-        throw new HanaException('分组不存在', ErrorCode.API_GROUP_NOT_FOUND, 404)
+        throw new HanaException('API_GROUP_NOT_FOUND')
       }
 
       if (cascade) {
@@ -475,11 +474,7 @@ export class GroupService {
       ])
 
       if (childCount > 0 || apiCount > 0) {
-        throw new HanaException(
-          '分组包含子分组或 API，无法删除，请先移动或清空',
-          ErrorCode.INVALID_PARAMS,
-          400,
-        )
+        throw new HanaException('INVALID_PARAMS')
       }
 
       await this.prisma.aPIGroup.update({
@@ -493,7 +488,7 @@ export class GroupService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`删除分组失败: ${error.message}`, error.stack)
-      throw new HanaException('删除分组失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -516,7 +511,7 @@ export class GroupService {
       const validIds = new Set(groups.map(g => g.id))
       for (const id of ids) {
         if (!validIds.has(id)) {
-          throw new HanaException('包含无效的分组 ID', ErrorCode.API_GROUP_NOT_FOUND, 404)
+          throw new HanaException('API_GROUP_NOT_FOUND')
         }
       }
 
@@ -537,7 +532,7 @@ export class GroupService {
       if (error instanceof HanaException)
         throw error
       this.logger.error(`更新分组排序失败: ${error.message}`, error.stack)
-      throw new HanaException('更新分组排序失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

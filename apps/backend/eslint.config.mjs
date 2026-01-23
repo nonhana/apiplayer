@@ -11,6 +11,7 @@ export default antfu({
     'ts/consistent-type-imports': 'off',
     'no-case-declarations': 'off',
     'import/consistent-type-specifier-style': 'off',
+    'ts/no-redeclare': 'off',
   },
   ignores: ['dist/**', 'node_modules/**', 'prisma/**'],
 })

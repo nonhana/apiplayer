@@ -69,10 +69,10 @@ function formatSize(bytes: number): string {
       </div>
     </div>
 
-    <div class="min-h-60 flex-1 overflow-hidden">
+    <div class="min-h-60 grid place-items-center">
       <div
         v-if="runnerStore.isLoading"
-        class="h-full flex flex-col items-center justify-center gap-3 text-muted-foreground"
+        class="flex flex-col items-center gap-3 text-muted-foreground"
       >
         <Loader2 class="h-8 w-8 animate-spin" />
         <span class="text-sm">请求中...</span>
@@ -80,7 +80,7 @@ function formatSize(bytes: number): string {
 
       <div
         v-else-if="runnerStore.status === 'error'"
-        class="h-full flex flex-col items-center justify-center gap-3 text-destructive"
+        class="flex flex-col items-center gap-3 text-destructive"
       >
         <AlertCircle class="h-8 w-8" />
         <span class="text-sm">{{ runnerStore.errorMessage ?? '请求失败' }}</span>
@@ -88,7 +88,7 @@ function formatSize(bytes: number): string {
 
       <div
         v-else-if="runnerStore.status === 'idle'"
-        class="h-full flex flex-col items-center justify-center gap-3 text-muted-foreground"
+        class="flex flex-col items-center gap-3 text-muted-foreground"
       >
         <Code class="h-8 w-8" />
         <span class="text-sm">点击「发送请求」获取响应</span>
@@ -97,7 +97,7 @@ function formatSize(bytes: number): string {
       <Tabs
         v-else
         v-model="activeTab"
-        class="h-full flex flex-col"
+        class="flex flex-col w-full"
       >
         <TabsList class="bg-transparent m-2">
           <TabsTrigger
@@ -111,7 +111,7 @@ function formatSize(bytes: number): string {
           </TabsTrigger>
         </TabsList>
 
-        <div class="flex-1 overflow-hidden">
+        <div class="m-2">
           <TabsContent value="body" class="h-full mt-0">
             <ResponseBody />
           </TabsContent>

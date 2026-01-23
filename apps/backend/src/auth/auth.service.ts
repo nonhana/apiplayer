@@ -1,10 +1,11 @@
+import { ROLE_NAME, SystemConfigKey } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { compare, hash } from 'bcrypt'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { DEFAULT_COOKIE_MAX_AGE, REMEMBER_ME_COOKIE_MAX_AGE } from '@/constants/cookie'
-import { RoleName } from '@/constants/role'
+import { EmailCodeService } from '@/email-code/email-code.service'
 import { PrismaService } from '@/infra/prisma/prisma.service'
+import { SystemConfigService } from '@/infra/system-config/system-config.service'
 import { SessionService } from '@/session/session.service'
 import { CheckAvailabilityReqDto, LoginReqDto, RegisterReqDto } from './dto'
 
@@ -16,6 +17,8 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sessionService: SessionService,
+    private readonly systemConfigService: SystemConfigService,
+    private readonly emailCodeService: EmailCodeService,
   ) {}
 
   /** 对密码进行哈希处理 */
@@ -40,17 +43,17 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({ where: { email } })
 
       if (!user) {
-        throw new HanaException('该邮箱未注册', ErrorCode.USER_NOT_FOUND, 401)
+        throw new HanaException('USER_NOT_FOUND')
       }
 
       if (!user.isActive) {
-        throw new HanaException('账户已被禁用，请联系管理员', ErrorCode.ACCOUNT_DISABLED, 403)
+        throw new HanaException('ACCOUNT_DISABLED')
       }
 
       // 验证密码
       const isPasswordValid = await this.verifyPassword(password, user.password)
       if (!isPasswordValid) {
-        throw new HanaException('密码错误', ErrorCode.INVALID_PASSWORD, 401)
+        throw new HanaException('INVALID_PASSWORD')
       }
 
       // 创建Session，根据 rememberMe 设置不同的过期时间
@@ -78,7 +81,7 @@ export class AuthService {
         throw error
       }
       this.logger.error('登录失败:', error)
-      throw new HanaException('登录失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -94,7 +97,7 @@ export class AuthService {
     }
     catch (error) {
       this.logger.error('登出失败:', error)
-      throw new HanaException('登出失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -107,7 +110,7 @@ export class AuthService {
     }
     catch (error) {
       this.logger.error('登出所有设备失败:', error)
-      throw new HanaException('登出所有设备失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -162,7 +165,7 @@ export class AuthService {
     }
     catch (error) {
       this.logger.error('获取用户活跃Session失败:', error)
-      throw new HanaException('获取Session列表失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -173,7 +176,7 @@ export class AuthService {
       const sessionData = await this.sessionService.getSession(sessionId)
 
       if (!sessionData || sessionData.userId !== userId) {
-        throw new HanaException('无权限操作此Session', ErrorCode.SESSION_FORBIDDEN, 403)
+        throw new HanaException('SESSION_FORBIDDEN')
       }
 
       await this.sessionService.destroySession(sessionId)
@@ -184,7 +187,7 @@ export class AuthService {
         throw error
       }
       this.logger.error('销毁指定Session失败:', error)
-      throw new HanaException('销毁Session失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -207,26 +210,42 @@ export class AuthService {
 
   /** 用户注册 */
   async register(dto: RegisterReqDto) {
-    const { email, username, name, password, confirmPassword } = dto
+    const { email, verificationCode, username, name, password, confirmPassword } = dto
 
     try {
+      // 系统配置校验
+    // 1. 是否允许注册
+      const registerEnabled = this.systemConfigService.get<boolean>(SystemConfigKey.REGISTER_ENABLED)
+      if (!registerEnabled) {
+        throw new HanaException('REGISTER_DISABLED')
+      }
+
+      // 2. 是否需要邮箱验证
+      const registerEmailVerify = this.systemConfigService.get<boolean>(SystemConfigKey.REGISTER_EMAIL_VERIFY)
+      if (registerEmailVerify) {
+        if (!verificationCode) {
+          throw new HanaException('REGISTER_EMAIL_VERIFY_REQUIRED')
+        }
+        await this.emailCodeService.verifyEmailCode(email, verificationCode)
+      }
+
       // 验证密码确认
       if (password !== confirmPassword) {
-        throw new HanaException('两次密码输入不一致', ErrorCode.PASSWORD_MISMATCH, 400)
+        throw new HanaException('PASSWORD_MISMATCH')
       }
 
       // 检查邮箱是否已被注册
       const existingEmailUser = await this.prisma.user.findUnique({ where: { email } })
 
       if (existingEmailUser) {
-        throw new HanaException('该邮箱已被注册', ErrorCode.EMAIL_ALREADY_REGISTERED, 409)
+        throw new HanaException('EMAIL_ALREADY_REGISTERED')
       }
 
       // 检查用户名是否已被占用
       const existingUsernameUser = await this.prisma.user.findUnique({ where: { username } })
 
       if (existingUsernameUser) {
-        throw new HanaException('该用户名已被占用', ErrorCode.USERNAME_ALREADY_EXISTS, 409)
+        throw new HanaException('USERNAME_ALREADY_EXISTS')
       }
 
       // 哈希密码
@@ -234,12 +253,12 @@ export class AuthService {
 
       // 获取团队所有者角色
       const ownerRole = await this.prisma.role.findUnique({
-        where: { name: RoleName.TEAM_OWNER },
+        where: { name: ROLE_NAME.TEAM_OWNER },
       })
 
       if (!ownerRole) {
         this.logger.error('团队所有者角色不存在，请检查角色种子数据')
-        throw new HanaException('系统配置错误', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+        throw new HanaException('INTERNAL_SERVER_ERROR')
       }
 
       const result = await this.prisma.$transaction(async (tx) => {
@@ -284,7 +303,7 @@ export class AuthService {
         throw error
       }
       this.logger.error('用户注册失败:', error)
-      throw new HanaException('注册失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -325,14 +344,14 @@ export class AuthService {
         }
       }
 
-      throw new HanaException('请提供邮箱或用户名进行检查', ErrorCode.INVALID_EMAIL, 400)
+      throw new HanaException('INVALID_PARAMS')
     }
     catch (error) {
       if (error instanceof HanaException) {
         throw error
       }
       this.logger.error('检查可用性失败:', error)
-      throw new HanaException('检查失败，请稍后重试', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

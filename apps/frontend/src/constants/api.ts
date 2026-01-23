@@ -145,7 +145,7 @@ export const HEADER_PARAMS = [
 ] as const
 
 /** 请求体类型名称映射 */
-export const BODY_NAME_MAP: Record<RequestBodyType, string> = {
+export const CONTENT_TYPE_MAP: Record<RequestBodyType, string> = {
   'json': 'application/json',
   'form-data': 'multipart/form-data',
   'x-www-form-urlencoded': 'application/x-www-form-urlencoded',

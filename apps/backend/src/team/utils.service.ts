@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 
@@ -16,7 +15,7 @@ export class TeamUtilsService {
     })
 
     if (existingTeam) {
-      throw new HanaException('团队名称已存在', ErrorCode.TEAM_NAME_EXISTS)
+      throw new HanaException('TEAM_NAME_EXISTS')
     }
   }
 
@@ -26,7 +25,7 @@ export class TeamUtilsService {
     })
 
     if (existingTeam) {
-      throw new HanaException('团队标识符已存在', ErrorCode.TEAM_SLUG_EXISTS)
+      throw new HanaException('TEAM_SLUG_EXISTS')
     }
   }
 
@@ -36,11 +35,11 @@ export class TeamUtilsService {
     })
 
     if (!team) {
-      throw new HanaException('团队不存在', ErrorCode.TEAM_NOT_FOUND, 404)
+      throw new HanaException('TEAM_NOT_FOUND')
     }
 
     if (!team.isActive) {
-      throw new HanaException('团队已被禁用', ErrorCode.TEAM_DISABLED)
+      throw new HanaException('TEAM_DISABLED')
     }
 
     return team
@@ -57,7 +56,7 @@ export class TeamUtilsService {
     })
 
     if (!membership) {
-      throw new HanaException('您不是该团队的成员', ErrorCode.NOT_TEAM_MEMBER, 403)
+      throw new HanaException('NOT_TEAM_MEMBER')
     }
   }
 }

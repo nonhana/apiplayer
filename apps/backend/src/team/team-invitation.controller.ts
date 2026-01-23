@@ -57,7 +57,8 @@ export class TeamInvitationController {
   async verifyInvitation(
     @Query('token') token: string,
   ): Promise<VerifyInvitationDto> {
-    return await this.teamInvitationService.verifyInvitation(token)
+    const result = await this.teamInvitationService.verifyInvitation(token)
+    return plainToInstance(VerifyInvitationDto, result)
   }
 
   /** 接受邀请 */

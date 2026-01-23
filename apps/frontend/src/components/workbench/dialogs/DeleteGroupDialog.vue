@@ -74,7 +74,7 @@ async function handleDelete() {
       <div v-if="hasChildren" class="flex items-start space-x-3 py-4">
         <Checkbox
           id="cascade"
-          v-model:checked="cascade"
+          v-model="cascade"
           :disabled="isDeleting"
         />
         <div class="space-y-1">

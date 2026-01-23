@@ -1,11 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { ProjectMemberWhereInput } from 'prisma/generated/models'
-import { ErrorCode } from '@/common/exceptions/error-code'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { RoleService } from '@/role/role.service'
 import { UserService } from '@/user/user.service'
-import { GetMembersReqDto, InviteMembersReqDto, UpdateMemberReqDto } from './dto'
+import { GetMembersReqDto, InviteMembersReqDto, UpdateProjectMemberReqDto } from './dto'
 import { ProjectUtilsService } from './utils.service'
 
 @Injectable()
@@ -53,10 +52,7 @@ export class ProjectMemberService {
           })
 
           if (existingMember) {
-            throw new HanaException(
-              `用户 ${user.username} 已经是项目成员`,
-              ErrorCode.USER_ALREADY_PROJECT_MEMBER,
-            )
+            throw new HanaException('USER_ALREADY_PROJECT_MEMBER')
           }
 
           // 检查用户是否是团队成员
@@ -70,10 +66,7 @@ export class ProjectMemberService {
           })
 
           if (!teamMember) {
-            throw new HanaException(
-              `用户 ${user.username} 不是团队成员，只能邀请团队成员加入项目`,
-              ErrorCode.USER_NOT_TEAM_MEMBER,
-            )
+            throw new HanaException('USER_NOT_TEAM_MEMBER')
           }
         }
 
@@ -107,7 +100,7 @@ export class ProjectMemberService {
         throw error
       }
       this.logger.error(`邀请项目成员失败: ${error.message}`, error.stack)
-      throw new HanaException('邀请项目成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -132,7 +125,7 @@ export class ProjectMemberService {
         throw error
       }
       this.logger.error(`获取项目全部成员失败: ${error.message}`, error.stack)
-      throw new HanaException('获取项目全部成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -198,11 +191,11 @@ export class ProjectMemberService {
         throw error
       }
       this.logger.error(`获取项目成员列表失败: ${error.message}`, error.stack)
-      throw new HanaException('获取项目成员列表失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
-  async updateProjectMember(dto: UpdateMemberReqDto, projectId: string, memberId: string, operatorId: string) {
+  async updateProjectMember(dto: UpdateProjectMemberReqDto, projectId: string, memberId: string, operatorId: string) {
     const { roleId } = dto
 
     try {
@@ -217,7 +210,7 @@ export class ProjectMemberService {
       })
 
       if (!member || member.projectId !== projectId) {
-        throw new HanaException('项目成员不存在', ErrorCode.PROJECT_MEMBER_NOT_FOUND, 404)
+        throw new HanaException('PROJECT_MEMBER_NOT_FOUND')
       }
 
       await this.roleService.getRole('id', roleId)
@@ -241,7 +234,7 @@ export class ProjectMemberService {
         throw error
       }
       this.logger.error(`更新项目成员角色失败: ${error.message}`, error.stack)
-      throw new HanaException('更新项目成员角色失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 
@@ -259,7 +252,7 @@ export class ProjectMemberService {
       })
 
       if (!member || member.projectId !== projectId) {
-        throw new HanaException('项目成员不存在', ErrorCode.PROJECT_MEMBER_NOT_FOUND, 404)
+        throw new HanaException('PROJECT_MEMBER_NOT_FOUND')
       }
 
       // 检查是否尝试移除项目管理员（如果是最后一个管理员）
@@ -272,7 +265,7 @@ export class ProjectMemberService {
         })
 
         if (adminCount === 1) {
-          throw new HanaException('不能移除项目的最后一个管理员', ErrorCode.CANNOT_REMOVE_LAST_ADMIN)
+          throw new HanaException('CANNOT_REMOVE_LAST_ADMIN')
         }
       }
 
@@ -288,7 +281,7 @@ export class ProjectMemberService {
         throw error
       }
       this.logger.error(`移除项目成员失败: ${error.message}`, error.stack)
-      throw new HanaException('移除项目成员失败', ErrorCode.INTERNAL_SERVER_ERROR, 500)
+      throw new HanaException('INTERNAL_SERVER_ERROR')
     }
   }
 }

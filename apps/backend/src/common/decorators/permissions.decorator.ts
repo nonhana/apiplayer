@@ -1,6 +1,6 @@
+import { PermissionType } from '@apiplayer/shared'
 import { SetMetadata } from '@nestjs/common'
 import { PermissionContextConfig, PermissionContextParamName } from '@/common/types/permission'
-import { PermissionType } from '@/constants/permission'
 
 export const CONTEXT_PERMISSIONS_KEY = 'contextPermissions'
 export const TEAM_CONTEXT_KEY = 'teamContext'

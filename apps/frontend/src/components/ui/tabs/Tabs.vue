@@ -5,7 +5,11 @@ import { reactiveOmit } from '@vueuse/core'
 import { TabsRoot, useForwardPropsEmits } from 'reka-ui'
 import { cn } from '@/lib/utils'
 
-const props = defineProps<TabsRootProps & { class?: HTMLAttributes['class'] }>()
+type TabsProps = TabsRootProps & { class?: HTMLAttributes['class'] }
+
+const props = withDefaults(defineProps<TabsProps>(), {
+  orientation: 'vertical',
+})
 const emits = defineEmits<TabsRootEmits>()
 
 const delegatedProps = reactiveOmit(props, 'class')
@@ -17,7 +21,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     v-slot="slotProps"
     data-slot="tabs"
     v-bind="forwarded"
-    :class="cn('flex flex-col', props.class)"
+    :class="cn('flex', orientation === 'vertical' ? 'flex-col' : 'flex-row', props.class)"
   >
     <slot v-bind="slotProps" />
   </TabsRoot>

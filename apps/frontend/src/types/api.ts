@@ -18,8 +18,6 @@ export interface Tab {
   method?: HttpMethod
   /** 路径（仅 API 类型） */
   path?: string
-  /** 是否有未保存的修改 */
-  dirty?: boolean
   /** 是否固定 */
   pinned?: boolean
   /** 附加数据 */

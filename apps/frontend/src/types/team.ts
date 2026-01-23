@@ -1,5 +1,5 @@
+import type { RoleName } from '@apiplayer/shared'
 import type { UserBriefInfo } from './user'
-import type { RoleName } from '@/constants/roles'
 
 /** 团队简要信息 */
 export interface TeamBrief {
@@ -130,7 +130,7 @@ export interface SendInvitationReq {
 }
 
 /** 邀请信息 */
-export interface TeamInvitation {
+export interface InvitationInfo {
   id: string
   email: string
   nickname?: string
@@ -142,28 +142,29 @@ export interface TeamInvitation {
   acceptedAt?: string
 }
 
+/** 邀请简要信息 */
+export interface InvitationBrief {
+  id: string
+  email: string
+  teamName: string
+  teamAvatar?: string
+  teamSlug: string
+  roleName: string
+  roleDescription?: string
+  inviterName: string
+  expiresAt: string
+}
+
 /** 验证邀请响应 */
-export interface VerifyInvitationResult {
+export interface VerifyInvitationRes {
   valid: boolean
-  invitation?: {
-    id: string
-    email: string
-    teamName: string
-    teamAvatar?: string
-    teamSlug: string
-    roleName: string
-    roleDescription?: string
-    inviterName: string
-    expiresAt: string
-  }
-  error?: 'INVALID_TOKEN' | 'EXPIRED' | 'ALREADY_ACCEPTED' | 'CANCELLED'
-  emailRegistered?: boolean
+  emailRegistered: boolean
+  invitation: InvitationBrief
 }
 
 /** 接受邀请响应 */
-export interface AcceptInvitationResult {
+export interface AcceptInvitationRes {
   success: boolean
   teamId?: string
   teamSlug?: string
-  error?: 'EMAIL_MISMATCH' | 'INVALID_TOKEN' | 'EXPIRED' | 'ALREADY_MEMBER' | 'CANCELLED'
 }
