@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ProjectDetail } from '@/types/project'
+import { ROLE_NAME } from '@apiplayer/shared'
 import {
   Globe,
   Settings,
@@ -19,7 +20,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs'
-import { ROLE_NAME } from '@/constants/roles'
 import { getAbbreviation } from '@/lib/utils'
 import ProjectBasicInfoTab from './ProjectBasicInfoTab.vue'
 import ProjectEnvTab from './ProjectEnvTab.vue'

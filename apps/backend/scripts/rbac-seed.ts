@@ -1,11 +1,9 @@
 // It is best to run this file in place using bun runtime
 
 import process from 'node:process'
-import { systemConfigMetadata } from '@apiplayer/shared'
+import { permissions, roles, systemConfigMetadata } from '@apiplayer/shared'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from 'prisma/generated/client'
-import { permissions } from '../src/constants/permission'
-import { roles } from '../src/constants/role'
 import 'dotenv/config'
 
 const connectionString = `${process.env.DATABASE_URL}`

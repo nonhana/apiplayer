@@ -1,5 +1,5 @@
+import type { RoleName } from '@apiplayer/shared'
 import type { Pagination, RoleBrief } from './team'
-import type { RoleName } from '@/constants/roles'
 
 /** 项目所属团队简要信息 */
 export interface ProjectTeam {

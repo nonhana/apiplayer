@@ -3,7 +3,7 @@ import type { ProjectMember } from '@/types/project'
 import type { RoleItem } from '@/types/role'
 import type { InvitationInfo, TeamMember } from '@/types/team'
 import type { UserBriefInfo } from '@/types/user'
-import { SystemConfigKey, TeamInviteMode } from '@apiplayer/shared'
+import { ROLE_NAME, SystemConfigKey, TeamInviteMode } from '@apiplayer/shared'
 import { Loader2, Mail, Users } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch, watchEffect } from 'vue'
@@ -29,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ROLE_NAME } from '@/constants/roles'
 import { useGlobalStore } from '@/stores/useGlobalStore'
 import UserSearchSelect from '../UserSearchSelect.vue'
 

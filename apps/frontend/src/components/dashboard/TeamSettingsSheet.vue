@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { TeamItem } from '@/types/team'
+import { ROLE_NAME } from '@apiplayer/shared'
 import {
   Settings,
   Users,
@@ -18,7 +19,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs'
-import { ROLE_NAME } from '@/constants/roles'
 import { getAbbreviation } from '@/lib/utils'
 import TeamBasicInfoTab from './TeamBasicInfoTab.vue'
 import TeamMemberTab from './TeamMemberTab.vue'

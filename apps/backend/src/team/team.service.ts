@@ -1,8 +1,8 @@
+import { ROLE_NAME } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { TeamWhereInput } from 'prisma/generated/models'
 import { BasePaginatedQueryDto } from '@/common/dto/pagination.dto'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { RoleService } from '@/role/role.service'
 import { CreateTeamReqDto, UpdateTeamReqDto } from './dto'
@@ -25,7 +25,7 @@ export class TeamService {
       await this.teamUtilsService.checkTeamNameExists(name)
       await this.teamUtilsService.checkTeamSlugExists(slug)
 
-      const ownerRole = await this.roleService.getRole('name', RoleName.TEAM_OWNER)
+      const ownerRole = await this.roleService.getRole('name', ROLE_NAME.TEAM_OWNER)
 
       const result = await this.prisma.$transaction(async (tx) => {
         const team = await tx.team.create({

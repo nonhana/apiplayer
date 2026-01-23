@@ -1,5 +1,5 @@
+import type { RoleName } from '@apiplayer/shared'
 import type { UserBriefInfo } from './user'
-import type { RoleName } from '@/constants/roles'
 
 /** 团队简要信息 */
 export interface TeamBrief {

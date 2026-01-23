@@ -1,7 +1,7 @@
+import { ROLE_NAME } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { APIOperationType, Prisma, VersionChangeType } from 'prisma/generated/client'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { RoleName } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { RoleService } from '@/role/role.service'
 import { CreateProjectReqDto, GetProjectsReqDto, UpdateProjectReqDto } from './dto'
@@ -24,7 +24,7 @@ export class ProjectService {
       await this.projectUtilsService.checkProjectNameExists(teamId, name)
       await this.projectUtilsService.checkProjectSlugExists(teamId, slug)
 
-      const adminRole = await this.roleService.getRole('name', RoleName.PROJECT_ADMIN)
+      const adminRole = await this.roleService.getRole('name', ROLE_NAME.PROJECT_ADMIN)
 
       const project = await this.prisma.$transaction(async (tx) => {
         // 创建项目

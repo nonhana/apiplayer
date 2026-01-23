@@ -1,9 +1,8 @@
-import { SystemConfigKey } from '@apiplayer/shared'
+import { ROLE_NAME, SystemConfigKey } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { compare, hash } from 'bcrypt'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { DEFAULT_COOKIE_MAX_AGE, REMEMBER_ME_COOKIE_MAX_AGE } from '@/constants/cookie'
-import { RoleName } from '@/constants/role'
 import { EmailCodeService } from '@/email-code/email-code.service'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SystemConfigService } from '@/infra/system-config/system-config.service'
@@ -254,7 +253,7 @@ export class AuthService {
 
       // 获取团队所有者角色
       const ownerRole = await this.prisma.role.findUnique({
-        where: { name: RoleName.TEAM_OWNER },
+        where: { name: ROLE_NAME.TEAM_OWNER },
       })
 
       if (!ownerRole) {

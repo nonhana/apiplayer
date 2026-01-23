@@ -1,8 +1,7 @@
+import { PermissionType, RoleType } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
 import { HanaException } from '@/common/exceptions/hana.exception'
 import { PermissionContext } from '@/common/types/permission'
-import { PermissionType } from '@/constants/permission'
-import { RoleType } from '@/constants/role'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 
 @Injectable()
