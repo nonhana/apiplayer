@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { FastifyReply } from 'fastify'
-import { DEFAULT_COOKIE_MAX_AGE } from '@/constants/cookie'
 
 /** Cookie 配置选项 */
 export interface CookieOptions {
@@ -13,10 +12,12 @@ export interface CookieOptions {
 export class CookieService {
   private isProduction: boolean
   private cookieDomain: string | undefined
+  private cookieMaxAge: number
 
   constructor(private readonly configService: ConfigService) {
     this.isProduction = this.configService.get('NODE_ENV') === 'production'
     this.cookieDomain = this.configService.get<string>('COOKIE_DOMAIN') || undefined
+    this.cookieMaxAge = this.configService.get<number>('COOKIE_MAX_AGE') || 7 * 24 * 60 * 60
   }
 
   /** 设置安全的 Session Cookie */
@@ -25,7 +26,7 @@ export class CookieService {
     sessionId: string,
     options: CookieOptions = {},
   ): void {
-    const maxAge = options.maxAge ?? DEFAULT_COOKIE_MAX_AGE
+    const maxAge = options.maxAge ?? this.cookieMaxAge
 
     response.cookie('sid', sessionId, {
       httpOnly: true,
@@ -43,7 +44,7 @@ export class CookieService {
     sessionId: string,
     ttlSeconds?: number,
   ): void {
-    const maxAge = ttlSeconds ?? DEFAULT_COOKIE_MAX_AGE
+    const maxAge = ttlSeconds ?? this.cookieMaxAge
 
     response.cookie('sid', sessionId, {
       httpOnly: true,
