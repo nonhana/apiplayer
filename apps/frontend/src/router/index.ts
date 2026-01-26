@@ -75,12 +75,17 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, _, next) => {
+router.beforeEach(async (to, _, next) => {
   const userStore = useUserStore()
   const globalStore = useGlobalStore()
 
   const isPublicRoute = PUBLIC_ROUTES.includes(to.name as string)
   const shouldRedirectToDashboard = AUTH_REDIRECT_ROUTES.includes(to.name as string)
+
+  // 0. 如果本地有认证状态但尚未验证，先验证 Session 有效性
+  if (userStore.isAuthenticated && !userStore.getIsSessionVerified()) {
+    await userStore.verifySession()
+  }
 
   // 1. 已认证用户访问登录/注册等页面 → 重定向到 Dashboard
   if (userStore.isAuthenticated && shouldRedirectToDashboard) {
@@ -104,7 +109,7 @@ router.beforeEach((to, _, next) => {
   }
 
   // 5. 未认证用户访问受保护路由 → 重定向到登录
-  return next({ name: 'Login' })
+  return next({ name: 'Login', query: { redirect: to.fullPath } })
 })
 
 export default router

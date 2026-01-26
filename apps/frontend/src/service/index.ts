@@ -4,6 +4,7 @@ import { getErrorCode } from '@apiplayer/shared'
 import { StatusCodes } from 'http-status-codes'
 import ky from 'ky'
 import { toast } from 'vue-sonner'
+import router from '@/router'
 import { useUserStore } from '@/stores/useUserStore'
 import { HanaError } from './error'
 
@@ -43,7 +44,11 @@ const hooks: Hooks = {
             toast.error('登录已过期，请重新登录')
             isReLogin = true
             const userStore = useUserStore()
-            await userStore.logout()
+            userStore.clearAuth()
+            await router.push({
+              name: 'Login',
+              query: { redirect: router.currentRoute.value.fullPath },
+            })
             setTimeout(() => isReLogin = false, 1000)
           }
           throw new HanaError(message, resJson.status)

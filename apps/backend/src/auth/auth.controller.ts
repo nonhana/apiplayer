@@ -50,7 +50,7 @@ export class AuthController {
     const cookieMaxAge = loginDto.rememberMe ? REMEMBER_ME_COOKIE_MAX_AGE : idleTimeout
     this.cookieService.setSecureSessionCookie(response, finalSessionId, { maxAge: cookieMaxAge })
 
-    return plainToInstance(LoginResDto, { user, token: finalSessionId })
+    return plainToInstance(LoginResDto, { user })
   }
 
   /** 用户注册 */
@@ -73,6 +73,7 @@ export class AuthController {
   }
 
   /** 用户登出 */
+  @UseGuards(AuthGuard)
   @Post('logout')
   @ResMsg('登出成功')
   async logout(
@@ -89,6 +90,7 @@ export class AuthController {
   }
 
   /** 登出所有设备 */
+  @UseGuards(AuthGuard)
   @Post('logout-all')
   @ResMsg('已登出所有设备')
   async logoutAllDevices(

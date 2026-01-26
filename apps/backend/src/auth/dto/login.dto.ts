@@ -19,9 +19,6 @@ export class LoginReqDto {
 @Exclude()
 export class LoginResDto {
   @Expose()
-  token: string
-
-  @Expose()
   @Type(() => UserDetailInfoDto)
   user: UserDetailInfoDto
 }

@@ -12,10 +12,10 @@ packages:
 
 catalogs:
   backend:
-    '@aws-sdk/client-s3': ^3.971.0
+    '@aws-sdk/client-s3': ^3.975.0
     '@faker-js/faker': ^10.2.0
     '@fastify/cookie': ^11.0.2
-    '@fastify/multipart': ^9.3.0
+    '@fastify/multipart': ^9.4.0
     '@fastify/session': ^11.1.1
     '@fastify/static': ^9.0.0
     '@nestjs/axios': ^4.0.1
@@ -30,10 +30,10 @@ catalogs:
     '@nestjs/swagger': ^11.2.5
     '@nestjs/terminus': ^11.0.0
     '@nestjs/testing': ^11.1.12
-    '@prisma/adapter-pg': ^7.2.0
-    '@prisma/client': ^7.2.0
+    '@prisma/adapter-pg': ^7.3.0
+    '@prisma/client': ^7.3.0
     '@swc/cli': ^0.7.10
-    '@swc/core': ^1.15.8
+    '@swc/core': ^1.15.10
     '@types/bcrypt': ^6.0.0
     '@types/express': ^5.0.6
     '@types/pg': ^8.16.0
@@ -47,10 +47,10 @@ catalogs:
     ioredis: ^5.9.2
     joi: ^18.0.2
     json-schema-faker: ^0.5.9
-    pg: ^8.17.1
-    prisma: ^7.2.0
+    pg: ^8.17.2
+    prisma: ^7.3.0
     reflect-metadata: ^0.2.2
-    resend: ^6.7.0
+    resend: ^6.8.0
     rxjs: ^7.8.2
     source-map-support: ^0.5.21
     ts-loader: ^9.5.4
@@ -71,13 +71,13 @@ catalogs:
     cropperjs: ^2.1.0
     dayjs: ^1.11.19
     ky: ^1.14.2
-    lodash-es: ^4.17.22
-    lucide-vue-next: ^0.562.0
+    lodash-es: ^4.17.23
+    lucide-vue-next: ^0.563.0
     monaco-editor: 0.50.0
     nanoid: ^5.1.6
     pinia: ^3.0.4
     pinia-plugin-persistedstate: ^4.7.1
-    pinyin-pro: ^3.27.0
+    pinyin-pro: ^3.28.0
     reka-ui: ^2.7.0
     rollup-plugin-visualizer: ^6.0.5
     shiki: ^3.21.0
@@ -89,19 +89,19 @@ catalogs:
     vite: ^7.3.1
     vite-plugin-compression2: ^2.4.0
     vite-plugin-monaco-editor-esm: ^2.0.2
-    vue: ^3.5.26
+    vue: ^3.5.27
     vue-picture-cropper: ^0.7.0
     vue-router: ^4.6.4
     vue-sonner: ^2.0.9
-    vue-tsc: ^3.2.2
+    vue-tsc: ^3.2.3
     zod: '3'
   public:
-    '@antfu/eslint-config': ^7.0.1
-    '@types/node': ^25.0.9
-    baseline-browser-mapping: ^2.9.15
+    '@antfu/eslint-config': ^7.2.0
+    '@types/node': ^25.0.10
+    baseline-browser-mapping: ^2.9.17
     eslint: ^9.39.2
     http-status-codes: ^2.3.0
-    tsdown: ^0.19.0
+    tsdown: ^0.20.1
     tsx: ^4.21.0
     type-fest: ^5.4.1
     typescript: ^5.9.3
