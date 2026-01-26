@@ -6,4 +6,5 @@ export default defineConfig({
     cjs: { outDir: 'dist/cjs' },
     esm: { outDir: 'dist/esm' },
   },
+  inlineOnly: ['http-status-codes'],
 })
