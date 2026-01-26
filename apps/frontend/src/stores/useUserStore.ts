@@ -15,14 +15,11 @@ export const useUserStore = defineStore('user', () => {
   const router = useRouter()
   const route = useRoute()
 
-  const token = ref('')
   const user = ref<UserDetailInfo | null>(null)
   const isAuthenticated = ref(false)
 
-  function setToken(newToken: string) {
-    token.value = newToken
-    isAuthenticated.value = !!newToken
-  }
+  // 标记本次页面会话是否已验证过 Session（普通变量，不会被持久化）
+  let isSessionVerified = false
 
   function setUser(newUser: UserDetailInfo | null) {
     user.value = newUser
@@ -31,14 +28,15 @@ export const useUserStore = defineStore('user', () => {
   // actions
   async function login(values: LoginReq) {
     try {
-      const { token, user } = await authApi.login(values)
+      const { user } = await authApi.login(values)
 
       // 登录后初始化
       await globalStore.initRoles()
       await teamStore.fetchTeams()
 
-      setToken(token)
+      isAuthenticated.value = true
       setUser(user)
+      isSessionVerified = true
 
       toast.success('欢迎回来！', { description: '登录成功，欢迎使用。' })
 
@@ -57,35 +55,71 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function clearAuth() {
-    token.value = ''
     user.value = null
     isAuthenticated.value = false
+    isSessionVerified = false
     teamStore.reset()
+  }
+
+  /** 验证当前 Session 是否有效 */
+  async function verifySession(): Promise<boolean> {
+    // 如果本地没有认证状态，无需验证
+    if (!isAuthenticated.value) {
+      return false
+    }
+
+    // 如果本次页面会话已验证过，直接返回当前状态
+    if (isSessionVerified) {
+      return isAuthenticated.value
+    }
+
+    try {
+      // 调用后端验证 Session 并获取最新用户信息
+      const userData = await authApi.getCurrentUser()
+      setUser(userData)
+
+      // 同时初始化必要的全局数据
+      await Promise.all([
+        globalStore.initRoles(),
+        teamStore.fetchTeams(),
+      ])
+
+      isSessionVerified = true
+      return true
+    }
+    catch {
+      // Session 无效，清除本地状态
+      clearAuth()
+      return false
+    }
+  }
+
+  function getIsSessionVerified() {
+    return isSessionVerified
   }
 
   async function logout() {
     try {
       await authApi.logout()
-      clearAuth()
-      await router.push({
-        name: 'Login',
-        query: { redirect: router.currentRoute.value.fullPath },
-      })
     }
     catch (error) {
       console.error('登出失败', error)
     }
+    finally {
+      clearAuth()
+      await router.replace('/auth/login')
+    }
   }
 
   return {
-    token,
     user,
     isAuthenticated,
-    setToken,
     setUser,
     login,
     clearAuth,
     logout,
+    verifySession,
+    getIsSessionVerified,
   }
 }, {
   persist: {
