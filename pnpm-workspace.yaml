@@ -57,6 +57,9 @@ catalogs:
     tsconfig-paths: ^4.2.0
     winston: ^3.19.0
     winston-daily-rotate-file: ^5.0.0
+    openapi-types: ^12.1.3
+    js-yaml: ^4.1.0
+    '@types/js-yaml': ^4.0.9
   frontend:
     '@tailwindcss/vite': ^4.1.18
     '@tanstack/vue-table': ^8.21.3
