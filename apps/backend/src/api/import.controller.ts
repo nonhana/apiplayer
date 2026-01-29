@@ -1,4 +1,3 @@
-import type { MultipartFile } from '@fastify/multipart'
 import type { FastifyRequest } from 'fastify'
 import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common'
 import { ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger'
@@ -41,11 +40,12 @@ export class ImportController {
   ) {
     let fileContent: string | undefined
 
-    // 检查是否是 multipart 请求
+    // 如果是上传文件，直接读取内容
     if (request.isMultipart()) {
       const file = await request.file()
       if (file) {
-        fileContent = await this.readFileContent(file)
+        const buffer = await file.toBuffer()
+        fileContent = buffer.toString('utf-8')
       }
     }
 
@@ -64,11 +64,5 @@ export class ImportController {
     @ReqUser('id') userId: string,
   ) {
     return this.importService.executeImport(dto, projectId, userId)
-  }
-
-  /** 读取上传文件内容 */
-  private async readFileContent(file: MultipartFile): Promise<string> {
-    const buffer = await file.toBuffer()
-    return buffer.toString('utf-8')
   }
 }

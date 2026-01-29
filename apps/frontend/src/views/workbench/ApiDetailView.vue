@@ -10,7 +10,6 @@ import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useTabStore } from '@/stores/useTabStore'
 
 const tabStore = useTabStore()
-// const { clearTabsDirty } = tabStore
 
 const apiTreeStore = useApiTreeStore()
 
@@ -114,9 +113,13 @@ function handleDragEnd() {
 
 <template>
   <div class="flex-1 flex flex-col min-w-0">
-    <div class="h-9 border-b border-border flex items-center bg-muted/30">
-      <ScrollArea orientation="horizontal" class="flex-1">
-        <div class="flex items-center h-full">
+    <div class="h-9 border-b border-border bg-muted/30">
+      <ScrollArea
+        orientation="horizontal"
+        :bar-width="6"
+        class="w-full"
+      >
+        <div class="flex items-center w-fit">
           <TabItem
             v-for="(tab, index) in tabStore.tabs"
             :key="tab.id"

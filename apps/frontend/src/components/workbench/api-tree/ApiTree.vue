@@ -112,7 +112,7 @@ onMounted(() => {
       @import-openapi="emits('importOpenapi')"
     />
 
-    <ScrollArea class="flex-1 px-2">
+    <ScrollArea class="flex-1 px-2 min-h-0">
       <div
         v-if="isLoading && !hasData"
         class="flex items-center justify-center py-12"

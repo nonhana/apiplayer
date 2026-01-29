@@ -14,7 +14,8 @@
     "postinstall": "pnpm --filter shared build"
   },
   "dependencies": {
-    "http-status-codes": "catalog:public"
+    "http-status-codes": "catalog:public",
+    "nanoid": "catalog:public"
   },
   "devDependencies": {
     "@antfu/eslint-config": "catalog:public",

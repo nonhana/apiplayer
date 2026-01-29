@@ -199,9 +199,6 @@ catalogs:
     monaco-editor:
       specifier: 0.50.0
       version: 0.50.0
-    nanoid:
-      specifier: ^5.1.6
-      version: 5.1.6
     pinia:
       specifier: ^3.0.4
       version: 3.0.4
@@ -223,6 +220,9 @@ catalogs:
     tailwind-merge:
       specifier: ^3.4.0
       version: 3.4.0
+    tailwind-scrollbar-hide:
+      specifier: ^4.0.0
+      version: 4.0.0
     tailwindcss:
       specifier: ^4.1.18
       version: 4.1.18
@@ -278,6 +278,9 @@ catalogs:
     http-status-codes:
       specifier: ^2.3.0
       version: 2.3.0
+    nanoid:
+      specifier: ^5.1.6
+      version: 5.1.6
     tsdown:
       specifier: ^0.20.1
       version: 0.20.1
@@ -298,6 +301,9 @@ importers:
       http-status-codes:
         specifier: catalog:public
         version: 2.3.0
+      nanoid:
+        specifier: catalog:public
+        version: 5.1.6
     devDependencies:
       '@antfu/eslint-config':
         specifier: catalog:public
@@ -519,9 +525,6 @@ importers:
       monaco-editor:
         specifier: catalog:frontend
         version: 0.50.0
-      nanoid:
-        specifier: catalog:frontend
-        version: 5.1.6
       pinia:
         specifier: catalog:frontend
         version: 3.0.4(typescript@5.9.3)(vue@3.5.27(typescript@5.9.3))
@@ -537,6 +540,9 @@ importers:
       tailwind-merge:
         specifier: catalog:frontend
         version: 3.4.0
+      tailwind-scrollbar-hide:
+        specifier: catalog:frontend
+        version: 4.0.0(tailwindcss@4.1.18)
       tailwindcss:
         specifier: catalog:frontend
         version: 4.1.18
@@ -5774,6 +5780,11 @@ packages:
 
   tailwind-merge@3.4.0:
     resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
+
+  tailwind-scrollbar-hide@4.0.0:
+    resolution: {integrity: sha512-gobtvVcThB2Dxhy0EeYSS1RKQJ5baDFkamkhwBvzvevwX6L4XQfpZ3me9s25Ss1ecFVT5jPYJ50n+7xTBJG9WQ==}
+    peerDependencies:
+      tailwindcss: '>=3.0.0 || >= 4.0.0 || >= 4.0.0-beta.8 || >= 4.0.0-alpha.20'
 
   tailwindcss@4.1.18:
     resolution: {integrity: sha512-4+Z+0yiYyEtUVCScyfHCxOYP06L5Ne+JiHhY2IjR2KWMIWhJOYZKLSGZaP5HkZ8+bY0cxfzwDE5uOmzFXyIwxw==}
@@ -12180,6 +12191,10 @@ snapshots:
   tagged-tag@1.0.0: {}
 
   tailwind-merge@3.4.0: {}
+
+  tailwind-scrollbar-hide@4.0.0(tailwindcss@4.1.18):
+    dependencies:
+      tailwindcss: 4.1.18
 
   tailwindcss@4.1.18: {}
 
