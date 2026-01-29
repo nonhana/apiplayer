@@ -8,7 +8,6 @@ import { ResMsg } from '@/common/decorators/res-msg.decorator'
 import { UserDetailInfoDto, UserSessionDto } from '@/common/dto/user.dto'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PasswordConfirmationPipe } from '@/common/pipes/password-confirmation.pipe'
-import { REMEMBER_ME_COOKIE_MAX_AGE } from '@/constants/cookie'
 import { CookieService } from '@/cookie/cookie.service'
 import { AuthService } from './auth.service'
 import {
@@ -40,15 +39,16 @@ export class AuthController {
     const userAgent = request.headers['user-agent']
     const ip = request.ip
 
-    const { user, sessionId, idleTimeout } = await this.authService.login(loginDto, { userAgent, ip })
+    const { user, sessionId, idleTimeout } = await this.authService.login(
+      loginDto,
+      { userAgent, ip },
+    )
 
     // 成功登录后立即重新生成 Session ID
     const newSessionId = await this.authService.regenerateSessionId(sessionId)
     const finalSessionId = newSessionId || sessionId
 
-    // 设置 Cookie，过期时间与 Session 一致
-    const cookieMaxAge = loginDto.rememberMe ? REMEMBER_ME_COOKIE_MAX_AGE : idleTimeout
-    this.cookieService.setSecureSessionCookie(response, finalSessionId, { maxAge: cookieMaxAge })
+    this.cookieService.setSecureSessionCookie(response, finalSessionId, { maxAge: idleTimeout })
 
     return plainToInstance(LoginResDto, { user })
   }

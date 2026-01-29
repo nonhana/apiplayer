@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios'
 import { Module } from '@nestjs/common'
 import { AuthModule } from '@/auth/auth.module'
 import { PrismaModule } from '@/infra/prisma/prisma.module'
@@ -9,14 +10,16 @@ import { ApiController } from './api.controller'
 import { ApiService } from './api.service'
 import { GroupController } from './group.controller'
 import { GroupService } from './group.service'
+import { ImportController } from './import.controller'
+import { ImportService } from './import.service'
 import { ApiUtilsService } from './utils.service'
 import { VersionController } from './version.controller'
 import { VersionService } from './version.service'
 
 @Module({
-  imports: [PrismaModule, AuthModule, PermissionModule, ProjectModule, UtilModule, SystemConfigModule],
-  controllers: [ApiController, GroupController, VersionController],
-  providers: [ApiService, ApiUtilsService, GroupService, VersionService],
-  exports: [ApiService, ApiUtilsService, GroupService, VersionService],
+  imports: [PrismaModule, AuthModule, PermissionModule, ProjectModule, UtilModule, SystemConfigModule, HttpModule],
+  controllers: [ApiController, GroupController, VersionController, ImportController],
+  providers: [ApiService, ApiUtilsService, GroupService, VersionService, ImportService],
+  exports: [ApiService, ApiUtilsService, GroupService, VersionService, ImportService],
 })
 export class ApiModule {}

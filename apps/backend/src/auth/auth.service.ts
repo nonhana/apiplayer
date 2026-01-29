@@ -1,8 +1,8 @@
 import { ROLE_NAME, SystemConfigKey } from '@apiplayer/shared'
 import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { compare, hash } from 'bcrypt'
 import { HanaException } from '@/common/exceptions/hana.exception'
-import { DEFAULT_COOKIE_MAX_AGE, REMEMBER_ME_COOKIE_MAX_AGE } from '@/constants/cookie'
 import { EmailCodeService } from '@/email-code/email-code.service'
 import { PrismaService } from '@/infra/prisma/prisma.service'
 import { SystemConfigService } from '@/infra/system-config/system-config.service'
@@ -19,6 +19,7 @@ export class AuthService {
     private readonly sessionService: SessionService,
     private readonly systemConfigService: SystemConfigService,
     private readonly emailCodeService: EmailCodeService,
+    private readonly configService: ConfigService,
   ) {}
 
   /** 对密码进行哈希处理 */
@@ -57,7 +58,9 @@ export class AuthService {
       }
 
       // 创建Session，根据 rememberMe 设置不同的过期时间
-      const idleTimeout = rememberMe ? REMEMBER_ME_COOKIE_MAX_AGE : DEFAULT_COOKIE_MAX_AGE
+      const idleTimeout = rememberMe
+        ? (this.configService.get<number>('COOKIE_REMEMBER_ME_MAX_AGE') || 30 * 24 * 60 * 60)
+        : (this.configService.get<number>('COOKIE_MAX_AGE') || 7 * 24 * 60 * 60)
       const sessionOptions = { idleTimeout }
 
       const sessionId = await this.sessionService.createSession(

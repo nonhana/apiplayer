@@ -27,6 +27,7 @@ const emits = defineEmits<{
   (e: 'deleteGroup', group: GroupNodeWithApis): void
   (e: 'cloneApi', api: ApiBrief): void
   (e: 'deleteApi', api: ApiBrief): void
+  (e: 'importOpenapi'): void
 }>()
 
 const apiTreeStore = useApiTreeStore()
@@ -108,9 +109,10 @@ onMounted(() => {
     <ApiTreeToolbar
       @create-api="handleToolbarCreateApi"
       @create-group="emits('createGroup')"
+      @import-openapi="emits('importOpenapi')"
     />
 
-    <ScrollArea class="flex-1 px-2">
+    <ScrollArea class="flex-1 px-2 min-h-0">
       <div
         v-if="isLoading && !hasData"
         class="flex items-center justify-center py-12"

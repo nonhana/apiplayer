@@ -78,6 +78,12 @@ export const errors = {
   API_VERSION_EXISTS: { code: 50005, message: '版本号已存在', status: StatusCodes.CONFLICT },
   PROJECT_API_LIMIT_EXCEEDED: { code: 50006, message: '项目 API 数量已达上限', status: StatusCodes.FORBIDDEN },
 
+  // OpenAPI 导入相关 51xxx
+  OPENAPI_PARSE_FAILED: { code: 51001, message: 'OpenAPI 文档解析失败', status: StatusCodes.BAD_REQUEST },
+  OPENAPI_INVALID_FORMAT: { code: 51002, message: 'OpenAPI 文档格式不正确', status: StatusCodes.BAD_REQUEST },
+  OPENAPI_FETCH_FAILED: { code: 51003, message: '无法从 URL 获取 OpenAPI 文档', status: StatusCodes.BAD_REQUEST },
+  OPENAPI_IMPORT_FAILED: { code: 51004, message: 'OpenAPI 导入执行失败', status: StatusCodes.INTERNAL_SERVER_ERROR },
+
   // 代理相关 60xxx
   PROXY_REQUEST_TIMEOUT: { code: 60001, message: '请求超时', status: StatusCodes.BAD_REQUEST },
   PROXY_REQUEST_FAILED: { code: 60002, message: '请求失败', status: StatusCodes.BAD_REQUEST },
