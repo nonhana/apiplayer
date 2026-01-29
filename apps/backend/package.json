@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "build": "tsc --noEmit && tsdown",
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit --incremental",
     "start": "node dist/main.cjs",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

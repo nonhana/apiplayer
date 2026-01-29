@@ -196,7 +196,7 @@ function getMethodClass(method: HttpMethod) {
         <Label for="target-group">目标分组（可选）</Label>
         <Select v-model="targetGroupId" :disabled="!flatGroups.length">
           <SelectTrigger id="target-group">
-            <SelectValue :placeholder="`${flatGroups.length > 0 || '无可选分组，'}按 tags 自动创建分组`" />
+            <SelectValue :placeholder="`${flatGroups.length > 0 ? '' : '无可选分组，'}按 tags 自动创建分组`" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem

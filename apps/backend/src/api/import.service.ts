@@ -1,5 +1,6 @@
 import type { OpenAPIV3 } from 'openapi-types'
 import type { InputJsonValue, TransactionClient } from 'prisma/generated/internal/prismaNamespace'
+import { Buffer } from 'node:buffer'
 import { SystemConfigKey } from '@apiplayer/shared'
 import { HttpService } from '@nestjs/axios'
 import { Injectable, Logger } from '@nestjs/common'
@@ -35,6 +36,9 @@ const MAX_REF_CHAIN_DEPTH = 20
 
 /** HTTP 请求超时时间 (ms) */
 const HTTP_FETCH_TIMEOUT = 30000
+
+/** OpenAPI 文档最大大小 (10MB) */
+const MAX_CONTENT_SIZE = 10 * 1024 * 1024
 
 /** HTTP 方法映射 */
 const HTTP_METHOD_MAP: Readonly<Record<string, APIMethod>> = {
@@ -265,7 +269,7 @@ export class ImportService {
       const existingApiMap = this.buildExistingApiMap(existingApis)
 
       // 检查项目 API 数量限制
-      await this.validateApiLimit(projectId, parseResult.apis, existingApiMap)
+      await this.validateApiLimit(projectId, parseResult.apis, existingApiMap, dto.conflictStrategy)
 
       // 执行导入
       return await this.performImport(dto, projectId, userId, parseResult.apis, existingApiMap)
@@ -288,21 +292,40 @@ export class ImportService {
    * @param fileContent 上传的文件内容
    */
   private async resolveOpenapiContent(dto: ParseOpenapiReqDto, fileContent?: string): Promise<string> {
+    let content: string
+
     if (fileContent) {
-      return fileContent
+      content = fileContent
+    }
+    else if (dto.content) {
+      content = dto.content
+    }
+    else if (dto.url) {
+      content = await this.fetchOpenapiFromUrl(dto.url)
+    }
+    else {
+      throw new HanaException('OPENAPI_PARSE_FAILED', {
+        message: '请提供 OpenAPI 文档内容、URL 或上传文件',
+      })
     }
 
-    if (dto.content) {
-      return dto.content
-    }
+    // 验证内容大小
+    this.validateContentSize(content)
+    return content
+  }
 
-    if (dto.url) {
-      return this.fetchOpenapiFromUrl(dto.url)
+  /**
+   * 验证内容大小
+   * @param content 文档内容
+   */
+  private validateContentSize(content: string): void {
+    const sizeInBytes = Buffer.byteLength(content, 'utf-8')
+    if (sizeInBytes > MAX_CONTENT_SIZE) {
+      const sizeMB = (sizeInBytes / (1024 * 1024)).toFixed(2)
+      throw new HanaException('OPENAPI_PARSE_FAILED', {
+        message: `文档大小 (${sizeMB}MB) 超过限制 (10MB)`,
+      })
     }
-
-    throw new HanaException('OPENAPI_PARSE_FAILED', {
-      message: '请提供 OpenAPI 文档内容、URL 或上传文件',
-    })
   }
 
   /**
@@ -315,6 +338,8 @@ export class ImportService {
         this.httpService.get(url, {
           timeout: HTTP_FETCH_TIMEOUT,
           responseType: 'text',
+          maxContentLength: MAX_CONTENT_SIZE,
+          maxBodyLength: MAX_CONTENT_SIZE,
         }),
       )
       return response.data
@@ -340,7 +365,7 @@ export class ImportService {
       }
 
       // YAML 格式
-      return yaml.load(content) as OpenAPIV3.Document
+      return yaml.load(content, { schema: yaml.JSON_SCHEMA }) as OpenAPIV3.Document
     }
     catch (error) {
       throw new HanaException('OPENAPI_INVALID_FORMAT', {
@@ -1091,21 +1116,34 @@ export class ImportService {
 
   /**
    * 验证 API 数量限制
+   * - skip: 只计算不冲突的新 API
+   * - overwrite: 只计算不冲突的新 API（覆盖不增加数量）
+   * - rename: 所有导入的 API 都会新增（冲突的会重命名）
    */
   private async validateApiLimit(
     projectId: string,
     apis: InternalApiData[],
     existingApiMap: Map<string, ConflictApiInfo>,
+    conflictStrategy: ConflictStrategy,
   ): Promise<void> {
     const projectMaxApis = this.systemConfigService.get<number>(SystemConfigKey.PROJECT_MAX_APIS)
     const currentApiCount = await this.prisma.aPI.count({
       where: { projectId, recordStatus: 'ACTIVE' },
     })
 
-    // 计算新增 API 数量
-    const newApisCount = apis.filter(api =>
-      !existingApiMap.has(buildApiKey(api.method, api.path)),
-    ).length
+    // 根据冲突策略计算实际新增数量
+    let newApisCount: number
+    if (conflictStrategy === ConflictStrategy.RENAME) {
+      // rename 策略：所有 API 都会创建（冲突的会重命名后创建）
+      newApisCount = apis.length
+    }
+    else {
+      // skip/overwrite 策略：只有不冲突的 API 会新增
+      // overwrite 是更新现有 API，不增加数量
+      newApisCount = apis.filter(api =>
+        !existingApiMap.has(buildApiKey(api.method, api.path)),
+      ).length
+    }
 
     if (currentApiCount + newApisCount > projectMaxApis) {
       throw new HanaException('PROJECT_API_LIMIT_EXCEEDED')
@@ -1113,7 +1151,7 @@ export class ImportService {
   }
 
   /**
-   * 执行导入操作
+   * 导入 API
    */
   private async performImport(
     dto: ExecuteImportReqDto,

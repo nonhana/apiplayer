@@ -4,10 +4,14 @@ import { ApiBody, ApiConsumes, ApiOperation, ApiParam, ApiTags } from '@nestjs/s
 import { ProjectPermissions, RequireProjectMember } from '@/common/decorators/permissions.decorator'
 import { ReqUser } from '@/common/decorators/req-user.decorator'
 import { ResMsg } from '@/common/decorators/res-msg.decorator'
+import { HanaException } from '@/common/exceptions/hana.exception'
 import { AuthGuard } from '@/common/guards/auth.guard'
 import { PermissionsGuard } from '@/common/guards/permissions.guard'
 import { ExecuteImportReqDto, ParseOpenapiReqDto } from './dto'
 import { ImportService } from './import.service'
+
+/** 允许的文件扩展名 */
+const ALLOWED_EXTENSIONS = new Set(['.json', '.yaml', '.yml'])
 
 @ApiTags('OpenAPI 导入')
 @Controller('api/:projectId/import')
@@ -40,10 +44,18 @@ export class ImportController {
   ) {
     let fileContent: string | undefined
 
-    // 如果是上传文件，直接读取内容
+    // 如果是上传文件，验证并读取内容
     if (request.isMultipart()) {
       const file = await request.file()
       if (file) {
+        // 验证文件类型
+        const ext = file.filename.toLowerCase().slice(file.filename.lastIndexOf('.'))
+        if (!ALLOWED_EXTENSIONS.has(ext)) {
+          throw new HanaException('OPENAPI_INVALID_FORMAT', {
+            message: `不支持的文件类型: ${ext}，请上传 .json, .yaml 或 .yml 文件`,
+          })
+        }
+
         const buffer = await file.toBuffer()
         fileContent = buffer.toString('utf-8')
       }
