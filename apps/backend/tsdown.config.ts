@@ -9,7 +9,7 @@ export default defineConfig({
   target: 'node20',
   platform: 'node',
   dts: false,
-  inlineOnly: ['@faker-js/faker'],
+  inlineOnly: ['@faker-js/faker', 'nanoid'],
   external: [
     '@nestjs/common',
     '@nestjs/core',
