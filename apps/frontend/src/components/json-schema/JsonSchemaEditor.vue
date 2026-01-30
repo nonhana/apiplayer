@@ -1,7 +1,18 @@
 <script lang="ts" setup>
 import type { LocalSchemaNode } from '@/types/json-schema'
+import { computed, getCurrentInstance } from 'vue'
 import { useApiEditorStore } from '@/stores/useApiEditorStore'
 import JsonSchemaNode from './JsonSchemaNode.vue'
+
+const emits = defineEmits<{
+  (e: 'delRoot'): void
+}>()
+
+const instance = getCurrentInstance()
+
+const allowDelRoot = computed(() => {
+  return !!instance?.vnode.props?.onDelRoot
+})
 
 const apiEditorStore = useApiEditorStore()
 const { setIsDirty } = apiEditorStore
@@ -93,8 +104,13 @@ function handleDeleteNode({ path }: { path: string }) {
   root.value.schemaChanged = true
   const pathArr = pathToArr(path)
 
-  if (pathArr.length === 0) {
-    console.warn('[JsonSchemaEditor] 删除节点失败：不能删除根节点')
+  if (pathArr.length === 1) {
+    if (allowDelRoot.value) {
+      emits('delRoot')
+    }
+    else {
+      console.warn('[JsonSchemaEditor] 删除节点失败：不能删除根节点', { path })
+    }
     return
   }
 
@@ -117,6 +133,7 @@ function handleDeleteNode({ path }: { path: string }) {
   <JsonSchemaNode
     :node="root"
     path=""
+    :allow-del-root="allowDelRoot"
     @add-node="handleAddNode"
     @update-node="handleUpdateNode"
     @delete-node="handleDeleteNode"

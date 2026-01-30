@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { HTTP_STATUS_CODES, httpStatusLabels, resStatusStyles } from '@/constants/api'
+import { genRootSchemaNode } from '@/lib/json-schema'
 import { cn } from '@/lib/utils'
 import { useApiEditorStore } from '@/stores/useApiEditorStore'
 
@@ -90,6 +91,10 @@ function handleAdd() {
   expandedKeys.value.add(newId)
 }
 
+function handleAddBody(index: number) {
+  updateResponseBody(index, genRootSchemaNode())
+}
+
 function handleRemove(index: number) {
   const response = responses.value[index]
   if (response) {
@@ -104,6 +109,10 @@ function updateField<K extends keyof LocalApiResItem>(index: number, key: K, val
 
 function updateLocalSchema(index: number, schema: LocalSchemaNode) {
   updateResponseBody(index, schema)
+}
+
+function handleDelRoot(index: number) {
+  updateResponseBody(index, undefined)
 }
 </script>
 
@@ -212,7 +221,23 @@ function updateLocalSchema(index: number, schema: LocalSchemaNode) {
                 v-if="response.body"
                 :model-value="response.body"
                 @update:model-value="updateLocalSchema(index, $event)"
+                @del-root="handleDelRoot(index)"
               />
+              <div v-else class="space-y-2">
+                <div class="text-center py-8 text-muted-foreground text-sm border rounded-md bg-muted/30">
+                  暂无响应体结构（void）
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  :disabled="disabled"
+                  class="w-full border-dashed"
+                  @click="handleAddBody(index)"
+                >
+                  <Plus class="h-4 w-4 mr-1.5" />
+                  添加响应体结构
+                </Button>
+              </div>
             </div>
           </div>
         </CollapsibleContent>

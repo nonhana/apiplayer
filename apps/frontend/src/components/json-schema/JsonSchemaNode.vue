@@ -35,6 +35,8 @@ const props = defineProps<{
   path: string
   /** 嵌套层级 */
   depth?: number
+  /** 是否允许删除根节点 */
+  allowDelRoot?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -62,7 +64,11 @@ const showEmptyChildren = computed(() =>
   && (!props.node.children || props.node.children.length === 0),
 )
 
-const canDelete = computed(() => !props.node.isRoot && !props.node.isArrayItem)
+const canDelete = computed(() =>
+  props.allowDelRoot
+    ? !props.node.isArrayItem
+    : !props.node.isRoot && !props.node.isArrayItem,
+)
 
 const canAddSibling = computed(() => !props.node.isRoot && !props.node.isArrayItem)
 

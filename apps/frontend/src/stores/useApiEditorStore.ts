@@ -519,15 +519,21 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
   }
 
   /** 更新响应体 Schema */
-  function updateResponseBody(index: number, schema: LocalSchemaNode) {
+  function updateResponseBody(index: number, schema: LocalSchemaNode | undefined) {
     if (!currentApiId.value)
       return
 
     const cache = getCurrentCache()
     const response = cache.data.responses[index]
     if (response) {
-      response.body = schema
-      // 注意：JsonSchemaEditor 内部已经调用了 markDirty，这里不重复调用
+      if (schema) {
+        response.body = schema
+      }
+      // 显式设置 schema 为 undefined 意为删除响应体
+      else {
+        delete response.body
+      }
+      markDirty()
     }
   }
 
