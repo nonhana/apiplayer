@@ -9,7 +9,6 @@ import CloneApiDialog from './dialogs/CloneApiDialog.vue'
 import DeleteApiDialog from './dialogs/DeleteApiDialog.vue'
 import DeleteGroupDialog from './dialogs/DeleteGroupDialog.vue'
 import GroupFormDialog from './dialogs/GroupFormDialog.vue'
-import ImportOpenapiDialog from './dialogs/import/ImportOpenapiDialog.vue'
 
 const tabStore = useTabStore()
 
@@ -37,12 +36,6 @@ const apiToDelete = ref<ApiBrief | null>(null)
 
 const isCloneApiDialogOpen = ref(false)
 const apiToClone = ref<ApiBrief | null>(null)
-
-const isImportDialogOpen = ref(false)
-
-function handleImportOpenapi() {
-  isImportDialogOpen.value = true
-}
 
 function handleCreateGroup(parentId?: string) {
   groupDialogMode.value = 'create'
@@ -103,7 +96,6 @@ function handleDeleteApi(api: ApiBrief) {
       @select-api="handleSelectApi"
       @clone-api="handleCloneApi"
       @delete-api="handleDeleteApi"
-      @import-openapi="handleImportOpenapi"
     />
 
     <div
@@ -137,10 +129,6 @@ function handleDeleteApi(api: ApiBrief) {
     <CloneApiDialog
       v-model:open="isCloneApiDialogOpen"
       :api="apiToClone"
-    />
-
-    <ImportOpenapiDialog
-      v-model:open="isImportDialogOpen"
     />
   </aside>
 </template>

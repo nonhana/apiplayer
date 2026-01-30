@@ -44,6 +44,21 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     return filterTreeByQuery(tree.value, query)
   })
 
+  /** 扁平化分组列表 */
+  const flatGroups = computed(() => {
+    const result: { id: string, name: string, level: number }[] = []
+
+    function traverse(nodes: GroupNodeWithApis[], level: number) {
+      for (const node of nodes) {
+        result.push({ id: node.id, name: node.name, level })
+        traverse(node.children, level + 1)
+      }
+    }
+
+    traverse(tree.value, 0)
+    return result
+  })
+
   // ========== 辅助方法 ==========
 
   /** 根据关键词过滤树 */
@@ -417,6 +432,7 @@ export const useApiTreeStore = defineStore('apiTree', () => {
     // 计算属性
     hasTree,
     filteredTree,
+    flatGroups,
 
     // 方法
     setProjectId,

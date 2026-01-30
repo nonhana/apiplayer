@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import type { GroupNodeWithApis, HttpMethod } from '@/types/api'
+import type { HttpMethod } from '@/types/api'
 import type { ConflictStrategy, ImportPreview } from '@/types/import'
 import { AlertTriangle, ChevronDown, ChevronRight, FileText, FolderOpen } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,7 +14,6 @@ import {
 } from '@/components/ui/collapsible'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select,
   SelectContent,
@@ -40,29 +40,18 @@ const emits = defineEmits<{
 }>()
 
 const apiTreeStore = useApiTreeStore()
+const { flatGroups } = storeToRefs(apiTreeStore)
+
+/** 按 tags 自动创建分组（Reka-ui 不支持清空选项，，，） */
+const AUTO_GROUP_VALUE = '__auto__'
 
 // 配置选项
 const conflictStrategy = ref<ConflictStrategy>('skip')
-const targetGroupId = ref<string>('')
+const targetGroupId = ref<string>(AUTO_GROUP_VALUE)
 const createMissingGroups = ref(true)
 
 // 分组展开状态
 const expandedGroups = ref<Set<string>>(new Set())
-
-// 扁平化分组列表
-const flatGroups = computed(() => {
-  const result: { id: string, name: string, level: number }[] = []
-
-  function traverse(nodes: GroupNodeWithApis[], level: number) {
-    for (const node of nodes) {
-      result.push({ id: node.id, name: node.name, level })
-      traverse(node.children, level + 1)
-    }
-  }
-
-  traverse(apiTreeStore.tree, 0)
-  return result
-})
 
 // 按分组组织 API
 const apisGroupedByGroup = computed(() => {
@@ -87,7 +76,7 @@ function toggleGroup(groupName: string) {
 function handleSubmit() {
   emits('submit', {
     conflictStrategy: conflictStrategy.value,
-    targetGroupId: targetGroupId.value || undefined,
+    targetGroupId: targetGroupId.value === AUTO_GROUP_VALUE ? undefined : targetGroupId.value,
     createMissingGroups: createMissingGroups.value,
   })
 }
@@ -194,11 +183,14 @@ function getMethodClass(method: HttpMethod) {
       <!-- 目标分组 -->
       <div class="space-y-2">
         <Label for="target-group">目标分组（可选）</Label>
-        <Select v-model="targetGroupId" :disabled="!flatGroups.length">
+        <Select v-model="targetGroupId">
           <SelectTrigger id="target-group">
-            <SelectValue :placeholder="`${flatGroups.length > 0 ? '' : '无可选分组，'}按 tags 自动创建分组`" />
+            <SelectValue placeholder="按 tags 自动创建分组" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem :value="AUTO_GROUP_VALUE">
+              <span class="text-muted-foreground">按 tags 自动创建分组</span>
+            </SelectItem>
             <SelectItem
               v-for="group in flatGroups"
               :key="group.id"
@@ -218,7 +210,7 @@ function getMethodClass(method: HttpMethod) {
         <Checkbox
           id="create-groups"
           :checked="createMissingGroups"
-          :disabled="!!targetGroupId"
+          :disabled="targetGroupId !== AUTO_GROUP_VALUE"
           @update:checked="createMissingGroups = $event as boolean"
         />
         <Label for="create-groups" class="font-normal cursor-pointer">
@@ -232,54 +224,52 @@ function getMethodClass(method: HttpMethod) {
     <!-- API 预览列表 -->
     <div class="space-y-2">
       <Label>接口预览</Label>
-      <ScrollArea class="h-[200px] rounded-md border">
-        <div class="p-2 space-y-1">
-          <Collapsible
-            v-for="[groupName, apis] in apisGroupedByGroup"
-            :key="groupName"
-            :open="expandedGroups.has(groupName)"
-            @update:open="toggleGroup(groupName)"
-          >
-            <CollapsibleTrigger class="flex items-center gap-2 w-full p-2 hover:bg-muted rounded-md text-left">
-              <component
-                :is="expandedGroups.has(groupName) ? ChevronDown : ChevronRight"
-                class="h-4 w-4 text-muted-foreground shrink-0"
-              />
-              <FolderOpen class="h-4 w-4 text-muted-foreground shrink-0" />
-              <span class="text-sm font-medium flex-1 truncate">{{ groupName }}</span>
-              <Badge variant="secondary" class="ml-auto">
-                {{ apis.length }}
-              </Badge>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div class="ml-6 pl-4 border-l space-y-1">
-                <div
-                  v-for="api in apis"
-                  :key="`${api.method}-${api.path}`"
-                  class="flex items-center gap-2 p-2 text-sm rounded-md"
-                  :class="api.hasConflict ? 'bg-amber-50 dark:bg-amber-950/20' : 'hover:bg-muted'"
+      <div class="p-2 space-y-1">
+        <Collapsible
+          v-for="[groupName, apis] in apisGroupedByGroup"
+          :key="groupName"
+          :open="expandedGroups.has(groupName)"
+          @update:open="toggleGroup(groupName)"
+        >
+          <CollapsibleTrigger class="flex items-center gap-2 w-full p-2 hover:bg-muted rounded-md text-left">
+            <component
+              :is="expandedGroups.has(groupName) ? ChevronDown : ChevronRight"
+              class="h-4 w-4 text-muted-foreground shrink-0"
+            />
+            <FolderOpen class="h-4 w-4 text-muted-foreground shrink-0" />
+            <span class="text-sm font-medium flex-1 truncate">{{ groupName }}</span>
+            <Badge variant="secondary" class="ml-auto">
+              {{ apis.length }}
+            </Badge>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div class="ml-6 pl-4 border-l space-y-1">
+              <div
+                v-for="api in apis"
+                :key="`${api.method}-${api.path}`"
+                class="flex items-center gap-2 p-2 text-sm rounded-md"
+                :class="api.hasConflict ? 'bg-amber-50 dark:bg-amber-950/20' : 'hover:bg-muted'"
+              >
+                <span
+                  class="font-mono text-xs font-bold w-16 shrink-0"
+                  :class="getMethodClass(api.method)"
                 >
-                  <span
-                    class="font-mono text-xs font-bold w-16 shrink-0"
-                    :class="getMethodClass(api.method)"
-                  >
-                    {{ api.method }}
-                  </span>
-                  <span class="font-mono text-xs text-muted-foreground truncate flex-1">
-                    {{ api.path }}
-                  </span>
-                  <span class="text-xs truncate max-w-[120px]">
-                    {{ api.name }}
-                  </span>
-                  <Badge v-if="api.hasConflict" variant="outline" class="text-amber-600 border-amber-300 shrink-0">
-                    冲突
-                  </Badge>
-                </div>
+                  {{ api.method }}
+                </span>
+                <span class="font-mono text-xs text-muted-foreground truncate flex-1">
+                  {{ api.path }}
+                </span>
+                <span class="text-xs truncate max-w-[120px]">
+                  {{ api.name }}
+                </span>
+                <Badge v-if="api.hasConflict" variant="outline" class="text-amber-600 border-amber-300 shrink-0">
+                  冲突
+                </Badge>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-      </ScrollArea>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
     </div>
 
     <!-- 操作按钮 -->

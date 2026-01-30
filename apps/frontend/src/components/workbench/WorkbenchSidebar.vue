@@ -3,6 +3,7 @@ import {
   ChevronRight,
   Globe,
   Home,
+  Import,
   Settings,
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
@@ -25,6 +26,7 @@ import {
 } from '@/components/ui/tooltip'
 import { cn, getAbbreviation } from '@/lib/utils'
 import { useProjectStore } from '@/stores/useProjectStore'
+import ImportOpenapiDialog from './dialogs/import/ImportOpenapiDialog.vue'
 import ProjectSettingsSheet from './ProjectSettingsSheet.vue'
 
 const router = useRouter()
@@ -35,6 +37,7 @@ const { setCurEnvId } = projectStore
 
 const isSettingsSheetOpen = ref(false)
 const isEnvPopoverOpen = ref(false)
+const isImportDialogOpen = ref(false)
 
 function goBack() {
   router.push({ name: 'Dashboard' })
@@ -167,6 +170,22 @@ function getEnvColor(envName: string): string {
             variant="ghost"
             size="icon"
             class="h-8 w-8 mt-1 text-muted-foreground hover:text-foreground"
+            @click="isImportDialogOpen = true"
+          >
+            <Import class="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          导入 OpenAPI
+        </TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <Button
+            variant="ghost"
+            size="icon"
+            class="h-8 w-8 mt-1 text-muted-foreground hover:text-foreground"
             :disabled="!projectDetail"
             @click="isSettingsSheetOpen = true"
           >
@@ -183,6 +202,10 @@ function getEnvColor(envName: string): string {
       v-if="projectDetail"
       v-model:open="isSettingsSheetOpen"
       :project="projectDetail"
+    />
+
+    <ImportOpenapiDialog
+      v-model:open="isImportDialogOpen"
     />
   </aside>
 </template>
