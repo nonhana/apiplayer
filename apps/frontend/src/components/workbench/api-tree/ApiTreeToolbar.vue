@@ -4,7 +4,6 @@ import {
   ChevronsUpDown,
   FilePlus,
   FolderPlus,
-  Import,
   RefreshCw,
   Search,
 } from 'lucide-vue-next'
@@ -23,7 +22,6 @@ import { useApiTreeStore } from '@/stores/useApiTreeStore'
 const emits = defineEmits<{
   (e: 'createGroup'): void
   (e: 'createApi'): void
-  (e: 'importOpenapi'): void
 }>()
 
 const apiTreeStore = useApiTreeStore()
@@ -140,24 +138,6 @@ watch(searchInput, (val) => {
           </TooltipTrigger>
           <TooltipContent side="bottom">
             新建接口
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-
-      <TooltipProvider :delay-duration="300">
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button
-              variant="ghost"
-              size="icon"
-              class="h-7 w-7"
-              @click="emits('importOpenapi')"
-            >
-              <Import class="h-3.5 w-3.5" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            导入 OpenAPI
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
