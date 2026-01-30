@@ -50,6 +50,10 @@ watch(
   { immediate: true },
 )
 
+function handleDiscardChanges() {
+  apiEditorStore.discardChanges(props.api.id)
+}
+
 async function handleSave() {
   if (!apiTreeStore.projectId)
     return
@@ -96,15 +100,26 @@ function handleKeyDownSave(e: KeyboardEvent) {
         </span>
       </div>
 
-      <Button
-        size="sm"
-        :disabled="!isDirty || isSaving"
-        @click="handleSave"
-      >
-        <Loader2 v-if="isSaving" class="h-4 w-4 mr-1.5 animate-spin" />
-        <Save v-else class="h-4 w-4 mr-1.5" />
-        {{ isSaving ? '保存中...' : '保存' }}
-      </Button>
+      <div class="flex items-center gap-2">
+        <Button
+          v-if="isDirty"
+          size="sm"
+          variant="outline"
+          @click="handleDiscardChanges"
+        >
+          放弃修改
+        </Button>
+
+        <Button
+          size="sm"
+          :disabled="!isDirty || isSaving"
+          @click="handleSave"
+        >
+          <Loader2 v-if="isSaving" class="h-4 w-4 mr-1.5 animate-spin" />
+          <Save v-else class="h-4 w-4 mr-1.5" />
+          {{ isSaving ? '保存中...' : '保存' }}
+        </Button>
+      </div>
     </div>
 
     <Tabs v-model="activeTab" class="flex-1 flex flex-col overflow-hidden">
