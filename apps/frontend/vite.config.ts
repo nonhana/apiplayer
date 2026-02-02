@@ -40,12 +40,34 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            'vue-vendor': ['vue', 'vue-router', 'pinia'],
-            'ui-vendor': ['reka-ui', 'lucide-vue-next'],
-            'utils-vendor': ['@vueuse/core', 'dayjs', 'lodash-es', 'zod'],
-            'monaco-editor': ['monaco-editor'],
-            'shiki': ['shiki'],
+          codeSplitting: {
+            groups: [
+              {
+                name: 'vue-vendor',
+                test: /node_modules[\\/](vue|vue-router|pinia)\//,
+                priority: 10,
+              },
+              {
+                name: 'ui-vendor',
+                test: /node_modules[\\/](reka-ui|lucide-vue-next)\//,
+                priority: 10,
+              },
+              {
+                name: 'utils-vendor',
+                test: /node_modules[\\/](@vueuse|dayjs|lodash-es|zod)\//,
+                priority: 10,
+              },
+              {
+                name: 'monaco-editor',
+                test: /node_modules[\\/]monaco-editor\//,
+                priority: 20,
+              },
+              {
+                name: 'shiki',
+                test: /node_modules[\\/]shiki\//,
+                priority: 20,
+              },
+            ],
           },
         },
       },
