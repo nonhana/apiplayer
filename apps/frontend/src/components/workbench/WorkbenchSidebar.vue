@@ -175,7 +175,7 @@ function getEnvColor(envName: string): string {
             <Import class="h-4 w-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">
+        <TooltipContent side="right">
           导入 OpenAPI
         </TooltipContent>
       </Tooltip>
