@@ -40,6 +40,19 @@ function resetResource<T>(bucket: ResourceBucket<T>) {
   bucket.versions.clear()
 }
 
+function invalidateResourcesByPrefix<T>(bucket: ResourceBucket<T>, prefix: string) {
+  const keys = new Set([
+    ...bucket.cache.keys(),
+    ...bucket.inflight.keys(),
+  ])
+
+  for (const key of keys) {
+    if (key.startsWith(prefix)) {
+      invalidateResource(bucket, key)
+    }
+  }
+}
+
 export const useWorkbenchResourceStore = defineStore('workbenchResource', () => {
   const apiDetailCache = createResourceBucket<ApiDetail>()
   const versionListCache = createResourceBucket<ApiVersionBrief[]>()
@@ -81,7 +94,8 @@ export const useWorkbenchResourceStore = defineStore('workbenchResource', () => 
       ? bumpResourceVersion(bucket, key)
       : bucket.versions.get(key) ?? 0
 
-    const request = fetcher()
+    let request: Promise<T>
+    request = fetcher()
       .then((data) => {
         if ((bucket.versions.get(key) ?? 0) === requestVersion) {
           bucket.cache.set(key, data)
@@ -159,31 +173,11 @@ export const useWorkbenchResourceStore = defineStore('workbenchResource', () => 
   }
 
   function invalidateVersionDetailsByApi(projectId: string, apiId: string) {
-    const prefix = `version-detail:${projectId}:${apiId}:`
-    for (const key of Array.from(versionDetailCache.cache.keys())) {
-      if (key.startsWith(prefix)) {
-        invalidateResource(versionDetailCache, key)
-      }
-    }
-    for (const key of Array.from(versionDetailCache.inflight.keys())) {
-      if (key.startsWith(prefix)) {
-        invalidateResource(versionDetailCache, key)
-      }
-    }
+    invalidateResourcesByPrefix(versionDetailCache, `version-detail:${projectId}:${apiId}:`)
   }
 
   function invalidateVersionComparisonsByApi(projectId: string, apiId: string) {
-    const prefix = `version-compare:${projectId}:${apiId}:`
-    for (const key of Array.from(versionComparisonCache.cache.keys())) {
-      if (key.startsWith(prefix)) {
-        invalidateResource(versionComparisonCache, key)
-      }
-    }
-    for (const key of Array.from(versionComparisonCache.inflight.keys())) {
-      if (key.startsWith(prefix)) {
-        invalidateResource(versionComparisonCache, key)
-      }
-    }
+    invalidateResourcesByPrefix(versionComparisonCache, `version-compare:${projectId}:${apiId}:`)
   }
 
   function invalidateApi(projectId: string, apiId: string) {
