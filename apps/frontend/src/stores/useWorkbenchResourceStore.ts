@@ -94,8 +94,7 @@ export const useWorkbenchResourceStore = defineStore('workbenchResource', () => 
       ? bumpResourceVersion(bucket, key)
       : bucket.versions.get(key) ?? 0
 
-    let request: Promise<T>
-    request = fetcher()
+    const request = fetcher()
       .then((data) => {
         if ((bucket.versions.get(key) ?? 0) === requestVersion) {
           bucket.cache.set(key, data)
