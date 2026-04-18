@@ -2,6 +2,7 @@ import type { ApiBrief, CloneApiReq, GroupNodeWithApis, HttpMethod } from '@/typ
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { apiApi, groupApi } from '@/api/api'
+import { useWorkbenchResourceStore } from './useWorkbenchResourceStore'
 
 type LoadingStatus = 'start' | 'loading' | 'end'
 
@@ -307,6 +308,10 @@ export const useApiTreeStore = defineStore('apiTree', () => {
       return
 
     await apiApi.deleteApi(projectId.value, apiId)
+
+    const workbenchResourceStore = useWorkbenchResourceStore()
+    workbenchResourceStore.invalidateApi(projectId.value, apiId)
+
     await refreshTree()
 
     if (selectedNodeId.value === apiId) {

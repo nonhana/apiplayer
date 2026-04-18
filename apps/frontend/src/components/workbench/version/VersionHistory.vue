@@ -39,7 +39,7 @@ const emits = defineEmits<{
 }>()
 
 const { canPublishApi } = usePermission()
-const resourceStore = useWorkbenchResourceStore()
+const workbenchResourceStore = useWorkbenchResourceStore()
 
 const VERSION_OPTIONS = [
   { label: '全部', value: 'ALL' },
@@ -95,7 +95,7 @@ async function fetchVersions(options: { force?: boolean } = {}) {
   loadError.value = null
 
   try {
-    const versionList = await resourceStore.getVersionList(projectId, apiId, options)
+    const versionList = await workbenchResourceStore.getVersionList(projectId, apiId, options)
     if (getVersionListRequestKey() !== requestKey)
       return
     versions.value = versionList
@@ -149,13 +149,20 @@ async function handleConfirmPublish(data: PublishVersionReq) {
   if (!publishTargetVersion.value)
     return
 
+  const publishedVersionId = publishTargetVersion.value.id
+
   try {
     await versionApi.publishVersion(
       props.projectId,
       props.apiId,
-      publishTargetVersion.value.id,
+      publishedVersionId,
       data,
     )
+    workbenchResourceStore.invalidateApiDetail(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionList(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionDetail(props.projectId, props.apiId, publishedVersionId)
+    workbenchResourceStore.invalidateVersionComparisonsByApi(props.projectId, props.apiId)
+
     toast.success(`版本 ${data.version} 发布成功`)
     publishDialogOpen.value = false
     publishTargetVersion.value = null
@@ -196,6 +203,11 @@ const suggestedNextVersion = computed(() => {
 async function handleArchiveVersion(version: ApiVersionBrief) {
   try {
     await versionApi.archiveVersion(props.projectId, props.apiId, version.id)
+
+    workbenchResourceStore.invalidateVersionList(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionDetail(props.projectId, props.apiId, version.id)
+    workbenchResourceStore.invalidateVersionComparisonsByApi(props.projectId, props.apiId)
+
     toast.success(`版本 v${version.version} 已归档`)
     await fetchVersions({ force: true })
   }
@@ -214,11 +226,17 @@ async function handleConfirmRollback() {
     return
 
   try {
+    const rollbackVersionId = rollbackTargetVersion.value.id
     await versionApi.rollbackToVersion(
       props.projectId,
       props.apiId,
-      rollbackTargetVersion.value.id,
+      rollbackVersionId,
     )
+
+    workbenchResourceStore.invalidateApiDetail(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionList(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionDetailsByApi(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionComparisonsByApi(props.projectId, props.apiId)
     toast.success(`已回滚到版本 v${rollbackTargetVersion.value.version}`)
     rollbackDialogOpen.value = false
     rollbackTargetVersion.value = null
