@@ -2,13 +2,13 @@
 import type { ApiVersionBrief } from '@/types/version'
 import { GitBranch, History, Loader2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
-import { versionApi } from '@/api/version'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { versionStatusDotColors, versionStatusLabels } from '@/constants/version'
 import dayjs from '@/lib/dayjs'
 import { cn } from '@/lib/utils'
+import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 
 const props = defineProps<{
   projectId: string
@@ -20,6 +20,8 @@ const emits = defineEmits<{
   (e: 'openHistory'): void
 }>()
 
+const workbenchResourceStore = useWorkbenchResourceStore()
+
 const recentVersions = ref<ApiVersionBrief[]>([])
 const isLoading = ref(false)
 const totalCount = ref(0)
@@ -29,9 +31,9 @@ const currentVersion = computed(() => recentVersions.value.find(v => v.id === pr
 async function fetchRecentVersions() {
   isLoading.value = true
   try {
-    const res = await versionApi.getVersionList(props.projectId, props.apiId)
-    totalCount.value = res.versions.length
-    recentVersions.value = res.versions.slice(0, 3)
+    const versions = await workbenchResourceStore.getVersionList(props.projectId, props.apiId)
+    totalCount.value = versions.length
+    recentVersions.value = versions.slice(0, 3)
   }
   catch (error) {
     console.error('Failed to fetch recent versions:', error)
@@ -44,9 +46,9 @@ async function fetchRecentVersions() {
 const formatRelativeTime = (dateStr: string) => dayjs(dateStr).fromNow()
 
 watch(
-  () => props.apiId,
-  () => {
-    if (props.apiId) {
+  () => [props.projectId, props.apiId] as const,
+  ([projectId, apiId]) => {
+    if (projectId && apiId) {
       fetchRecentVersions()
     }
   },
