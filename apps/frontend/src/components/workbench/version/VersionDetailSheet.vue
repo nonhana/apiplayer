@@ -11,7 +11,6 @@ import {
   Tag,
 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
-import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 import CodeBlock from '@/components/common/CodeBlock.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -33,6 +32,7 @@ import {
 } from '@/constants/version'
 import dayjs from '@/lib/dayjs'
 import { cn } from '@/lib/utils'
+import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 
 const props = defineProps<{
   projectId: string

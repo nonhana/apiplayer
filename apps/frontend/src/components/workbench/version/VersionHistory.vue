@@ -4,7 +4,6 @@ import { AlertCircle, GitBranch, Loader2, RefreshCw } from 'lucide-vue-next'
 import { computed, ref, watch, watchEffect } from 'vue'
 import { toast } from 'vue-sonner'
 import { versionApi } from '@/api/version'
-import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -22,6 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { usePermission } from '@/composables/usePermission'
+import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 import PublishVersionDialog from '../dialogs/PublishVersionDialog.vue'
 import RollbackConfirmDialog from '../dialogs/RollbackConfirmDialog.vue'
 import VersionCompareSheet from './VersionCompareSheet.vue'

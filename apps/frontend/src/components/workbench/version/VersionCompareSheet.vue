@@ -10,7 +10,6 @@ import {
   X,
 } from 'lucide-vue-next'
 import { computed, ref, toRaw, watch } from 'vue'
-import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 import CodeBlock from '@/components/common/CodeBlock.vue'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -25,6 +24,7 @@ import {
 import { methodBadgeColors } from '@/constants/api'
 import { versionDiffFieldLabels, versionStatusColors, versionStatusLabels } from '@/constants/version'
 import { cn } from '@/lib/utils'
+import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 
 const props = defineProps<{
   projectId: string
