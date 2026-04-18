@@ -11,7 +11,7 @@ import {
   Tag,
 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
-import { versionApi } from '@/api/version'
+import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 import CodeBlock from '@/components/common/CodeBlock.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -50,6 +50,7 @@ const emits = defineEmits<{
 }>()
 
 const isOpen = defineModel<boolean>('open', { required: true })
+const resourceStore = useWorkbenchResourceStore()
 
 const versionDetail = ref<ApiVersionDetail | null>(null)
 const isLoading = ref(false)
@@ -90,48 +91,47 @@ const responsesPreview = computed(() => {
   return JSON.stringify(versionDetail.value.responses, null, 2)
 })
 
-async function fetchVersionDetail() {
-  if (!props.versionId)
-    return
+function getVersionDetailRequestKey(projectId = props.projectId, apiId = props.apiId, versionId = props.versionId) {
+  return `${projectId}:${apiId}:${versionId ?? ''}`
+}
 
+async function fetchVersionDetail(projectId: string, apiId: string, versionId: string) {
+  const requestKey = getVersionDetailRequestKey(projectId, apiId, versionId)
   isLoading.value = true
   loadError.value = null
 
   try {
-    const detail = await versionApi.getVersionDetail(
-      props.projectId,
-      props.apiId,
-      props.versionId,
-    )
+    const detail = await resourceStore.getVersionDetail(projectId, apiId, versionId)
+    if (!isOpen.value || getVersionDetailRequestKey() !== requestKey)
+      return
     versionDetail.value = detail
     emits('update:versionData', detail)
   }
   catch (error) {
+    if (!isOpen.value || getVersionDetailRequestKey() !== requestKey)
+      return
     loadError.value = `获取版本详情失败: ${error}`
     console.error('Failed to fetch version detail:', error)
   }
   finally {
-    isLoading.value = false
+    if (!isOpen.value || getVersionDetailRequestKey() === requestKey) {
+      isLoading.value = false
+    }
   }
 }
 
 watch(
-  () => props.versionId,
-  (newId) => {
-    if (newId && isOpen.value) {
-      fetchVersionDetail()
-    }
-    else {
+  () => [isOpen.value, props.projectId, props.apiId, props.versionId] as const,
+  ([open, projectId, apiId, versionId]) => {
+    if (!open || !versionId) {
       versionDetail.value = null
+      emits('update:versionData', null)
+      return
     }
+    fetchVersionDetail(projectId, apiId, versionId)
   },
+  { immediate: true },
 )
-
-watch(isOpen, (open) => {
-  if (open && props.versionId) {
-    fetchVersionDetail()
-  }
-})
 </script>
 
 <template>

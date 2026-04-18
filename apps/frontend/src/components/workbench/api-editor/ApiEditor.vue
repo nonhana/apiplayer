@@ -4,7 +4,7 @@ import type { ApiDetail } from '@/types/api'
 import { useRouteParams, useRouteQuery } from '@vueuse/router'
 import { AlertCircle, FileText, GitBranch, Loader2, Pencil, Play, Settings2 } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
-import { apiApi } from '@/api/api'
+import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ApiRunnerView from '../api-runner/ApiRunnerView.vue'
@@ -34,36 +34,49 @@ watch(activeTab, (newV, oldV) => {
   }
 })
 
+const resourceStore = useWorkbenchResourceStore()
+
 const apiDetail = ref<ApiDetail | null>(null)
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
 
 const isLoaded = computed(() => apiDetail.value !== null)
 
-async function fetchApiDetail() {
+function getCurrentApiRequestKey() {
+  return `${projectId.value}:${apiId.value}`
+}
+
+async function fetchApiDetail(options: { force?: boolean } = {}) {
+  const currentProjectId = projectId.value
+  const currentApiId = apiId.value
+  if (!currentProjectId || !currentApiId)
+    return
+
+  const requestKey = `${currentProjectId}:${currentApiId}`
   isLoading.value = true
   loadError.value = null
+
   try {
-    apiDetail.value = await apiApi.getApiDetail(projectId.value, apiId.value)
+    const detail = await resourceStore.getApiDetail(currentProjectId, currentApiId, options)
+    if (getCurrentApiRequestKey() !== requestKey)
+      return
+    apiDetail.value = detail
   }
   catch (error) {
+    if (getCurrentApiRequestKey() !== requestKey)
+      return
     console.error('获取 API 详情失败:', error)
     loadError.value = `获取 API 详情失败: ${error}`
   }
   finally {
-    isLoading.value = false
+    if (getCurrentApiRequestKey() === requestKey) {
+      isLoading.value = false
+    }
   }
 }
 
 async function refreshApiDetail() {
-  loadError.value = null
-  try {
-    apiDetail.value = await apiApi.getApiDetail(projectId.value, apiId.value)
-  }
-  catch (error) {
-    console.error('获取 API 详情失败:', error)
-    loadError.value = `获取 API 详情失败: ${error}`
-  }
+  await fetchApiDetail({ force: true })
 }
 
 // apiId 和 projectId 变化，刷新 API 详情
