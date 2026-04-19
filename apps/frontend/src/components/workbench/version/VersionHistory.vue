@@ -21,6 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { usePermission } from '@/composables/usePermission'
+import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 import PublishVersionDialog from '../dialogs/PublishVersionDialog.vue'
 import RollbackConfirmDialog from '../dialogs/RollbackConfirmDialog.vue'
 import VersionCompareSheet from './VersionCompareSheet.vue'
@@ -38,6 +39,7 @@ const emits = defineEmits<{
 }>()
 
 const { canPublishApi } = usePermission()
+const workbenchResourceStore = useWorkbenchResourceStore()
 
 const VERSION_OPTIONS = [
   { label: '全部', value: 'ALL' },
@@ -79,20 +81,35 @@ const selectedVersion = computed(() => {
   return versions.value.find(v => v.id === selectedVersionId.value) ?? null
 })
 
-async function fetchVersions() {
+function getVersionListRequestKey(projectId = props.projectId, apiId = props.apiId) {
+  return `${projectId}:${apiId}`
+}
+
+async function fetchVersions(options: { force?: boolean } = {}) {
+  const { projectId, apiId } = props
+  if (!projectId || !apiId)
+    return
+
+  const requestKey = getVersionListRequestKey(projectId, apiId)
   isLoading.value = true
   loadError.value = null
 
   try {
-    const res = await versionApi.getVersionList(props.projectId, props.apiId)
-    versions.value = res.versions
+    const versionList = await workbenchResourceStore.getVersionList(projectId, apiId, options)
+    if (getVersionListRequestKey() !== requestKey)
+      return
+    versions.value = versionList
   }
   catch (error) {
+    if (getVersionListRequestKey() !== requestKey)
+      return
     loadError.value = `获取版本列表失败: ${error}`
     console.error('Failed to fetch versions:', error)
   }
   finally {
-    isLoading.value = false
+    if (getVersionListRequestKey() === requestKey) {
+      isLoading.value = false
+    }
   }
 }
 
@@ -132,17 +149,24 @@ async function handleConfirmPublish(data: PublishVersionReq) {
   if (!publishTargetVersion.value)
     return
 
+  const publishedVersionId = publishTargetVersion.value.id
+
   try {
     await versionApi.publishVersion(
       props.projectId,
       props.apiId,
-      publishTargetVersion.value.id,
+      publishedVersionId,
       data,
     )
+    workbenchResourceStore.invalidateApiDetail(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionList(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionDetailsByApi(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionComparisonsByApi(props.projectId, props.apiId)
+
     toast.success(`版本 ${data.version} 发布成功`)
     publishDialogOpen.value = false
     publishTargetVersion.value = null
-    await fetchVersions()
+    await fetchVersions({ force: true })
     emits('versionChanged')
   }
   catch (error) {
@@ -179,8 +203,13 @@ const suggestedNextVersion = computed(() => {
 async function handleArchiveVersion(version: ApiVersionBrief) {
   try {
     await versionApi.archiveVersion(props.projectId, props.apiId, version.id)
+
+    workbenchResourceStore.invalidateVersionList(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionDetail(props.projectId, props.apiId, version.id)
+    workbenchResourceStore.invalidateVersionComparisonsByApi(props.projectId, props.apiId)
+
     toast.success(`版本 v${version.version} 已归档`)
-    await fetchVersions()
+    await fetchVersions({ force: true })
   }
   catch (error) {
     console.error('Failed to archive version:', error)
@@ -197,15 +226,21 @@ async function handleConfirmRollback() {
     return
 
   try {
+    const rollbackVersionId = rollbackTargetVersion.value.id
     await versionApi.rollbackToVersion(
       props.projectId,
       props.apiId,
-      rollbackTargetVersion.value.id,
+      rollbackVersionId,
     )
+
+    workbenchResourceStore.invalidateApiDetail(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionList(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionDetailsByApi(props.projectId, props.apiId)
+    workbenchResourceStore.invalidateVersionComparisonsByApi(props.projectId, props.apiId)
     toast.success(`已回滚到版本 v${rollbackTargetVersion.value.version}`)
     rollbackDialogOpen.value = false
     rollbackTargetVersion.value = null
-    await fetchVersions()
+    await fetchVersions({ force: true })
     emits('versionChanged')
   }
   catch (error) {
@@ -222,10 +257,13 @@ watchEffect(() => !isCompareSheetOpen.value && (compareVersionIds.value = [null,
 const detailVersionData = ref<ApiVersionDetail | null>(null)
 
 watch(
-  () => props.apiId,
-  () => {
-    if (props.apiId) {
+  () => [props.projectId, props.apiId] as const,
+  ([projectId, apiId]) => {
+    if (projectId && apiId) {
       fetchVersions()
+    }
+    else {
+      versions.value = []
     }
   },
   { immediate: true },
@@ -268,7 +306,7 @@ defineExpose({
           size="icon"
           class="h-7 w-7"
           :disabled="isLoading"
-          @click="fetchVersions"
+          @click="fetchVersions({ force: true })"
         >
           <RefreshCw class="h-3.5 w-3.5" :class="[isLoading && 'animate-spin']" />
         </Button>
@@ -308,7 +346,7 @@ defineExpose({
           <Button
             variant="outline"
             size="sm"
-            @click="fetchVersions"
+            @click="fetchVersions({ force: true })"
           >
             重试
           </Button>

@@ -10,7 +10,6 @@ import {
   X,
 } from 'lucide-vue-next'
 import { computed, ref, toRaw, watch } from 'vue'
-import { versionApi } from '@/api/version'
 import CodeBlock from '@/components/common/CodeBlock.vue'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -25,6 +24,7 @@ import {
 import { methodBadgeColors } from '@/constants/api'
 import { versionDiffFieldLabels, versionStatusColors, versionStatusLabels } from '@/constants/version'
 import { cn } from '@/lib/utils'
+import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 
 const props = defineProps<{
   projectId: string
@@ -48,6 +48,7 @@ interface ComparisonResult {
 }
 
 const isOpen = defineModel<boolean>('open', { required: true })
+const resourceStore = useWorkbenchResourceStore()
 
 const comparison = ref<ApiVersionComparison | null>(null)
 const isLoading = ref(false)
@@ -124,47 +125,50 @@ function isComplexValue(value: unknown): boolean {
   return typeof value === 'object' && value !== null
 }
 
-async function fetchComparison() {
-  if (!props.fromVersionId || !props.toVersionId)
-    return
+function getComparisonRequestKey(
+  projectId = props.projectId,
+  apiId = props.apiId,
+  fromVersionId = props.fromVersionId,
+  toVersionId = props.toVersionId,
+) {
+  return `${projectId}:${apiId}:${fromVersionId ?? ''}:${toVersionId ?? ''}`
+}
 
+async function fetchComparison(projectId: string, apiId: string, fromVersionId: string, toVersionId: string) {
+  const requestKey = getComparisonRequestKey(projectId, apiId, fromVersionId, toVersionId)
   isLoading.value = true
   loadError.value = null
 
   try {
-    comparison.value = await versionApi.compareVersions(
-      props.projectId,
-      props.apiId,
-      props.fromVersionId,
-      props.toVersionId,
-    )
+    const result = await resourceStore.getVersionComparison(projectId, apiId, fromVersionId, toVersionId)
+    if (!isOpen.value || getComparisonRequestKey() !== requestKey)
+      return
+    comparison.value = result
   }
   catch (error) {
+    if (!isOpen.value || getComparisonRequestKey() !== requestKey)
+      return
     loadError.value = `获取比较数据失败: ${error}`
     console.error('Failed to fetch comparison:', error)
   }
   finally {
-    isLoading.value = false
+    if (!isOpen.value || getComparisonRequestKey() === requestKey) {
+      isLoading.value = false
+    }
   }
 }
 
 watch(
-  () => [props.fromVersionId, props.toVersionId],
-  ([from, to]) => {
-    if (from && to && isOpen.value) {
-      fetchComparison()
-    }
-    else {
+  () => [isOpen.value, props.projectId, props.apiId, props.fromVersionId, props.toVersionId] as const,
+  ([open, projectId, apiId, from, to]) => {
+    if (!open || !from || !to) {
       comparison.value = null
+      return
     }
+    fetchComparison(projectId, apiId, from, to)
   },
+  { immediate: true },
 )
-
-watch(isOpen, (open) => {
-  if (open && props.fromVersionId && props.toVersionId) {
-    fetchComparison()
-  }
-})
 </script>
 
 <template>

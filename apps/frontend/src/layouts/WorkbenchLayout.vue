@@ -6,16 +6,19 @@ import WorkbenchSidebar from '@/components/workbench/WorkbenchSidebar.vue'
 import { useApiTreeStore } from '@/stores/useApiTreeStore'
 import { useProjectStore } from '@/stores/useProjectStore'
 import { useTabStore } from '@/stores/useTabStore'
+import { useWorkbenchResourceStore } from '@/stores/useWorkbenchResourceStore'
 
 const projectId = useRouteParams<string>('projectId')
 
 const tabStore = useTabStore()
 const apiTreeStore = useApiTreeStore()
 const projectStore = useProjectStore()
+const workbenchResourceStore = useWorkbenchResourceStore()
 
 // projectId 变化，更新项目数据
-watch(projectId, (newV) => {
-  if (newV) {
+watch(projectId, (newV, oldV) => {
+  if (newV && newV !== oldV) {
+    workbenchResourceStore.reset()
     apiTreeStore.setProjectId(newV)
     projectStore.setProjectId(newV)
     projectStore.init()
@@ -27,6 +30,7 @@ onUnmounted(() => {
   apiTreeStore.reset()
   tabStore.reset()
   projectStore.reset()
+  workbenchResourceStore.reset()
 })
 </script>
 

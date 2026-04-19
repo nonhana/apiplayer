@@ -14,6 +14,7 @@ import { extractPathParamNames } from '@/lib/utils'
 import { apiEditorDataSchema } from '@/validators/api'
 import { useApiTreeStore } from './useApiTreeStore'
 import { useTabStore } from './useTabStore'
+import { useWorkbenchResourceStore } from './useWorkbenchResourceStore'
 
 /** 单个 API 的编辑器数据 */
 export interface ApiEditorData {
@@ -638,6 +639,8 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
     if (!currentApiId.value || isSaving.value)
       return false
 
+    const apiId = currentApiId.value
+
     const validation = validate()
     if (!validation.valid) {
       toast.error(validation.message ?? '验证失败')
@@ -654,14 +657,17 @@ export const useApiEditorStore = defineStore('apiEditor', () => {
 
     try {
       const req = buildUpdateRequest()
-      await apiApi.updateApi(projectId, currentApiId.value, req)
+      await apiApi.updateApi(projectId, apiId, req)
+
+      const workbenchResourceStore = useWorkbenchResourceStore()
+      workbenchResourceStore.invalidateApi(projectId, apiId)
 
       const apiTreeStore = useApiTreeStore()
       await apiTreeStore.refreshTree()
 
       const tabStore = useTabStore()
       const cache = getCurrentCache()
-      tabStore.updateTabTitle(currentApiId.value, cache.data.basicInfo.name)
+      tabStore.updateTabTitle(apiId, cache.data.basicInfo.name)
 
       toast.success('保存成功')
 
