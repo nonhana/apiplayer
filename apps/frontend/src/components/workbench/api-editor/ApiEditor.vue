@@ -130,19 +130,19 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
       </div>
 
       <ScrollArea class="flex-1 overflow-y-auto">
-        <TabsContent value="doc">
+        <TabsContent value="doc" class="2xl:w-[75%] w-full m-auto">
           <ApiDocView :api="apiDetail" />
         </TabsContent>
 
-        <TabsContent value="edit">
+        <TabsContent value="edit" class="2xl:w-[75%] w-full m-auto">
           <ApiEditView :api="apiDetail" @updated="refreshApiDetail" />
         </TabsContent>
 
-        <TabsContent value="run">
+        <TabsContent value="run" class="2xl:w-[75%] w-full m-auto">
           <ApiRunnerView :api="apiDetail" />
         </TabsContent>
 
-        <TabsContent value="versions">
+        <TabsContent value="versions" class="2xl:w-[75%] w-full m-auto">
           <VersionHistory
             :project-id="projectId"
             :api-id="apiId"
@@ -151,7 +151,7 @@ watch([apiId, projectId], ([curApiId, curProjectId]) => {
           />
         </TabsContent>
 
-        <TabsContent value="settings">
+        <TabsContent value="settings" class="2xl:w-[75%] w-full m-auto">
           <ApiSettingsView :api="apiDetail" />
         </TabsContent>
       </ScrollArea>
