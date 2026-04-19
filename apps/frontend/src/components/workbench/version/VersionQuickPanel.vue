@@ -28,18 +28,33 @@ const totalCount = ref(0)
 
 const currentVersion = computed(() => recentVersions.value.find(v => v.id === props.currentVersionId))
 
+function getVersionListRequestKey(projectId = props.projectId, apiId = props.apiId) {
+  return `${projectId}:${apiId}`
+}
+
 async function fetchRecentVersions() {
+  const { projectId, apiId } = props
+  if (!projectId || !apiId)
+    return
+
+  const requestKey = getVersionListRequestKey(projectId, apiId)
   isLoading.value = true
   try {
-    const versions = await workbenchResourceStore.getVersionList(props.projectId, props.apiId)
+    const versions = await workbenchResourceStore.getVersionList(projectId, apiId)
+    if (getVersionListRequestKey() !== requestKey)
+      return
     totalCount.value = versions.length
     recentVersions.value = versions.slice(0, 3)
   }
   catch (error) {
+    if (getVersionListRequestKey() !== requestKey)
+      return
     console.error('Failed to fetch recent versions:', error)
   }
   finally {
-    isLoading.value = false
+    if (getVersionListRequestKey() === requestKey) {
+      isLoading.value = false
+    }
   }
 }
 
@@ -50,6 +65,10 @@ watch(
   ([projectId, apiId]) => {
     if (projectId && apiId) {
       fetchRecentVersions()
+    }
+    else {
+      recentVersions.value = []
+      totalCount.value = 0
     }
   },
   { immediate: true },

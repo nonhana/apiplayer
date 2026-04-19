@@ -44,6 +44,9 @@ export class ApiDetailDto extends ApiBriefDto {
   updatedAt: Date
 
   @Expose()
+  currentVersionId?: string
+
+  @Expose()
   @Transform(({ obj }) => {
     const description = obj.currentVersion?.snapshot?.description
     return description !== null ? description : undefined

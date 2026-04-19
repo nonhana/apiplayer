@@ -160,7 +160,7 @@ async function handleConfirmPublish(data: PublishVersionReq) {
     )
     workbenchResourceStore.invalidateApiDetail(props.projectId, props.apiId)
     workbenchResourceStore.invalidateVersionList(props.projectId, props.apiId)
-    workbenchResourceStore.invalidateVersionDetail(props.projectId, props.apiId, publishedVersionId)
+    workbenchResourceStore.invalidateVersionDetailsByApi(props.projectId, props.apiId)
     workbenchResourceStore.invalidateVersionComparisonsByApi(props.projectId, props.apiId)
 
     toast.success(`版本 ${data.version} 发布成功`)
