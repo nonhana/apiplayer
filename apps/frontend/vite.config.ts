@@ -24,7 +24,6 @@ export default defineConfig(({ mode }) => {
         algorithms: ['gzip'],
         exclude: [/\.(gz)$/],
         threshold: 10240,
-        deleteOriginalAssets: true,
       }),
       visualizer({
         open: false,
